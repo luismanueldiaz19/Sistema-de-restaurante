@@ -1,13 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
-use App\Models\Cliente;
+use App\Models\Cliente; 
 use Illuminate\Http\Request;
 
-class ClienteController extends Controller
-{
+use Illuminate\Support\Facades\Validator;
+
+class ClienteController extends Controller {
     // 🔍 LISTAR
     public function index()
     {
@@ -15,28 +15,89 @@ class ClienteController extends Controller
         return response()->json($clientes);
     }
 
-    // ➕ CREAR
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required'
-        ]);
+    
+    // ➕ CREAR UN CLIENTE
+public function store(Request $request) {
 
-        $cliente = Cliente::create($request->all());
+    $validator = Validator::make($request->all(), [
+        'nombre' => 'required',
+        'telefono' => 'required',
+    ]);
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Cliente creado',
-            'data'    => $cliente
-        ]);
+    if ($validator->fails()) {
+        $data = [
+            'message' => 'Error en la validación de los datos',
+            'errors'  => $validator->errors(), // ✅ aquí va errors()
+            'status'  => 400
+        ];
+        return response()->json($data, 400);
     }
+
+    $cliente = Cliente::create([
+        'nombre'   => $request->nombre,
+        'telefono' => $request->telefono
+    ]);
+
+    if (!$cliente) {
+        $data = [
+            'message' => 'Error al crear cliente',
+            'status'  => 500
+        ];
+        return response()->json($data, 500);
+    }
+
+    $data = [
+        'message' => 'Cliente creado correctamente',
+        'status'  => 201,
+        'data'    => $cliente
+    ];
+
+    return response()->json($data, 201);
+}
+
+ 
+     
+     
+
+
+ 
+
 
     // 🔍 VER UNO
-    public function show($id)
-    {
-        $cliente = Cliente::findOrFail($id);
-        return response()->json($cliente);
+    public function show($id) {
+        
+    if (!is_numeric($id)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'El ID debe ser numérico'
+        ], 400);
     }
+    try {
+        $cliente = Cliente::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $cliente
+        ], 200);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Cliente no encontrado'
+        ], 404);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor',
+            'error' => $e->getMessage() // opcional (quítalo en producción)
+        ], 500);
+    }
+}
+    // public function show($id) {
+    //     $cliente = Cliente::findOrFail($id);
+    //     return response()->json($cliente);
+    // }
 
     // ✏️ ACTUALIZAR
     public function update(Request $request, $id)
@@ -63,15 +124,28 @@ class ClienteController extends Controller
     }
 
     // ❌ ELIMINAR
-    public function destroy($id)
-    {
-        $cliente = Cliente::findOrFail($id);
-        $cliente->delete();
+    public function destroy($id) {
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Cliente eliminado'
-        ]);
+        $cliente = Cliente::find($id);
+
+        if(!$cliente){
+            $data = [
+                'message' => 'Cliente no encontrado',
+                'status' => 404,
+            ];
+            return response()->json($data, 404, $headers);
+
+        }
+
+
+        $cliente->delete();
+          $data = [
+               'message' => 'Cliente eliminado',
+                'status' => 200
+            ];
+
+      return response()->json($data, 200, $headers);
     }
+
 
 }
