@@ -59,32 +59,32 @@ class HeaderFacturacion extends StatelessWidget {
 
           const Spacer(),
 
-          // 💰 Caja
-          _InfoItem(
-            icon: Icons.attach_money,
-            label: cajaAbierta ? 'Caja Abierta' : 'Caja Cerrada',
-            value: NumberFormat.currency(
-              locale: 'es_DO',
-              symbol: '\$',
-            ).format(montoCaja),
-            color: cajaAbierta ? Colors.green : Colors.red,
-          ),
+          // // 💰 Caja
+          // _InfoItem(
+          //   icon: Icons.attach_money,
+          //   label: cajaAbierta ? 'Caja Abierta' : 'Caja Cerrada',
+          //   value: NumberFormat.currency(
+          //     locale: 'es_DO',
+          //     symbol: '\$',
+          //   ).format(montoCaja),
+          //   color: cajaAbierta ? Colors.green : Colors.red,
+          // ),
 
-          const SizedBox(width: 25),
+          // const SizedBox(width: 25),
 
-          // 👤 Usuario
-          _InfoItem(icon: Icons.person, label: 'Usuario', value: usuario),
+          // // 👤 Usuario
+          // _InfoItem(icon: Icons.person, label: 'Usuario', value: usuario),
 
-          const SizedBox(width: 25),
+          // const SizedBox(width: 25),
 
-          // 📅 Fecha
-          _InfoItem(
-            icon: Icons.calendar_today,
-            label: 'Fecha',
-            value: fechaFormat,
-          ),
+          // // 📅 Fecha
+          // _InfoItem(
+          //   icon: Icons.calendar_today,
+          //   label: 'Fecha',
+          //   value: fechaFormat,
+          // ),
 
-          const SizedBox(width: 25),
+          // const SizedBox(width: 25),
 
           // ☰ Menú
           IconButton(icon: const Icon(Icons.menu), onPressed: onMenuTap),

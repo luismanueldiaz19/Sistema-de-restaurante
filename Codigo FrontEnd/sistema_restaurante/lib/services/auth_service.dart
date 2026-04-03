@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import '../model/user.dart';
+import '../utils/constants.dart';
 import 'api_services.dart';
 
 class AuthService {
   final ApiService api = ApiService();
 
-  final String baseUrl = "http://127.0.0.1:8000/api"; // emulador
+  final String baseUrl = "http://$ipLocal/api"; // emulador
 
   /// LOGIN
   Future<AuthResponse?> login({
@@ -16,12 +17,14 @@ class AuthService {
     final url = "$baseUrl/login";
 
     try {
-      final response = await api.post(
-        url,
-        jsonEncode({"email": email, "password": password}),
-      );
+      final response = await api.post(url, {
+        "email": email,
+        "password": password,
+      });
 
       final data = jsonDecode(response.body);
+
+      print('data : $data');
 
       if (response.statusCode == 200 && data['status'] == true) {
         return AuthResponse.fromJson(data); // 🔥 CLAVE
@@ -29,7 +32,7 @@ class AuthService {
         return null;
       }
     } catch (e) {
-      print("Error login: $e");
+      print("Error login catch: $e");
       return null;
     }
   }

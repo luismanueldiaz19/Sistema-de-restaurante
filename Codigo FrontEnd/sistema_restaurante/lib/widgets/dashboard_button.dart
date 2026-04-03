@@ -16,6 +16,7 @@ class DashboardButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -39,13 +40,12 @@ class DashboardButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
-              Icon(icon, size: 48, color: Colors.white),
+              Icon(icon, size: style.bodyMedium?.fontSize, color: Colors.white),
               const SizedBox(width: 20),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 20,
+                  style: style.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),

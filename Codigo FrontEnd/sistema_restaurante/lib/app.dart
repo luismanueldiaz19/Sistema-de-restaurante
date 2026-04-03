@@ -1,9 +1,19 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sistema_restaurante/screens/splash_screen.dart';
 
 import 'palletes/app_colors.dart';
 import 'theme/lwader_soft_theme.dart';
+
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -12,6 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lwader Soft',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
       theme: ThemeData(
         textTheme: GoogleFonts.interTextTheme(),
         fontFamily: 'Inter',

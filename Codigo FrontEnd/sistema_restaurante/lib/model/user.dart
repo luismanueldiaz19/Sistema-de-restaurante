@@ -26,12 +26,13 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data']; // 👈 CLAVE
     return AuthResponse(
       status: json['status'],
-      user: User.fromJson(json['user']),
-      roles: List<String>.from(json['roles']),
-      permissions: List<String>.from(json['permissions']),
-      token: json['token'],
+      user: User.fromJson(data['user']),
+      roles: List<String>.from(data['roles']),
+      permissions: List<String>.from(data['permissions']),
+      token: data['token'],
     );
   }
 }

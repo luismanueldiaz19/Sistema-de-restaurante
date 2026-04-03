@@ -14,7 +14,7 @@ const String logoApp = 'assets/logo.jpeg';
 
 // const ipLocal = '104.206.57.61';
 //92.168.1.102
-const ipLocal = 'localhost';
+const ipLocal = '127.0.0.1:8000';
 
 const pathHost = 'lwader/backend/';
 //const pathHost = 'ultimate_php/backend/';
