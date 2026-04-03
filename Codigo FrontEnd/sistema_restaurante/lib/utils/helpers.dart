@@ -282,6 +282,8 @@ Widget textFieldWidgetUI({
   IconData? prefixIcon, // 👈 nuevo parámetro
   IconData? suffixIcon, // 👈 nuevo parámetro
   VoidCallback? onSuffixTap, // acción opcional para el icono derecho,
+  String? Function(String?)? validator,
+  bool requiredField = true,
 }) {
   return Container(
     width: width,
@@ -309,12 +311,16 @@ Widget textFieldWidgetUI({
           ? null
           : () => onEditingComplete(),
       onTap: onTap == null ? null : () => onTap(),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor, ingrese $label';
-        }
-        return null;
-      },
+      validator:
+          validator ??
+          (requiredField
+              ? (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, ingrese $label';
+                  }
+                  return null;
+                }
+              : null),
       decoration: InputDecoration(
         hintText: hintText,
         labelText: label,

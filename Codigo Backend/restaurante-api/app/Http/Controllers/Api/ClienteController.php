@@ -6,11 +6,13 @@ use App\Models\Cliente;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
+use Illuminate\Database\QueryException;
 
 class ClienteController extends Controller {
     // 🔍 LISTAR
-    public function index()
-    {
+    public function index()  {
         $clientes = Cliente::latest()->get();
         return response()->json($clientes);
     }
@@ -20,8 +22,11 @@ class ClienteController extends Controller {
 public function store(Request $request) {
 
     $validator = Validator::make($request->all(), [
-        'nombre' => 'required',
-        'telefono' => 'required',
+        'nombre'    => 'required',
+        'telefono'  => 'required',
+        'direccion' => 'nullable',
+        'documento' => 'nullable',
+        'email'     => 'nullable',
     ]);
 
     if ($validator->fails()) {
@@ -34,8 +39,11 @@ public function store(Request $request) {
     }
 
     $cliente = Cliente::create([
-        'nombre'   => $request->nombre,
-        'telefono' => $request->telefono
+        'nombre'    => $request->nombre,
+        'telefono'  => $request->telefono,
+        'direccion' => $request->direccion,
+        'documento' => $request->documento,
+        'email'     => $request->email,
     ]);
 
     if (!$cliente) {
@@ -64,7 +72,7 @@ public function store(Request $request) {
 
 
     // 🔍 VER UNO
-    public function show($id) {
+public function show($id) {
         
     if (!is_numeric($id)) {
         return response()->json([
@@ -94,58 +102,91 @@ public function store(Request $request) {
         ], 500);
     }
 }
-    // public function show($id) {
-    //     $cliente = Cliente::findOrFail($id);
-    //     return response()->json($cliente);
-    // }
 
-    // ✏️ ACTUALIZAR
-    public function update(Request $request, $id)
-    {
-        $cliente = Cliente::findOrFail($id);
-
-        $request->validate([
-            'nombre' => 'required'
-        ]);
-
-        $cliente->update($request->only([
-            'nombre',
-            'telefono',
-            'direccion',
-            'documento',
-            'email'
-        ]));
-
-        return response()->json([
-            'status'  => true,
-            'message' => 'Cliente actualizado correctamente',
-            'data'    => $cliente
-        ]);
-    }
-
-    // ❌ ELIMINAR
-    public function destroy($id) {
-
+  // ✏️ ACTUALIZAR
+public function update(Request $request, $id) {
+    try {
+        // 🔍 Buscar cliente
         $cliente = Cliente::find($id);
 
-        if(!$cliente){
-            $data = [
+        if (!$cliente) {
+            return response()->json([
                 'message' => 'Cliente no encontrado',
-                'status' => 404,
-            ];
-            return response()->json($data, 404, $headers);
-
+                'status'  => 404
+            ], 404);
         }
 
+        // ✅ Validación
+        $validator = Validator::make($request->all(), [
+            'nombre'    => 'required|string|max:255',
+            'telefono'  => 'nullable|string|max:255',
+            'direccion' => 'nullable|string|max:255',
+            'documento' => 'nullable|string|max:255',
+            'email'     => 'nullable|email|max:255',
+        ]);
 
-        $cliente->delete();
-          $data = [
-               'message' => 'Cliente eliminado',
-                'status' => 200
-            ];
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Error en la validación',
+                'errors'  => $validator->errors(),
+                'status'  => 400
+            ], 400);
+        }
 
-      return response()->json($data, 200, $headers);
+        // 🔄 Actualizar
+        $cliente->update([
+            'nombre'    => $request->nombre,
+            'telefono'  => $request->telefono,
+            'direccion' => $request->direccion,
+            'documento' => $request->documento,
+            'email'     => $request->email,
+        ]);
+
+        // ✅ Respuesta OK
+        return response()->json([
+            'message' => 'Cliente actualizado correctamente',
+            'status'  => 200,
+            'data'    => $cliente
+        ], 200);
+
+    } catch (Exception $e) {
+        // 💥 Error general
+        return response()->json([
+            'message' => 'Error al actualizar cliente',
+            'error'   => $e->getMessage(), // opcional en producción quitar
+            'status'  => 500
+        ], 500);
     }
+}
+
+   // ❌ ELIMINAR
+public function destroy($id) {
+    try {
+        // 🔍 Buscar cliente
+        $cliente = Cliente::find($id);
+
+        if (!$cliente) {
+            return response()->json([
+                'message' => 'Cliente no encontrado',
+                'status'  => 404
+            ], 404);
+        }
+
+        // 🗑️ Eliminar
+        $cliente->delete();
+
+        return response()->json([
+            'message' => 'Cliente eliminado correctamente',
+            'status'  => 200
+        ], 200);
+
+    } catch (QueryException $e) {
+        return response()->json([
+        'message' => 'No se puede eliminar el cliente porque tiene registros relacionados',
+        'status'  => 409
+    ], 409);
+}
+}
 
 
 }

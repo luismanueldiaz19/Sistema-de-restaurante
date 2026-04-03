@@ -7,6 +7,8 @@ class ClienteAdminProvider with ChangeNotifier {
   final ClienteApi _clienteApi = ClienteApi();
 
   List<Cliente> _clientes = [];
+
+  List<Cliente> _allClientes = [];
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -14,12 +16,41 @@ class ClienteAdminProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  Timer? _debounce;
+  String _searchQuery = '';
+
+  void searchClientes(String query) {
+    _searchQuery = query;
+
+    // cancelar debounce anterior
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    // nuevo debounce
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _performSearch(query);
+    });
+  }
+
+  void _performSearch(String query) {
+    if (query.isEmpty) {
+      _clientes = _allClientes;
+    } else {
+      _clientes = _allClientes.where((c) {
+        return c.nombre!.toLowerCase().contains(query.toLowerCase()) ||
+            (c.telefono ?? '').contains(query);
+      }).toList();
+    }
+
+    notifyListeners();
+  }
+
   /// 🔥 CARGAR CLIENTES
   Future<void> loadClients(String token) async {
     _setLoading(true);
 
     try {
-      _clientes = await _clienteApi.fetchClients(token);
+      _allClientes = await _clienteApi.fetchClients(token);
+      _clientes = _allClientes;
       _errorMessage = null;
       print("CLIENTES EN PROVIDER: ${_clientes.length}"); // 👈
       notifyListeners();
@@ -67,11 +98,10 @@ class ClienteAdminProvider with ChangeNotifier {
     try {
       final updatedClient = await _clienteApi.updateClient(id, data, token);
 
-      final index = _clientes.indexWhere((c) => c.id == id);
+      final index = _clientes.indexWhere((c) => c.id == int.parse(id));
       if (index != -1) {
         _clientes[index] = updatedClient;
       }
-
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -81,7 +111,7 @@ class ClienteAdminProvider with ChangeNotifier {
   }
 
   /// 🔥 ELIMINAR CLIENTE
-  Future<void> deleteClient(String id, String token) async {
+  Future<void> deleteClient(int id, String token) async {
     _setLoading(true);
 
     try {

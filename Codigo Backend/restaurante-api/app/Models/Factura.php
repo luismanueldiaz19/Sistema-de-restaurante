@@ -11,21 +11,25 @@ class Factura extends Model
 
     protected $fillable = [
         'cliente_id',
-        'numero_factura',
-        'fecha',
+        'ncf',
+        'tipo_factura',
+        'fecha_emision',
+        'fecha_vencimiento',
         'subtotal',
+        'descuento_total',
         'itbis',
         'total',
-        'estado'
+        'estado',
+        
     ];
+public function user() {
+    return $this->belongsTo(User::class);
+}
+     public function cliente() {
+            return $this->belongsTo(Cliente::class);
+       }
 
-    public function cliente()
-    {
-        return $this->belongsTo(Cliente::class);
-    }
-
-    public function detalles()
-    {
-        return $this->hasMany(FacturaDetalle::class);
-    }
+     public function detalles() {
+           return $this->hasMany(FacturaDetalle::class);
+     }
 }

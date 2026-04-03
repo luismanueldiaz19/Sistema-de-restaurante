@@ -11,20 +11,28 @@ return new class () extends Migration {
     public function up()
     {
         Schema::create('facturas', function (Blueprint $table) {
-            $table->id();
+           $table->id();
+           // 🔗 Relación
+           $table->foreignId('cliente_id')->constrained()->cascadeOnDelete();
+           
+           // 📄 Datos fiscales
+          $table->string('ncf')->unique();
+          $table->string('tipo_factura')->default('consumo_final');
 
-            $table->foreignId('cliente_id')->constrained()->onDelete('cascade');
+          // 📅 Fechas
+          $table->date('fecha_emision');
+          $table->date('fecha_vencimiento')->nullable();
 
-            $table->string('numero_factura')->nullable();
-            $table->date('fecha');
+          // 💰 Totales
+           $table->decimal('subtotal', 12, 2)->default(0);
+           $table->decimal('descuento_total', 12, 2)->default(0);
+           $table->decimal('itbis', 12, 2)->default(0);
+           $table->decimal('total', 12, 2)->default(0);
 
-            $table->decimal('subtotal', 10, 2)->default(0);
-            $table->decimal('itbis', 10, 2)->default(0);
-            $table->decimal('total', 10, 2)->default(0);
+           // 🧾 Estado
+           $table->enum('estado', ['pendiente', 'pagada', 'anulada'])->default('pendiente');
 
-            $table->string('estado')->default('pendiente'); // pendiente, pagada
-
-            $table->timestamps();
+           $table->timestamps();
         });
     }
 

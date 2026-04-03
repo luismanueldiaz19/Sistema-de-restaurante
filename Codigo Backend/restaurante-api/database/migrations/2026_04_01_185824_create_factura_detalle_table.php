@@ -11,19 +11,23 @@ return new class extends Migration
      *
      * @return void
      */
-    public function up()
-    {
+    public function up() {
         Schema::create('factura_detalle', function (Blueprint $table) {
-            $table->id();
+          // 🔗 Relación
+    $table->foreignId('factura_id')->constrained()->cascadeOnDelete();
 
-    $table->foreignId('factura_id')->constrained()->onDelete('cascade');
-
+    // 📦 Producto
     $table->string('descripcion');
-    $table->integer('cantidad');
-    $table->decimal('precio', 10, 2);
+    $table->string('unidad_medida')->nullable();
 
-    $table->decimal('itbis', 10, 2)->default(0);
-    $table->decimal('subtotal', 10, 2);
+    // 🔢 Cantidad y precios
+    $table->integer('cantidad');
+    $table->decimal('precio', 12, 2);
+    $table->decimal('descuento', 12, 2)->default(0); // monto fijo
+    $table->decimal('descuento_porcentaje', 5, 2)->default(0); // %
+    // 💰 ITBIS y total
+    $table->decimal('itbis', 12, 2)->default(0);
+    $table->decimal('total', 12, 2);
 
     $table->timestamps();
         });

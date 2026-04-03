@@ -52,7 +52,10 @@ class ClienteApi {
     final response = await api.post(baseUrl, data, token: token);
 
     if (response.statusCode == 201 || response.statusCode == 200) {
-      return Cliente.fromJson(jsonDecode(response.body));
+      final res = response.body;
+      final value = jsonDecode(res);
+
+      return Cliente.fromJson(value['data']);
     } else {
       throw Exception("Error al crear cliente");
     }
@@ -67,14 +70,17 @@ class ClienteApi {
     final response = await api.put("$baseUrl/$id", data, token: token);
 
     if (response.statusCode == 200) {
-      return Cliente.fromJson(jsonDecode(response.body));
+      final res = response.body;
+      final value = jsonDecode(res);
+
+      return Cliente.fromJson(value['data']);
     } else {
       throw Exception("Error al actualizar cliente");
     }
   }
 
   /// 🔥 ELIMINAR CLIENTE (DELETE)
-  Future<bool> deleteClient(String id, String token) async {
+  Future<bool> deleteClient(int id, String token) async {
     final response = await api.delete("$baseUrl/$id", token: token);
 
     if (response.statusCode == 200 || response.statusCode == 204) {

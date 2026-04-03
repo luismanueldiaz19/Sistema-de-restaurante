@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:sistema_restaurante/utils/helpers.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/phone_input_formatter.dart';
 import '../models/cliente.dart';
 import '../providers/cliente_admin_provider.dart';
 
@@ -33,20 +37,10 @@ class _AddClienteDialogState extends State<AddClienteDialog> {
   final _formKey = GlobalKey<FormState>();
 
   final nombreCtrl = TextEditingController();
-  final rncCtrl = TextEditingController();
-  final emailCtrl = TextEditingController();
+  final rncCtrl = TextEditingController(text: '');
+  final emailCtrl = TextEditingController(text: '');
   final telefonoCtrl = TextEditingController();
-  final direccionCtrl = TextEditingController();
-  final limiteCtrl = TextEditingController(text: '50000');
-  final diasCtrl = TextEditingController(text: '30');
-
-  final codigoCuentaCxcCtrl = TextEditingController();
-
-  String tipoEntidad = 'FISICA';
-  String tipoIdentificacion = 'CEDULA';
-  String tipoPrecio = 'one';
-  String condicionPago = 'contado';
-  String estado = 'activo';
+  final direccionCtrl = TextEditingController(text: '');
 
   bool loading = false;
 
@@ -59,45 +53,38 @@ class _AddClienteDialogState extends State<AddClienteDialog> {
     if (isEdit) {
       final c = widget.cliente!;
       nombreCtrl.text = c.nombre ?? '';
-
       emailCtrl.text = c.email ?? '';
       telefonoCtrl.text = c.telefono ?? '';
       direccionCtrl.text = c.direccion ?? '';
+      rncCtrl.text = c.documento ?? '';
     }
   }
 
-  void guardar() async {
+  void guardar(token) async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => loading = true);
+    // setState(() => loading = true);
 
     final provider = Provider.of<ClienteAdminProvider>(context, listen: false);
 
+    // nombre, telefono, direccion, documento, email
     final data = {
       "id": widget.cliente?.id,
       "nombre": nombreCtrl.text.trim(),
-      "rnc_cedula": rncCtrl.text.trim(),
-      "tipo_entidad": tipoEntidad,
-      "tipo_identificacion": tipoIdentificacion,
+      "documento": rncCtrl.text.trim(),
       "email": emailCtrl.text.trim(),
       "telefono": telefonoCtrl.text.trim(),
       "direccion": direccionCtrl.text.trim(),
-      "limite_credito": double.tryParse(limiteCtrl.text) ?? 0,
-      "dias_credito": int.tryParse(diasCtrl.text) ?? 0,
-      "tipo_precio": tipoPrecio,
-      "condicion_pago_default": condicionPago,
-      "estado": estado,
-      "codigo_cuenta_cxc": codigoCuentaCxcCtrl.text.trim(),
-      // "usuario_id": currentUsuario?.idUsuario,
+      "token": token,
     };
 
     print(data);
 
     try {
       if (isEdit) {
-        // await provider.updateCliente(data);
+        await provider.updateClient(widget.cliente!.id.toString(), data, token);
       } else {
-        // await provider.addCliente(data);
+        await provider.createClient(data, token);
       }
 
       Navigator.pop(context, true);
@@ -111,6 +98,7 @@ class _AddClienteDialogState extends State<AddClienteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -134,7 +122,7 @@ class _AddClienteDialogState extends State<AddClienteDialog> {
             ],
           ),
 
-          const Divider(),
+          const SizedBox(height: 10),
 
           /// 📋 FORM
           Flexible(
@@ -143,78 +131,34 @@ class _AddClienteDialogState extends State<AddClienteDialog> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    _buildText(nombreCtrl, 'Nombre *', required: true),
-                    _buildText(telefonoCtrl, 'Teléfono'),
-                    _buildText(direccionCtrl, 'Dirección'),
-                    _buildText(emailCtrl, 'Email (Opcional)'),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildDropdown(
-                            'Tipo Entidad',
-                            tipoEntidad,
-                            ['FISICA', 'JURIDICA'],
-                            (v) => setState(() => tipoEntidad = v),
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildDropdown(
-                            'Tipo Identificación',
-                            tipoIdentificacion,
-                            ['CEDULA', 'RNC', 'PASAPORTE'],
-                            (v) => setState(() => tipoIdentificacion = v),
-                          ),
-                        ),
-                        Expanded(child: _buildText(rncCtrl, 'RNC/Cédula')),
+                    textFieldWidgetUI(
+                      controller: nombreCtrl,
+                      label: 'Nombre *',
+                    ),
+                    textFieldWidgetUI(
+                      label: 'Teléfono *',
+                      controller: telefonoCtrl,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        PhoneInputFormatter(),
                       ],
                     ),
 
-                    // if (currentUsuario!.tienePermiso('admin', 'admin'))
-                    //   Row(
-                    //     children: [
-                    //       Expanded(
-                    //         child: _buildText(limiteCtrl, 'Límite Crédito',
-                    //             type: TextInputType.number),
-                    //       ),
-                    //       Expanded(
-                    //         child: _buildText(diasCtrl, 'Días Crédito',
-                    //             type: TextInputType.number),
-                    //       ),
-                    //       Expanded(
-                    //         child: _buildText(
-                    //             codigoCuentaCxcCtrl, 'Cuenta contable'),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // if (currentUsuario!.tienePermiso('admin', 'admin'))
-                    //   Row(
-                    //     children: [
-                    //       Expanded(
-                    //         child: _buildDropdown(
-                    //           'Tipo Precio',
-                    //           tipoPrecio,
-                    //           ['one', 'two', 'three'],
-                    //           (v) => setState(() => tipoPrecio = v),
-                    //         ),
-                    //       ),
-                    //       Expanded(
-                    //         child: _buildDropdown(
-                    //           'Condición de Pago',
-                    //           condicionPago,
-                    //           ['contado', 'credito', 'contra_entrega'],
-                    //           (v) => setState(() => condicionPago = v),
-                    //         ),
-                    //       ),
-                    //       Expanded(
-                    //         child: _buildDropdown(
-                    //           'Estado',
-                    //           estado,
-                    //           ['activo', 'inactivo'],
-                    //           (v) => setState(() => estado = v),
-                    //         ),
-                    //       )
-                    //     ],
-                    //   ),
+                    textFieldWidgetUI(
+                      controller: direccionCtrl,
+                      label: 'Dirección',
+                      requiredField: false,
+                    ),
+                    textFieldWidgetUI(
+                      controller: emailCtrl,
+                      label: 'Email (Opcional)',
+                      requiredField: false,
+                    ),
+                    textFieldWidgetUI(
+                      controller: rncCtrl,
+                      label: 'Documento (Opcional)',
+                      requiredField: false,
+                    ),
                   ],
                 ),
               ),
@@ -233,7 +177,7 @@ class _AddClienteDialogState extends State<AddClienteDialog> {
               ),
               const SizedBox(width: 10),
               ElevatedButton(
-                onPressed: loading ? null : guardar,
+                onPressed: loading ? null : () => guardar(auth.token!),
                 child: loading
                     ? const SizedBox(
                         height: 16,

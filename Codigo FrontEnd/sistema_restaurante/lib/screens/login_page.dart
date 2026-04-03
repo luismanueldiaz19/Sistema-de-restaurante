@@ -19,8 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   bool? obscureText = true;
   final FocusNode _focusNode = FocusNode();
   late TextEditingController controllerUsuario = TextEditingController(
-    // text: 'lwader@gmail.com',
-    text: 'seller@gmail.com',
+    text: 'lwader@gmail.com',
+    // text: 'seller@gmail.com',
   );
   late TextEditingController controllerClave = TextEditingController(
     text: '199512',
