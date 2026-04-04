@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sistema_restaurante/facturacion/screens/add_factura.dart';
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/utils/constants.dart';
 import 'package:sistema_restaurante/widgets/menu_drop.dart';
@@ -111,7 +112,11 @@ class _MyHomePageState extends State<MyHomePage> {
             onAction: (action) {
               switch (action) {
                 case 'venta':
-                  print('Ir a Nueva Venta');
+                  // print('Ir a Nueva Venta');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CrearFacturaPage()),
+                  );
                   break;
                 case 'clientes':
                   Navigator.push(

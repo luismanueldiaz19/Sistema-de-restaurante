@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/dashboard_button.dart';
-import '../../widgets/permission_widget.dart';
 
 class DashboardButtonsSection extends StatelessWidget {
   final void Function(String action) onAction;

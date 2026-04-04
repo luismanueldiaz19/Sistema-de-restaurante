@@ -60,7 +60,7 @@ class _AddClienteDialogState extends State<AddClienteDialog> {
     }
   }
 
-  void guardar(token) async {
+  void guardar(String token) async {
     if (!_formKey.currentState!.validate()) return;
 
     // setState(() => loading = true);

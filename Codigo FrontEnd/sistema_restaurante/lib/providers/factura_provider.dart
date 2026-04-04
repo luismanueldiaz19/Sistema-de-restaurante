@@ -20,10 +20,8 @@ class FacturaProvider with ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
       final response = await _repo.crearFactura(factura, token);
-
-      // _facturaId = response['factura_id'];
+      _facturaId = response['factura_id'];
     } catch (e) {
       _error = e.toString();
     } finally {

@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\FacturaController;
-
+use App\Http\Controllers\Api\NcfSecuenciaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -64,6 +64,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/facturas/{id}/pagar', [FacturaController::class, 'pagar'])
         ->middleware('permission:editar_facturas');
+
+
+
+  // ================= COMPROBANTES FISCALES =================
+ 
+     Route::get('/ncf-secuencias', [NcfSecuenciaController::class, 'index'])
+        ->middleware('permission:crear_facturas');
+
+      Route::get('/ncf-secuencias/{id}', [NcfSecuenciaController::class, 'show'])
+        ->middleware('permission:crear_facturas');
 
 });
 

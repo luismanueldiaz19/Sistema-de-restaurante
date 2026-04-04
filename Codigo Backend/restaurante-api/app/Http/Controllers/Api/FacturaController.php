@@ -13,7 +13,7 @@ use Exception;
 
 class FacturaController extends Controller
 {
-    public function store(Request $request)
+ public function store(Request $request)
 {
     DB::beginTransaction();
 
@@ -22,7 +22,7 @@ class FacturaController extends Controller
         // ✅ VALIDACIÓN
         $validator = Validator::make($request->all(), [
             'cliente_id' => 'required|exists:clientes,id',
-            'ncf' => 'required|unique:facturas,ncf',
+            'ncf_secuencia_id' => 'required|exists:ncf_secuencias,id',
             'fecha_emision' => 'required|date',
             'detalles' => 'required|array|min:1',
         ]);
@@ -35,84 +35,69 @@ class FacturaController extends Controller
             ], 400);
         }
 
+        // 🔥 GENERAR NCF
+        $secuencia = $this->generarNCF($request->ncf_secuencia_id);
+        $ncf = $secuencia['ncf'];
+        $tipoFactura = $secuencia['nombre'];
+
         $detalles = $request->detalles;
 
         $subtotal = 0;
         $itbisTotal = 0;
         $descuentoTotal = 0;
 
-        // 🧮 CALCULAR DETALLES
+        $detallesCalculados = [];
+
+        // 🧮 CALCULAR TODO PRIMERO
         foreach ($detalles as $item) {
 
-            $cantidad = $item['cantidad'];
-            $precio = $item['precio'];
+            $calc = $this->calcularLinea($item);
 
-            $linea = $cantidad * $precio;
+            $subtotal += $calc['baseConDescuento'];
+            $descuentoTotal += $calc['descuento'];
+            $itbisTotal += $calc['itbis'];
 
-            // 🎯 DESCUENTO
-            $descuento = $item['descuento'] ?? 0;
-
-            if (!empty($item['descuento_porcentaje'])) {
-                $descuento = $linea * ($item['descuento_porcentaje'] / 100);
-            }
-
-            $lineaConDescuento = $linea - $descuento;
-
-            // 💰 ITBIS (18%)
-            $itbis = $lineaConDescuento * 0.18;
-
-            $subtotal += $linea;
-            $descuentoTotal += $descuento;
-            $itbisTotal += $itbis;
+            $detallesCalculados[] = [
+                'item' => $item,
+                'calc' => $calc
+            ];
         }
 
-        $total = ($subtotal - $descuentoTotal) + $itbisTotal;
+        $total = $subtotal + $itbisTotal;
 
         // ✅ CREAR FACTURA
         $factura = DB::table('facturas')->insertGetId([
             'cliente_id' => $request->cliente_id,
-            'user_id' => auth()->id(),// 👈 vendedor
-            'ncf' => $request->ncf,
-            'tipo_factura' => $request->tipo_factura ?? 'consumo_final',
+            'user_id' => auth()->id(),
+            'ncf' => $ncf,
+            'tipo_factura' => $tipoFactura,
             'fecha_emision' => $request->fecha_emision,
             'fecha_vencimiento' => $request->fecha_vencimiento,
-            'subtotal' => $subtotal,
-            'descuento_total' => $descuentoTotal,
-            'itbis' => $itbisTotal,
-            'total' => $total,
+            'subtotal' => round($subtotal, 2),
+            'descuento_total' => round($descuentoTotal, 2),
+            'itbis' => round($itbisTotal, 2),
+            'total' => round($total, 2),
             'estado' => 'pendiente',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // ✅ GUARDAR DETALLES
-        foreach ($detalles as $item) {
+        // ✅ INSERTAR DETALLES
+        foreach ($detallesCalculados as $detalle) {
 
-            $cantidad = $item['cantidad'];
-            $precio = $item['precio'];
-
-            $linea = $cantidad * $precio;
-
-            $descuento = $item['descuento'] ?? 0;
-
-            if (!empty($item['descuento_porcentaje'])) {
-                $descuento = $linea * ($item['descuento_porcentaje'] / 100);
-            }
-
-            $lineaConDescuento = $linea - $descuento;
-            $itbis = $lineaConDescuento * 0.18;
-            $totalLinea = $lineaConDescuento + $itbis;
+            $item = $detalle['item'];
+            $calc = $detalle['calc'];
 
             DB::table('factura_detalle')->insert([
                 'factura_id' => $factura,
                 'descripcion' => $item['descripcion'],
                 'unidad_medida' => $item['unidad_medida'] ?? null,
-                'cantidad' => $cantidad,
-                'precio' => $precio,
-                'descuento' => $descuento,
+                'cantidad' => $item['cantidad'],
+                'precio' => $item['precio'],
+                'descuento' => round($calc['descuento'], 2),
                 'descuento_porcentaje' => $item['descuento_porcentaje'] ?? 0,
-                'itbis' => $itbis,
-                'total' => $totalLinea,
+                'itbis' => round($calc['itbis'], 2),
+                'total' => round($calc['total'], 2),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -123,10 +108,12 @@ class FacturaController extends Controller
         return response()->json([
             'message' => 'Factura creada correctamente',
             'status' => 201,
-            'factura_id' => $factura
+            'factura_id' => $factura,
+            'ncf' => $ncf,
+            'tipo_factura' => $tipoFactura
         ], 201);
 
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
 
         DB::rollBack();
 
@@ -193,5 +180,76 @@ class FacturaController extends Controller
             'message' => 'Factura pagada'
         ]);
     }
+
+
+private function generarNCF($id) {
+    $sec = DB::table('ncf_secuencias')
+        ->where('id', $id)
+        ->lockForUpdate()
+        ->first();
+
+    if (!$sec || !$sec->activo) {
+        throw new \Exception("Secuencia no válida");
+    }
+
+    $nuevo = $sec->actual + 1;
+
+    if ($nuevo > $sec->rango_fin) {
+        throw new \Exception("Secuencia agotada");
+    }
+
+    DB::table('ncf_secuencias')
+        ->where('id', $id)
+        ->update(['actual' => $nuevo]);
+
+         $ncf = $sec->prefijo . $sec->tipo . str_pad($nuevo, 10, '0', STR_PAD_LEFT);
+
+     return [
+        'ncf' => $ncf,
+        'tipo' => $sec->tipo,
+        'nombre' => $sec->nombre
+    ];
+}
+
+
+private function calcularLinea($item)
+{
+    $cantidad = $item['cantidad'];
+    $precio = $item['precio']; // ya incluye ITBIS
+
+    $linea = $cantidad * $precio;
+
+    // 🔥 separar base
+    $base = $linea / 1.18;
+
+    // 🎯 DESCUENTO
+    $descuento = $item['descuento'] ?? 0;
+
+    if (!empty($item['descuento_porcentaje'])) {
+        $descuento = $base * ($item['descuento_porcentaje'] / 100);
+    }
+
+    // ❌ VALIDACIONES IMPORTANTES
+    if ($descuento > $base) {
+        throw new \Exception("El descuento no puede ser mayor que el precio base");
+    }
+
+    if ($descuento < 0) {
+        throw new \Exception("El descuento no puede ser negativo");
+    }
+
+    // 🔥 cálculo final
+    $baseConDescuento = $base - $descuento;
+    $itbis = $baseConDescuento * 0.18;
+    $total = $baseConDescuento + $itbis;
+
+    return [
+        'base' => $base,
+        'descuento' => $descuento,
+        'baseConDescuento' => $baseConDescuento,
+        'itbis' => $itbis,
+        'total' => $total
+    ];
+}
 
 }

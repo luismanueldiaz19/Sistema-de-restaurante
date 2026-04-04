@@ -13,6 +13,7 @@ String facturaToJson(List<Factura> data) =>
 
 class Factura {
   final int? id;
+  final int? ncfSecuenciaId;
   final int? clienteId;
   final String? ncf;
   final String? tipoFactura;
@@ -33,6 +34,7 @@ class Factura {
   Factura({
     this.id,
     this.clienteId,
+    this.ncfSecuenciaId,
     this.ncf,
     this.tipoFactura,
     this.fechaEmision,
@@ -91,6 +93,7 @@ class Factura {
   factory Factura.fromJson(Map<String, dynamic> json) => Factura(
     id: json["id"],
     clienteId: json["cliente_id"],
+    ncfSecuenciaId: json['ncf_secuencia_id'],
     ncf: json["ncf"],
     tipoFactura: json["tipo_factura"],
     fechaEmision: DateTime.parse(json["fecha_emision"]),
@@ -114,6 +117,7 @@ class Factura {
     "id": id,
     "cliente_id": clienteId,
     "ncf": ncf,
+    "ncf_secuencia_id": ncfSecuenciaId,
     "tipo_factura": tipoFactura,
     "fecha_emision":
         "${fechaEmision?.year.toString().padLeft(4, '0')}-${fechaEmision?.month.toString().padLeft(2, '0')}-${fechaEmision?.day.toString().padLeft(2, '0')}",

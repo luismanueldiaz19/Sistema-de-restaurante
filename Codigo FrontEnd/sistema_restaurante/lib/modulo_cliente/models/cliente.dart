@@ -72,4 +72,8 @@ class Cliente {
     "created_at": createdAt.toString(),
     "updated_at": updatedAt.toString(),
   };
+
+  static List<String> getUniqueNombre(List<Cliente> list) {
+    return list.map((element) => element.nombre!).toSet().toList();
+  }
 }

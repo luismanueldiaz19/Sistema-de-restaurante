@@ -7,7 +7,6 @@ class ClienteAdminProvider with ChangeNotifier {
   final ClienteApi _clienteApi = ClienteApi();
 
   List<Cliente> _clientes = [];
-
   List<Cliente> _allClientes = [];
   bool _isLoading = false;
   String? _errorMessage;
