@@ -4,6 +4,8 @@ import 'package:sistema_restaurante/facturacion/screens/add_factura.dart';
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/utils/constants.dart';
 import 'package:sistema_restaurante/widgets/menu_drop.dart';
+import '../modulo_cliente/providers/cliente_admin_provider.dart';
+import '../palletes/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
 import '../utils/permission_helper.dart';
@@ -24,6 +26,18 @@ class _MyHomePageState extends State<MyHomePage> {
   // final auth = AuthService();
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final auth = context.read<AuthProvider>();
+      if (auth.token != null) {
+        context.read<ClienteAdminProvider>().loadClients(auth.token!);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -57,22 +71,44 @@ class _MyHomePageState extends State<MyHomePage> {
     if (!auth.isAuthenticated) {
       return Scaffold(body: Center(child: Text("No hay sesión")));
     }
+    final style = Theme.of(context).textTheme;
+    Shader linearGradient = const LinearGradient(
+      colors: <Color>[
+        // AppColors.azulClaro,
+        AppColors.error, AppColors.azulOscuro,
+      ],
+    ).createShader(const Rect.fromLTWH(50.0, 50.0, 200.0, 125.0));
     return Scaffold(
       endDrawer: Menudrop(),
       key: scaffoldKey,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: HeaderFacturacion(
-          nombreSistema: 'Sistema Lwader Soft',
-          montoCaja: 12500.00,
-          cajaAbierta: true,
-          usuario: auth.user!.name!,
-          fecha: DateTime.now(),
-          onMenuTap: () {
-            scaffoldKey.currentState?.openEndDrawer();
-          },
+
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Text(
+              'Sistema Lwader Soft',
+              style: style.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                foreground: Paint()..shader = linearGradient,
+                letterSpacing: 2,
+              ),
+            ),
+          ],
         ),
       ),
+      // appBar: PreferredSize(
+      //   preferredSize: const Size.fromHeight(70),
+      //   child: HeaderFacturacion(
+      //     nombreSistema: 'Sistema Lwader Soft',
+      //     montoCaja: 12500.00,
+      //     cajaAbierta: true,
+      //     usuario: auth.user!.name!,
+      //     fecha: DateTime.now(),
+      //     onMenuTap: () {
+      //       scaffoldKey.currentState?.openEndDrawer();
+      //     },
+      //   ),
+      // ),
       body: Column(
         children: [
           // Padding(

@@ -1,12 +1,14 @@
 import 'dart:convert';
 
+import 'package:sistema_restaurante/utils/constants.dart';
+
 import '../model/factura.dart';
 import '../services/api_services.dart';
 
 class FacturaRepository {
   final ApiService api = ApiService();
 
-  final String baseUrl = "http://127.0.0.1:8000/api/facturas";
+  final String baseUrl = "http://$ipLocal/api/facturas";
 
   Future<Map<String, dynamic>> crearFactura(Factura factura, token) async {
     final response = await api.post(baseUrl, factura.toJson(), token: token);

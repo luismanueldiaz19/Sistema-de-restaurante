@@ -23,8 +23,6 @@ class ClienteApi {
             try {
               return Cliente.fromJson(e);
             } catch (error) {
-              print("ERROR PARSEANDO: $e");
-              print(error);
               return null;
             }
           })
@@ -32,7 +30,8 @@ class ClienteApi {
           .cast<Cliente>()
           .toList();
     } else {
-      throw Exception("Error al obtener clientes");
+      return [];
+      // throw Exception("Error al obtener clientes");
     }
   }
 

@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class ApiService {
+  static VoidCallback? onUnauthorized; // 👈 GLOBAL
+
   Map<String, String> _headers(String? token) {
     final headers = {
       'Content-Type': 'application/json',
@@ -18,14 +20,24 @@ class ApiService {
     return headers;
   }
 
+  void _handleResponse(http.Response response) {
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      // 🔥 TOKEN EXPIRADO
+      if (onUnauthorized != null) {
+        onUnauthorized!();
+      }
+    }
+  }
+
   /// GET
   Future<http.Response> get(String url, {String? token}) async {
     try {
       final response = await http
           .get(Uri.parse(url), headers: _headers(token))
           .timeout(const Duration(seconds: 2));
+      debugPrint('GET [$url]: ${response.body}');
+      _handleResponse(response); // 🔥 TOKEN EXPIRADO
 
-      debugPrint('body : ${response.body}');
       return response;
     } on TimeoutException {
       throw TimeoutException("El servidor tardó demasiado en responder");
@@ -46,6 +58,7 @@ class ApiService {
           .timeout(const Duration(seconds: 2));
 
       debugPrint('POST [$url]: ${response.body}');
+      _handleResponse(response); // 🔥 TOKEN EXPIRADO
       return response;
     } on TimeoutException {
       throw TimeoutException("El servidor tardó demasiado en responder");
@@ -62,6 +75,7 @@ class ApiService {
           .timeout(const Duration(seconds: 2));
 
       debugPrint('PUT [$url]: ${response.body}');
+      _handleResponse(response); // 🔥 TOKEN EXPIRADO
       return response;
     } on TimeoutException {
       throw TimeoutException("El servidor tardó demasiado en responder");
@@ -82,6 +96,7 @@ class ApiService {
           .timeout(const Duration(seconds: 2));
 
       debugPrint('PATCH [$url]: ${response.body}');
+      _handleResponse(response); // 🔥 TOKEN EXPIRADO
       return response;
     } on TimeoutException {
       throw TimeoutException("El servidor tardó demasiado en responder");
@@ -98,6 +113,7 @@ class ApiService {
           .timeout(const Duration(seconds: 2));
 
       debugPrint('DELETE [$url]: ${response.body}');
+      _handleResponse(response); // 🔥 TOKEN EXPIRADO
       return response;
     } on TimeoutException {
       throw TimeoutException("El servidor tardó demasiado en responder");

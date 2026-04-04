@@ -34,8 +34,8 @@ class HeaderFacturacion extends StatelessWidget {
     ).createShader(const Rect.fromLTWH(50.0, 50.0, 200.0, 125.0));
 
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 70,
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 15),
       decoration: BoxDecoration(
         color: AppColors.grisClaro,
         border: const Border(bottom: BorderSide(color: Colors.black12)),

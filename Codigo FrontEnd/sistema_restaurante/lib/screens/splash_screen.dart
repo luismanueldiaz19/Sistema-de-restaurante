@@ -58,8 +58,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkSession() async {
     await Future.delayed(const Duration(seconds: 2));
-
-    final auth = context.read<AuthProvider>();
+    if (!mounted) return;
+    final auth = Provider.of<AuthProvider>(context, listen: false);
 
     await auth.loadSession(); // 🔥 carga token + user
 

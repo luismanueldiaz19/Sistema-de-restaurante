@@ -74,6 +74,7 @@ class AuthProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
 
     _token = prefs.getString('token');
+    print('token : ${_token}');
 
     final userStr = prefs.getString('user');
 

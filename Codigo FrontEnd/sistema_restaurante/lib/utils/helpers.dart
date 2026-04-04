@@ -1009,10 +1009,12 @@ class CustomLoginButton extends StatelessWidget {
   final String text;
   final Color colorButton;
   final double? width;
+  final double? height;
   final double? borderRadius;
   const CustomLoginButton({
     super.key,
     this.width = 200,
+    this.height = 200,
     required this.onPressed,
     this.text = 'Iniciar Sección',
     this.colorButton = AppColors.azulOscuro,
@@ -1023,7 +1025,7 @@ class CustomLoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      height: 35,
+      height: height ?? 35,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: colorButton, // Azul oscuro como en la imagen

@@ -6,6 +6,7 @@ import 'package:sistema_restaurante/screens/splash_screen.dart';
 
 import 'palletes/app_colors.dart';
 import 'theme/lwader_soft_theme.dart';
+import 'utils/navigation_service.dart';
 
 class MyCustomScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Lwader Soft',
+      navigatorKey: NavigationService.navigatorKey, // 👈 CLAVE
       debugShowCheckedModeBanner: false,
       scrollBehavior: MyCustomScrollBehavior(),
       theme: ThemeData(

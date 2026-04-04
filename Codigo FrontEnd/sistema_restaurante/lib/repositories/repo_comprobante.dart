@@ -1,13 +1,14 @@
 import 'dart:convert';
 
 import 'package:sistema_restaurante/model/comprobante.dart';
+import 'package:sistema_restaurante/utils/constants.dart';
 
 import '../services/api_services.dart';
 
 class ComprobanteRepository {
   final ApiService api = ApiService();
 
-  final String baseUrl = "http://127.0.0.1:8000/api/ncf-secuencias";
+  final String baseUrl = "http://$ipLocal/api/ncf-secuencias";
 
   Future<List<Comprobante>> getComprabante(String token) async {
     final response = await api.get(baseUrl, token: token);
@@ -23,8 +24,6 @@ class ComprobanteRepository {
             try {
               return Comprobante.fromJson(e);
             } catch (error) {
-              print("ERROR PARSEANDO: $e");
-              print(error);
               return null;
             }
           })
@@ -32,7 +31,8 @@ class ComprobanteRepository {
           .cast<Comprobante>()
           .toList();
     } else {
-      throw Exception("Error al obtener clientes");
+      return [];
+      // throw Exception("Error al obtener comprobante");
     }
   }
 }
