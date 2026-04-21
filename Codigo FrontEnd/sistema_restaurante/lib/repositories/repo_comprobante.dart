@@ -8,7 +8,7 @@ import '../services/api_services.dart';
 class ComprobanteRepository {
   final ApiService api = ApiService();
 
-  final String baseUrl = "http://$ipLocal/api/ncf-secuencias";
+  final String baseUrl = "$ipLocal/api/ncf-secuencias";
 
   Future<List<Comprobante>> getComprabante(String token) async {
     final response = await api.get(baseUrl, token: token);

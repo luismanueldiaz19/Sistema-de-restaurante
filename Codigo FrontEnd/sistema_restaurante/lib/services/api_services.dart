@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
+const int seconds = 50;
+
 class ApiService {
   static VoidCallback? onUnauthorized; // 👈 GLOBAL
 
@@ -34,7 +36,7 @@ class ApiService {
     try {
       final response = await http
           .get(Uri.parse(url), headers: _headers(token))
-          .timeout(const Duration(seconds: 2));
+          .timeout(const Duration(seconds: seconds));
       debugPrint('GET [$url]: ${response.body}');
       _handleResponse(response); // 🔥 TOKEN EXPIRADO
 
@@ -55,7 +57,7 @@ class ApiService {
             headers: _headers(token),
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 2));
+          .timeout(const Duration(seconds: seconds));
 
       debugPrint('POST [$url]: ${response.body}');
       _handleResponse(response); // 🔥 TOKEN EXPIRADO
@@ -72,7 +74,7 @@ class ApiService {
     try {
       final response = await http
           .put(Uri.parse(url), headers: _headers(token), body: jsonEncode(body))
-          .timeout(const Duration(seconds: 2));
+          .timeout(const Duration(seconds: seconds));
 
       debugPrint('PUT [$url]: ${response.body}');
       _handleResponse(response); // 🔥 TOKEN EXPIRADO
@@ -93,7 +95,7 @@ class ApiService {
             headers: _headers(token),
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 2));
+          .timeout(const Duration(seconds: seconds));
 
       debugPrint('PATCH [$url]: ${response.body}');
       _handleResponse(response); // 🔥 TOKEN EXPIRADO
@@ -110,7 +112,7 @@ class ApiService {
     try {
       final response = await http
           .delete(Uri.parse(url), headers: _headers(token))
-          .timeout(const Duration(seconds: 2));
+          .timeout(const Duration(seconds: seconds));
 
       debugPrint('DELETE [$url]: ${response.body}');
       _handleResponse(response); // 🔥 TOKEN EXPIRADO

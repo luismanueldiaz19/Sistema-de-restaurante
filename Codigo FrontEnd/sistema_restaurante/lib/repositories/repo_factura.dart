@@ -8,7 +8,7 @@ import '../services/api_services.dart';
 class FacturaRepository {
   final ApiService api = ApiService();
 
-  final String baseUrl = "http://$ipLocal/api/facturas";
+  final String baseUrl = "$ipLocal/api/facturas";
 
   Future<Map<String, dynamic>> crearFactura(Factura factura, token) async {
     final response = await api.post(baseUrl, factura.toJson(), token: token);

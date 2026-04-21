@@ -7,7 +7,7 @@ import '../models/cliente.dart';
 class ClienteApi {
   final ApiService api = ApiService();
 
-  final String baseUrl = "http://$ipLocal/api/clientes";
+  final String baseUrl = "$ipLocal/api/clientes";
 
   /// 🔥 GET TODOS LOS CLIENTES
   Future<List<Cliente>> fetchClients(String token) async {

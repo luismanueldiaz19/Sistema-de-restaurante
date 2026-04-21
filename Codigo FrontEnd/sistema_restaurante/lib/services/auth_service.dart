@@ -7,7 +7,7 @@ import 'api_services.dart';
 class AuthService {
   final ApiService api = ApiService();
 
-  final String baseUrl = "http://$ipLocal/api"; // emulador
+  final String baseUrl = "$ipLocal/api"; // emulador
 
   /// LOGIN
   Future<AuthResponse?> login({
