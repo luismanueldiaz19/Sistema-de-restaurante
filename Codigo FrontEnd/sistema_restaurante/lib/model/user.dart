@@ -53,6 +53,13 @@ class User {
     "updated_at": updatedAt.toString(),
   };
 }
+// class AuthResponse {
+//     final bool? success;
+//     final String? message;
+//     final User? user;
+//     final List<String>? roles;
+//     final List<String>? permissions;
+//     final String? token;
 
 class AuthResponse {
   final bool status;

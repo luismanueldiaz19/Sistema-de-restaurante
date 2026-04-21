@@ -12,33 +12,33 @@ import 'utils/navigation_service.dart';
 bool _isLoggingOut = false;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final authProvider = AuthProvider(); // ✅ UNA sola instancia
+    final authProvider = AuthProvider(); // ✅ UNA sola instancia
 
-  ApiService.onUnauthorized = () async {
-    if (_isLoggingOut) return;
+    ApiService.onUnauthorized = () async {
+      if (_isLoggingOut) return;
 
-    _isLoggingOut = true;
+      _isLoggingOut = true;
 
-    // final context = NavigationService.navigatorKey.currentState?.context;
-    final context = NavigationService.navigatorKey.currentContext;
-    if (context != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Sesión expirada"),
-          backgroundColor: Colors.orange,
-        ),
+      // final context = NavigationService.navigatorKey.currentState?.context;
+      final context = NavigationService.navigatorKey.currentContext;
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Sesión expirada"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      await Future.delayed(const Duration(milliseconds: 300)); // 🔥 UX PRO
+      await authProvider.logout();
+
+      NavigationService.navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => LoginPage()),
+        (route) => false,
       );
-    }
-    await Future.delayed(const Duration(milliseconds: 300)); // 🔥 UX PRO
-    await authProvider.logout();
 
-    NavigationService.navigatorKey.currentState?.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => LoginPage()),
-      (route) => false,
-    );
-
-    _isLoggingOut = false;
-  };
+      _isLoggingOut = false;
+    };
   runApp(
     MultiProvider(
       providers: [

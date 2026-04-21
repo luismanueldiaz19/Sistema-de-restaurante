@@ -39,8 +39,7 @@ class AuthController extends Controller
     }
 
     // ✅ LOGIN
-    public function login(Request $request)
-{
+    public function login(Request $request) {
     // ✅ 1. Validación
     $validator = Validator::make($request->all(), [
         'email'    => 'required|email',
@@ -78,7 +77,6 @@ class AuthController extends Controller
     return response()->json([
         'status' => true,
         'message' => 'Login exitoso',
-
         'data' => [
             'user' => [
                 'id'    => $user->id,
