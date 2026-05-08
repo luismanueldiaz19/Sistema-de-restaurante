@@ -91,7 +91,22 @@ Future<void> showCustomDialog(
 }
 
 String formatCurrency(double amount) {
-  return '\$${amount.toStringAsFixed(2)}';
+  return NumberFormat.currency(locale: 'en_US', symbol: 'RD\$ ').format(amount);
+}
+
+String formatMoneda(double amount) {
+  return NumberFormat.simpleCurrency(
+    locale: 'en_US',
+    name: 'RD\$ ',
+  ).format(amount);
+}
+
+String formatFechaLatina(DateTime date) {
+  return DateFormat('dd/MM/yyyy').format(date);
+}
+
+String formatFechaHora(DateTime date) {
+  return DateFormat('dd/MM/yyyy hh:mm a').format(date);
 }
 
 // String generateUUID() {

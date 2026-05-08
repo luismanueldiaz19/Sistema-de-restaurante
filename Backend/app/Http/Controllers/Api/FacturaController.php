@@ -65,10 +65,17 @@ class FacturaController extends Controller
 
         $total = $subtotal + $itbisTotal;
 
+        // 🔍 BUSCAR SESIÓN DE CAJA ACTIVA
+        $sesionActiva = DB::table('caja_sesiones')
+            ->where('user_id', auth()->id())
+            ->where('estado', 'abierta')
+            ->first();
+
         // ✅ CREAR FACTURA
         $factura = DB::table('facturas')->insertGetId([
             'cliente_id' => $request->cliente_id,
             'user_id' => auth()->id(),
+            'caja_sesion_id' => $sesionActiva ? $sesionActiva->id : null, // 👈 Vincular a sesión
             'ncf' => $ncf,
             'tipo_factura' => $tipoFactura,
             'fecha_emision' => $request->fecha_emision,

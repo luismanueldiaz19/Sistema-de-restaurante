@@ -309,58 +309,62 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               ),
             ),
 
-            // 2. Separador y Sección de Caja (Siempre abajo)
+            // 2. Separador y Sección de Caja (Siempre abajo y Horizontal)
             if (auth.hasPermission('ver_facturas')) ...[
               const Divider(height: 20, thickness: 0.1),
-              const Text(
-                'Información de Caja',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.azulOscuro,
-                  letterSpacing: -0.5,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Información de Caja',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.azulOscuro,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.print_rounded, size: 16),
+                    label: const Text('Imprimir X', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return Wrap(
-                    spacing: 20,
-                    runSpacing: 20,
-                    children: [
-                      _buildInfoCard(
-                        title: 'Estado de Caja',
-                        value: 'ABIERTA',
-                        subtitle: 'Turno Mañana',
-                        icon: Icons.lock_open_rounded,
-                        color: Colors.green,
-                        width: constraints.maxWidth > 800
-                            ? (constraints.maxWidth - 40) / 3
-                            : constraints.maxWidth,
-                      ),
-                      _buildInfoCard(
-                        title: 'Ventas de Hoy',
-                        value: 'RD\$ 12,450.00',
-                        subtitle: '14 transacciones',
-                        icon: Icons.payments_rounded,
-                        color: Colors.blue,
-                        width: constraints.maxWidth > 800
-                            ? (constraints.maxWidth - 40) / 3
-                            : constraints.maxWidth,
-                      ),
-                      _buildInfoCard(
-                        title: 'Última Venta',
-                        value: 'RD\$ 1,200.00',
-                        subtitle: 'Hace 5 minutos',
-                        icon: Icons.history_rounded,
-                        color: Colors.orange,
-                        width: constraints.maxWidth > 800
-                            ? (constraints.maxWidth - 40) / 3
-                            : constraints.maxWidth,
-                      ),
-                    ],
-                  );
-                },
+              const SizedBox(height: 15),
+              
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildInfoCard(
+                      title: 'Estado de Caja',
+                      value: 'ABIERTA',
+                      subtitle: 'Turno Mañana',
+                      icon: Icons.lock_open_rounded,
+                      color: Colors.green,
+                      width: 280,
+                    ),
+                    const SizedBox(width: 20),
+                    _buildPaymentBreakdownCard(
+                      efectivo: '8,450.00',
+                      tarjeta: '4,000.00',
+                      cheque: '0.00',
+                      otros: '0.00',
+                      width: 400,
+                    ),
+                    const SizedBox(width: 20),
+                    _buildInfoCard(
+                      title: 'Ventas de Hoy',
+                      value: 'RD\$ 12,450.00',
+                      subtitle: '14 transacciones',
+                      icon: Icons.payments_rounded,
+                      color: Colors.blue,
+                      width: 280,
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -441,6 +445,92 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPaymentBreakdownCard({
+    required String efectivo,
+    required String tarjeta,
+    required String cheque,
+    required String otros,
+    required double width,
+  }) {
+    return FadeInRight(
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.account_balance_wallet_outlined, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  'Desglose por Métodos',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(child: _buildBreakdownItem('Efectivo', efectivo, Colors.green)),
+                const VerticalDivider(),
+                Expanded(child: _buildBreakdownItem('Tarjeta', tarjeta, Colors.blue)),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Divider(height: 1, thickness: 0.5),
+            ),
+            Row(
+              children: [
+                Expanded(child: _buildBreakdownItem('Cheque', cheque, Colors.orange)),
+                const VerticalDivider(),
+                Expanded(child: _buildBreakdownItem('Otros', otros, Colors.purple)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreakdownItem(String label, String amount, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'RD\$ $amount',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppColors.azulOscuro,
+          ),
+        ),
+      ],
     );
   }
 }

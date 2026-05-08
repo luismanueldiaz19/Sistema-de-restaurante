@@ -75,6 +75,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
       Route::get('/ncf-secuencias/{id}', [NcfSecuenciaController::class, 'show'])
         ->middleware('permission:crear_facturas');
 
+    // ================= CAJA Y TURNOS =================
+    Route::get('/caja/estado', [\App\Http\Controllers\Api\CajaController::class, 'estadoActual']);
+    Route::post('/caja/abrir', [\App\Http\Controllers\Api\CajaController::class, 'abrir']);
+    Route::post('/caja/cerrar', [\App\Http\Controllers\Api\CajaController::class, 'cerrar']);
+
 });
 
 // // Route::post('/facturas', [FacturaController::class, 'store'])
