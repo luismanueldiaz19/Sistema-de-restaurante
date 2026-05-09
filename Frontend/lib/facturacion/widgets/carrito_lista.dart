@@ -22,42 +22,96 @@ class CarritoLista extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.shopping_cart_outlined,
-              size: 64,
-              color: Colors.grey.shade300,
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppColors.light,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.shopping_basket_outlined,
+                size: 64,
+                color: Colors.grey.shade300,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
-              'El carrito está vacío',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+              'Carrito Vacío',
+              style: TextStyle(
+                color: AppColors.secondary.withOpacity(0.5),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Agrega productos del catálogo',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
             ),
           ],
         ),
       );
     }
 
-    return ListView.builder(
-      itemCount: items.length,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _buildItem(item);
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Row(
+            children: [
+              const Text(
+                'Carrito',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.secondary,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${items.length} items',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _buildItem(item);
+            },
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildItem(FacturaItem item) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade50),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withOpacity(0.01),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -67,60 +121,79 @@ class CarritoLista extends StatelessWidget {
         children: [
           Row(
             children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.light,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.fastfood, color: Colors.grey, size: 20),
+              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.descripcion,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: AppColors.azulOscuro,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: AppColors.secondary,
                       ),
                     ),
                     Text(
-                      '${formatCurrency(item.precio)} / unidad',
+                      formatCurrency(item.precio),
                       style: TextStyle(
-                        color: Colors.grey.shade500,
+                        color: Colors.grey.shade400,
                         fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: () => onRemove(item.id),
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.redAccent,
-                  size: 20,
-                ),
+              _buildCircleBtn(
+                icon: Icons.close,
+                color: Colors.redAccent,
+                onTap: () => onRemove(item.id),
+                size: 28,
               ),
             ],
           ),
-          const Divider(height: 24, thickness: 0.5),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Control de Cantidad
               Container(
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.light,
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   children: [
                     _buildQtyBtn(
                       Icons.remove,
-                      () => onUpdateCantidad(item.id, item.cantidad - 1),
+                      () {
+                        if (item.cantidad > 1) {
+                          onUpdateCantidad(item.id, item.cantidad - 1);
+                        }
+                      },
                     ),
-                    SizedBox(
-                      width: 40,
+                    Container(
+                      constraints: const BoxConstraints(minWidth: 40),
                       child: Text(
                         item.cantidad.toInt().toString(),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: AppColors.secondary,
+                        ),
                       ),
                     ),
                     _buildQtyBtn(
@@ -130,28 +203,13 @@ class CarritoLista extends StatelessWidget {
                   ],
                 ),
               ),
-              // Totales por línea
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (item.montoDescuento > 0)
-                    Text(
-                      '- ${formatCurrency(item.montoDescuento)}',
-                      style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  Text(
-                    formatCurrency(item.total),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
+              Text(
+                formatCurrency(item.total),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  color: AppColors.primary,
+                ),
               ),
             ],
           ),
@@ -161,12 +219,34 @@ class CarritoLista extends StatelessWidget {
   }
 
   Widget _buildQtyBtn(IconData icon, VoidCallback onTap) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      elevation: 2,
+      shadowColor: Colors.black12,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          child: Icon(icon, size: 18, color: AppColors.secondary),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCircleBtn({required IconData icon, required Color color, required VoidCallback onTap, double size = 32}) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Icon(icon, size: 18, color: AppColors.azulOscuro),
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color, size: size * 0.6),
       ),
     );
   }

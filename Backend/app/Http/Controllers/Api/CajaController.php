@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\CajaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Caja;
+use App\Models\Turno;
 use Exception;
 
 class CajaController extends Controller
@@ -15,6 +17,22 @@ class CajaController extends Controller
     public function __construct(CajaService $cajaService)
     {
         $this->cajaService = $cajaService;
+    }
+
+    public function index()
+    {
+        return response()->json([
+            'status' => true,
+            'data' => Caja::where('activa', true)->get()
+        ]);
+    }
+
+    public function turnos()
+    {
+        return response()->json([
+            'status' => true,
+            'data' => Turno::all()
+        ]);
     }
 
     /**
@@ -50,11 +68,35 @@ class CajaController extends Controller
             $data['user_id'] = auth()->id();
 
             $sesion = $this->cajaService->abrirCaja($data);
+            $sesion->load(['caja', 'turno']);
 
             return response()->json([
                 'message' => 'Caja abierta correctamente',
                 'data' => $sesion
             ], 201);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Obtener resumen antes de cerrar
+     */
+    public function resumen()
+    {
+        try {
+            $sesionActiva = $this->cajaService->getSesionActiva(auth()->id());
+
+            if (!$sesionActiva) {
+                return response()->json(['message' => 'No hay sesión activa'], 404);
+            }
+
+            $resumen = $this->cajaService->getResumenCierre($sesionActiva->id);
+
+            return response()->json([
+                'status' => true,
+                'data' => $resumen
+            ]);
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
@@ -67,6 +109,7 @@ class CajaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'monto_final_fisico' => 'required|numeric|min:0',
+            'desglose' => 'nullable|array',
             'comentario' => 'nullable|string'
         ]);
 
@@ -84,12 +127,36 @@ class CajaController extends Controller
             $sesion = $this->cajaService->cerrarCaja(
                 $sesionActiva->id,
                 $request->monto_final_fisico,
+                $request->desglose ?? [],
                 $request->comentario
             );
 
             return response()->json([
                 'message' => 'Caja cerrada correctamente',
                 'data' => $sesion
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
+    /**
+     * Obtener historial de sesiones de caja
+     */
+    public function historial(Request $request)
+    {
+        try {
+            $filters = $request->only(['fecha_desde', 'fecha_hasta', 'user_id', 'estado', 'caja_id', 'per_page']);
+
+            // Si no es admin, forzar el filtro por su propio user_id
+            if (!$request->user()->hasRole('admin')) {
+                $filters['user_id'] = $request->user()->id;
+            }
+
+            $historial = $this->cajaService->getHistorial($filters);
+
+            return response()->json([
+                'status' => true,
+                'data' => $historial
             ]);
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);

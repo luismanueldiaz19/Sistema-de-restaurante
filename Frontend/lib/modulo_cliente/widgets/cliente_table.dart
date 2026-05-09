@@ -26,7 +26,7 @@ class ClienteTable extends StatelessWidget {
               onSelectChanged: (_) => onSelect(c),
               cells: [
                 DataCell(Text(c.nombre ?? '')),
-                DataCell(Text(c.documento ?? '')),
+                DataCell(Text(c.rncCedula ?? '')),
                 DataCell(Text(c.telefono ?? '')),
               ],
             );

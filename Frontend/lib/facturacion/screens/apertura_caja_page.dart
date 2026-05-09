@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/helpers.dart';
-import '../providers/caja_provider.dart';
-import '../models/caja_model.dart';
-import '../services/caja_service.dart';
+import '../../modulo_caja/providers/caja_provider.dart';
+import '../../modulo_caja/models/caja_models.dart';
+import '../../modulo_caja/services/caja_service.dart';
 
 class AperturaCajaPage extends ConsumerStatefulWidget {
   const AperturaCajaPage({super.key});
@@ -33,13 +33,17 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
   Future<void> _loadInitialData() async {
     final token = ref.read(authProvider).token!;
     try {
-      final cajas = await _service.getCajas(token);
-      final turnos = await _service.getTurnos(token);
+      final cajasData = await _service.getCajas(token);
+      final turnosData = await _service.getTurnos(token);
+
+      final cajas = cajasData.map((e) => Caja.fromJson(e)).toList();
+      final turnos = turnosData.map((e) => Turno.fromJson(e)).toList();
+
       setState(() {
         _cajas = cajas;
         _turnos = turnos;
-        _cajaSeleccionada = cajas.first;
-        _turnoSeleccionado = turnos.first;
+        if (cajas.isNotEmpty) _cajaSeleccionada = cajas.first;
+        if (turnos.isNotEmpty) _turnoSeleccionado = turnos.first;
         _loadingData = false;
       });
     } catch (e) {
@@ -62,7 +66,7 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -162,6 +166,17 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
                           ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'VOLVER ATRÁS',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ],
           ),
@@ -194,19 +209,26 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
   Future<void> _confirmarApertura() async {
     final monto = double.tryParse(_montoController.text) ?? 0;
 
-    final success = await ref
+    final errorMsg = await ref
         .read(cajaProvider.notifier)
-        .abrirCaja(_cajaSeleccionada!.id, _turnoSeleccionado!.id, monto);
+        .abrirCaja(
+          token: ref.read(authProvider).token!,
+          cajaId: _cajaSeleccionada!.id,
+          turnoId: _turnoSeleccionado!.id,
+          montoInicial: monto,
+        );
 
     // Si la apertura fue exitosa, la pantalla se desmontará automáticamente
     // debido al cambio de estado en el provider. Por eso verificamos mounted.
     if (!mounted) return;
 
-    if (success) {
-      // Opcional: No mostrar nada si ya nos estamos yendo,
-      // la transición a la pantalla de ventas es suficiente feedback.
-    } else {
-      showToast(context, 'Error al abrir la caja', bgColor: Colors.red);
+    final error = ref.read(cajaProvider).errorMessage;
+    if (errorMsg != null) {
+      showToast(
+        context,
+        error ?? 'Error al abrir la caja',
+        bgColor: Colors.red,
+      );
     }
   }
 }

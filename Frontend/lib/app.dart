@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sistema_restaurante/screens/splash_screen.dart';
@@ -38,7 +37,8 @@ class MyApp extends StatelessWidget {
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
-          scrolledUnderElevation: 0, // 👈 Evita el cambio de color al hacer scroll
+          scrolledUnderElevation:
+              0, // 👈 Evita el cambio de color al hacer scroll
           surfaceTintColor: Colors.transparent, // 👈 Evita el tinte crema/beige
           elevation: 0,
         ),

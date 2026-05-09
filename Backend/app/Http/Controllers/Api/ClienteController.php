@@ -19,49 +19,46 @@ class ClienteController extends Controller {
 
     
     // ➕ CREAR UN CLIENTE
-public function store(Request $request) {
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nombre'          => 'required|string|max:255',
+            'rnc_cedula'      => 'nullable|string|max:255',
+            'email'           => 'nullable|email|max:255',
+            'telefono'        => 'required|string|max:255',
+            'direccion'       => 'nullable|string|max:255',
+            'tipo_cliente'    => 'nullable|string|in:consumidor_final,credito,gubernamental,especial',
+            'limite_credito'  => 'nullable|numeric',
+            'dias_credito'    => 'nullable|integer',
+            'cuenta_contable' => 'nullable|string|max:255',
+            'descuento_fijo'  => 'nullable|numeric',
+            'activo'          => 'nullable|boolean',
+            'notas'           => 'nullable|string',
+        ]);
 
-    $validator = Validator::make($request->all(), [
-        'nombre'    => 'required',
-        'telefono'  => 'required',
-        'direccion' => 'nullable',
-        'documento' => 'nullable',
-        'email'     => 'nullable',
-    ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Error en la validación de los datos',
+                'errors'  => $validator->errors(),
+                'status'  => 400
+            ], 400);
+        }
 
-    if ($validator->fails()) {
-        $data = [
-            'message' => 'Error en la validación de los datos',
-            'errors'  => $validator->errors(), // ✅ aquí va errors()
-            'status'  => 400
-        ];
-        return response()->json($data, 400);
+        $cliente = Cliente::create($request->all());
+
+        if (!$cliente) {
+            return response()->json([
+                'message' => 'Error al crear cliente',
+                'status'  => 500
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Cliente creado correctamente',
+            'status'  => 201,
+            'data'    => $cliente
+        ], 201);
     }
-
-    $cliente = Cliente::create([
-        'nombre'    => $request->nombre,
-        'telefono'  => $request->telefono,
-        'direccion' => $request->direccion,
-        'documento' => $request->documento,
-        'email'     => $request->email,
-    ]);
-
-    if (!$cliente) {
-        $data = [
-            'message' => 'Error al crear cliente',
-            'status'  => 500
-        ];
-        return response()->json($data, 500);
-    }
-
-    $data = [
-        'message' => 'Cliente creado correctamente',
-        'status'  => 201,
-        'data'    => $cliente
-    ];
-
-    return response()->json($data, 201);
-}
 
  
      
@@ -103,61 +100,57 @@ public function show($id) {
     }
 }
 
-  // ✏️ ACTUALIZAR
-public function update(Request $request, $id) {
-    try {
-        // 🔍 Buscar cliente
-        $cliente = Cliente::find($id);
+    // ✏️ ACTUALIZAR
+    public function update(Request $request, $id)
+    {
+        try {
+            $cliente = Cliente::find($id);
 
-        if (!$cliente) {
+            if (!$cliente) {
+                return response()->json([
+                    'message' => 'Cliente no encontrado',
+                    'status'  => 404
+                ], 404);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'nombre'          => 'required|string|max:255',
+                'rnc_cedula'      => 'nullable|string|max:255',
+                'email'           => 'nullable|email|max:255',
+                'telefono'        => 'nullable|string|max:255',
+                'direccion'       => 'nullable|string|max:255',
+                'tipo_cliente'    => 'nullable|string|in:consumidor_final,credito,gubernamental,especial',
+                'limite_credito'  => 'nullable|numeric',
+                'dias_credito'    => 'nullable|integer',
+                'cuenta_contable' => 'nullable|string|max:255',
+                'descuento_fijo'  => 'nullable|numeric',
+                'activo'          => 'nullable|boolean',
+                'notas'           => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Error en la validación',
+                    'errors'  => $validator->errors(),
+                    'status'  => 400
+                ], 400);
+            }
+
+            $cliente->update($request->all());
+
             return response()->json([
-                'message' => 'Cliente no encontrado',
-                'status'  => 404
-            ], 404);
-        }
-
-        // ✅ Validación
-        $validator = Validator::make($request->all(), [
-            'nombre'    => 'required|string|max:255',
-            'telefono'  => 'nullable|string|max:255',
-            'direccion' => 'nullable|string|max:255',
-            'documento' => 'nullable|string|max:255',
-            'email'     => 'nullable|email|max:255',
-        ]);
-
-        if ($validator->fails()) {
+                'message' => 'Cliente actualizado correctamente',
+                'status'  => 200,
+                'data'    => $cliente
+            ], 200);
+        } catch (Exception $e) {
             return response()->json([
-                'message' => 'Error en la validación',
-                'errors'  => $validator->errors(),
-                'status'  => 400
-            ], 400);
+                'message' => 'Error al actualizar cliente',
+                'error'   => $e->getMessage(),
+                'status'  => 500
+            ], 500);
         }
-
-        // 🔄 Actualizar
-        $cliente->update([
-            'nombre'    => $request->nombre,
-            'telefono'  => $request->telefono,
-            'direccion' => $request->direccion,
-            'documento' => $request->documento,
-            'email'     => $request->email,
-        ]);
-
-        // ✅ Respuesta OK
-        return response()->json([
-            'message' => 'Cliente actualizado correctamente',
-            'status'  => 200,
-            'data'    => $cliente
-        ], 200);
-
-    } catch (Exception $e) {
-        // 💥 Error general
-        return response()->json([
-            'message' => 'Error al actualizar cliente',
-            'error'   => $e->getMessage(), // opcional en producción quitar
-            'status'  => 500
-        ], 500);
     }
-}
 
    // ❌ ELIMINAR
 public function destroy($id) {

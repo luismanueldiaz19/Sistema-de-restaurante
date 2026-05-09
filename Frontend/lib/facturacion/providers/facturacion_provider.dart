@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../../modulo_cliente/models/cliente.dart';
 import '../models/factura_item.dart';
@@ -8,6 +7,9 @@ class FacturacionState {
   final List<FacturaItem> carrito;
   final Cliente? clienteSeleccionado;
   final Comprobante? comprobanteSeleccionado;
+  final String tipoFactura; // 'contado' o 'credito'
+  final int diasCredito;
+  final String nota;
   final bool isLoading;
   final String? error;
 
@@ -15,6 +17,9 @@ class FacturacionState {
     this.carrito = const [],
     this.clienteSeleccionado,
     this.comprobanteSeleccionado,
+    this.tipoFactura = 'contado',
+    this.diasCredito = 0,
+    this.nota = "",
     this.isLoading = false,
     this.error,
   });
@@ -44,17 +49,29 @@ class FacturacionState {
   FacturacionState copyWith({
     List<FacturaItem>? carrito,
     Cliente? clienteSeleccionado,
+    bool clearCliente = false,
     Comprobante? comprobanteSeleccionado,
+    bool clearComprobante = false,
+    String? tipoFactura,
+    int? diasCredito,
+    String? nota,
     bool? isLoading,
     String? error,
+    bool clearError = false,
   }) {
     return FacturacionState(
       carrito: carrito ?? this.carrito,
-      clienteSeleccionado: clienteSeleccionado ?? this.clienteSeleccionado,
-      comprobanteSeleccionado:
-          comprobanteSeleccionado ?? this.comprobanteSeleccionado,
+      clienteSeleccionado: clearCliente
+          ? null
+          : (clienteSeleccionado ?? this.clienteSeleccionado),
+      comprobanteSeleccionado: clearComprobante
+          ? null
+          : (comprobanteSeleccionado ?? this.comprobanteSeleccionado),
+      tipoFactura: tipoFactura ?? this.tipoFactura,
+      diasCredito: diasCredito ?? this.diasCredito,
+      nota: nota ?? this.nota,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -63,11 +80,27 @@ class FacturacionNotifier extends StateNotifier<FacturacionState> {
   FacturacionNotifier() : super(FacturacionState());
 
   void seleccionarCliente(Cliente cliente) {
-    state = state.copyWith(clienteSeleccionado: cliente);
+    state = state.copyWith(
+      clienteSeleccionado: cliente,
+      diasCredito: cliente.diasCredito ?? 0,
+      tipoFactura: (cliente.diasCredito ?? 0) > 0 ? 'credito' : 'contado',
+    );
   }
 
   void seleccionarComprobante(Comprobante comprobante) {
     state = state.copyWith(comprobanteSeleccionado: comprobante);
+  }
+
+  void cambiarTipoFactura(String tipo) {
+    state = state.copyWith(tipoFactura: tipo);
+  }
+
+  void cambiarDiasCredito(int dias) {
+    state = state.copyWith(diasCredito: dias);
+  }
+
+  void cambiarNota(String nota) {
+    state = state.copyWith(nota: nota);
   }
 
   void agregarProducto(FacturaItem item) {
@@ -81,7 +114,7 @@ class FacturacionNotifier extends StateNotifier<FacturacionState> {
       );
       state = state.copyWith(carrito: updatedCarrito);
     } else {
-      state = state.copyWith(carrito: [...state.carrito, item]);
+      state = state.copyWith(carrito: [item, ...state.carrito]);
     }
   }
 
@@ -111,6 +144,10 @@ class FacturacionNotifier extends StateNotifier<FacturacionState> {
 
   void limpiarCarrito() {
     state = state.copyWith(carrito: []);
+  }
+
+  void resetState() {
+    state = FacturacionState();
   }
 }
 

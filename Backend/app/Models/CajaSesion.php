@@ -22,12 +22,16 @@ class CajaSesion extends Model
         'estado',
         'fecha_apertura',
         'fecha_cierre',
-        'comentario'
+        'comentario',
+        'desglose_efectivo',
+        'resumen_ventas'
     ];
 
     protected $casts = [
         'fecha_apertura' => 'datetime',
         'fecha_cierre' => 'datetime',
+        'desglose_efectivo' => 'array',
+        'resumen_ventas' => 'array'
     ];
 
     public function caja()

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
 import '../../utils/helpers.dart';
-import '../providers/caja_provider.dart';
+import '../../modulo_caja/providers/caja_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/custom_confirm_dialog.dart';
 
 class ArqueoCajaPage extends ConsumerStatefulWidget {
   const ArqueoCajaPage({super.key});
@@ -19,8 +21,18 @@ class _ArqueoCajaPageState extends ConsumerState<ArqueoCajaPage> {
   Widget build(BuildContext context) {
     final sesion = ref.watch(cajaProvider).sesionActiva;
 
-    if (sesion == null)
-      return const Scaffold(body: Center(child: Text('No hay sesión activa')));
+    if (sesion == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('ARQUEO Y CIERRE DE CAJA'),
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.azulOscuro,
+          elevation: 0,
+        ),
+
+        body: Center(child: Text('No hay sesión activa')),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -70,22 +82,22 @@ class _ArqueoCajaPageState extends ConsumerState<ArqueoCajaPage> {
         children: [
           _infoItem(
             'CAJA',
-            sesion.nombreCaja ?? 'N/A',
+            sesion['caja']?['nombre'] ?? 'N/A',
             Icons.storefront_rounded,
           ),
           _infoItem(
             'TURNO',
-            sesion.nombreTurno ?? 'N/A',
+            sesion['turno']?['nombre'] ?? 'N/A',
             Icons.access_time_rounded,
           ),
           _infoItem(
             'APERTURA',
-            formatFechaHora(sesion.fechaApertura),
+            formatFechaHora(DateTime.parse(sesion['fecha_apertura'])),
             Icons.calendar_today_rounded,
           ),
           _infoItem(
             'FONDO',
-            formatCurrency(sesion.montoInicial),
+            formatCurrency(double.parse(sesion['monto_inicial'].toString())),
             Icons.account_balance_wallet_rounded,
           ),
         ],
@@ -158,9 +170,7 @@ class _ArqueoCajaPageState extends ConsumerState<ArqueoCajaPage> {
 
   Widget _buildPanelResultado(dynamic sesion) {
     final montoFisico = double.tryParse(_fisicoController.text) ?? 0;
-    // En una app real, el backend nos daría las ventas actuales.
-    // Por ahora simularemos que el esperado es el inicial para pruebas visuales.
-    final esperado = sesion.montoInicial;
+    final esperado = double.parse(sesion['monto_inicial'].toString());
     final diferencia = montoFisico - esperado;
 
     return Container(
@@ -249,11 +259,17 @@ class _ArqueoCajaPageState extends ConsumerState<ArqueoCajaPage> {
     );
 
     if (confirmar == true) {
-      final success = await ref
+      final auth = ref.read(authProvider);
+      final result = await ref
           .read(cajaProvider.notifier)
-          .cerrarCaja(monto, comentario: _comentarioController.text);
+          .cerrarCaja(
+            token: auth.token!,
+            montoFisico: monto,
+            desglose: {}, // ArqueoCajaPage es simplificado por ahora
+            comentario: _comentarioController.text,
+          );
 
-      if (success && mounted) {
+      if (result['success'] && mounted) {
         showToast(
           context,
           'Caja cerrada y arqueada correctamente',

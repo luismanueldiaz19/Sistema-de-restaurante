@@ -14,10 +14,13 @@ return new class () extends Migration {
            $table->id();
            // 🔗 Relación
            $table->foreignId('cliente_id')->constrained()->cascadeOnDelete();
+           $table->foreignId('user_id')->nullable()->constrained('users');
+           $table->foreignId('caja_sesion_id')->nullable()->constrained('caja_sesiones');
            
            // 📄 Datos fiscales
           $table->string('ncf')->unique();
           $table->string('tipo_factura')->default('consumo_final');
+          $table->integer('dias_credito')->default(0);
 
           // 📅 Fechas
           $table->date('fecha_emision');
@@ -28,6 +31,8 @@ return new class () extends Migration {
            $table->decimal('descuento_total', 12, 2)->default(0);
            $table->decimal('itbis', 12, 2)->default(0);
            $table->decimal('total', 12, 2)->default(0);
+           
+           $table->text('nota')->nullable();
 
            // 🧾 Estado
            $table->enum('estado', ['pendiente', 'pagada', 'anulada'])->default('pendiente');

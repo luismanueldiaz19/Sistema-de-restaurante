@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistema_restaurante/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/phone_input_formatter.dart';
+import '../../widgets/custom_text_field.dart';
 import '../models/cliente.dart';
 import '../providers/cliente_admin_provider.dart';
 
@@ -41,20 +42,34 @@ class _AddClienteDialogState extends ConsumerState<AddClienteDialog> {
   final emailCtrl = TextEditingController(text: '');
   final telefonoCtrl = TextEditingController();
   final direccionCtrl = TextEditingController(text: '');
+  final limiteCreditoCtrl = TextEditingController(text: '0');
+  final diasCreditoCtrl = TextEditingController(text: '0');
+  final cuentaContableCtrl = TextEditingController(text: '1.1.03.01');
+  final descuentoFijoCtrl = TextEditingController(text: '0');
+  final notasCtrl = TextEditingController(text: '');
+
+  String tipoCliente = 'consumidor_final';
+  bool activo = true;
 
   bool get isEdit => widget.cliente != null;
 
   @override
   void initState() {
     super.initState();
-
     if (isEdit) {
       final c = widget.cliente!;
       nombreCtrl.text = c.nombre ?? '';
       emailCtrl.text = c.email ?? '';
       telefonoCtrl.text = c.telefono ?? '';
       direccionCtrl.text = c.direccion ?? '';
-      rncCtrl.text = c.documento ?? '';
+      rncCtrl.text = c.rncCedula ?? '';
+      limiteCreditoCtrl.text = (c.limiteCredito ?? 0).toString();
+      diasCreditoCtrl.text = (c.diasCredito ?? 0).toString();
+      cuentaContableCtrl.text = c.cuentaContable ?? '';
+      descuentoFijoCtrl.text = (c.descuentoFijo ?? 0).toString();
+      notasCtrl.text = c.notas ?? '';
+      tipoCliente = c.tipoCliente ?? 'consumidor_final';
+      activo = c.activo ?? true;
     }
   }
 
@@ -66,16 +81,27 @@ class _AddClienteDialogState extends ConsumerState<AddClienteDialog> {
     final data = {
       "id": widget.cliente?.id,
       "nombre": nombreCtrl.text.trim(),
-      "documento": rncCtrl.text.trim(),
+      "rnc_cedula": rncCtrl.text.trim(),
       "email": emailCtrl.text.trim(),
       "telefono": telefonoCtrl.text.trim(),
       "direccion": direccionCtrl.text.trim(),
+      "tipo_cliente": tipoCliente,
+      "limite_credito": double.tryParse(limiteCreditoCtrl.text) ?? 0,
+      "dias_credito": int.tryParse(diasCreditoCtrl.text) ?? 0,
+      "cuenta_contable": cuentaContableCtrl.text.trim(),
+      "descuento_fijo": double.tryParse(descuentoFijoCtrl.text) ?? 0,
+      "activo": activo,
+      "notas": notasCtrl.text.trim(),
       "token": token,
     };
 
     bool success;
     if (isEdit) {
-      success = await provider.updateClient(widget.cliente!.id.toString(), data, token);
+      success = await provider.updateClient(
+        widget.cliente!.id.toString(),
+        data,
+        token,
+      );
     } else {
       success = await provider.createClient(data, token);
     }
@@ -86,9 +112,9 @@ class _AddClienteDialogState extends ConsumerState<AddClienteDialog> {
     } else {
       if (!mounted) return;
       final error = ref.read(clienteAdminProvider).error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $error')));
     }
   }
 
@@ -127,34 +153,167 @@ class _AddClienteDialogState extends ConsumerState<AddClienteDialog> {
               child: Form(
                 key: _formKey,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    textFieldWidgetUI(
-                      controller: nombreCtrl,
-                      label: 'Nombre *',
+                    // Sección Datos Básicos
+                    const Text(
+                      'DATOS BÁSICOS',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Divider(),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: textFieldWidgetUI(
+                            controller: nombreCtrl,
+                            label: 'Nombre o Razón Social *',
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: textFieldWidgetUI(
+                            controller: rncCtrl,
+                            label: 'RNC / Cédula',
+                            requiredField: false,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: textFieldWidgetUI(
+                            label: 'Teléfono *',
+                            controller: telefonoCtrl,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              PhoneInputFormatter(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: textFieldWidgetUI(
+                            controller: emailCtrl,
+                            label: 'Email',
+                            requiredField: false,
+                          ),
+                        ),
+                      ],
                     ),
                     textFieldWidgetUI(
-                      label: 'Teléfono *',
-                      controller: telefonoCtrl,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        PhoneInputFormatter(),
+                      controller: direccionCtrl,
+                      label: 'Dirección Completa',
+                      requiredField: false,
+                      width: double.infinity,
+                    ),
+
+                    const SizedBox(height: 20),
+                    // Sección Configuración Financiera
+                    const Text(
+                      'CONFIGURACIÓN FINANCIERA Y CONTABLE',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Divider(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDropdown(
+                            'Tipo de Cliente',
+                            tipoCliente,
+                            [
+                              {
+                                'val': 'consumidor_final',
+                                'label': 'Consumidor Final',
+                              },
+                              {'val': 'credito', 'label': 'Crédito / Fiao'},
+                              {
+                                'val': 'gubernamental',
+                                'label': 'Gubernamental',
+                              },
+                              {'val': 'especial', 'label': 'Especial'},
+                            ],
+                            auth.roles.contains('admin')
+                                ? (val) => setState(() => tipoCliente = val)
+                                : null, // Deshabilitar si no es admin
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: CustomTextField(
+                            controller: cuentaContableCtrl,
+                            label: 'Cuenta Contable',
+                            hintText: '1.1.03.01',
+                            enabled: false,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: textFieldWidgetUI(
+                            controller: limiteCreditoCtrl,
+                            label: 'Límite de Crédito',
+                            keyboardType: TextInputType.number,
+                            requiredField: false,
+                            enabled: auth.roles.contains('admin'),
+                            readOnly: !auth.roles.contains('admin'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: textFieldWidgetUI(
+                            controller: diasCreditoCtrl,
+                            label: 'Días de Crédito',
+                            keyboardType: TextInputType.number,
+                            requiredField: false,
+                            enabled: auth.roles.contains('admin'),
+                            readOnly: !auth.roles.contains('admin'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: textFieldWidgetUI(
+                            controller: descuentoFijoCtrl,
+                            label: '% Descuento Fijo',
+                            keyboardType: TextInputType.number,
+                            requiredField: false,
+                            enabled: auth.roles.contains('admin'),
+                            readOnly: !auth.roles.contains('admin'),
+                          ),
+                        ),
                       ],
                     ),
 
-                    textFieldWidgetUI(
-                      controller: direccionCtrl,
-                      label: 'Dirección',
-                      requiredField: false,
+                    const SizedBox(height: 20),
+                    // Estado y Notas
+                    Row(
+                      children: [
+                        const Text('¿Cliente Activo?'),
+                        Switch(
+                          value: activo,
+                          onChanged: auth.roles.contains('admin')
+                              ? (val) => setState(() => activo = val)
+                              : null,
+                          activeThumbColor: Colors.green,
+                        ),
+                      ],
                     ),
                     textFieldWidgetUI(
-                      controller: emailCtrl,
-                      label: 'Email (Opcional)',
+                      controller: notasCtrl,
+                      label: 'Notas Internas / Observaciones',
                       requiredField: false,
-                    ),
-                    textFieldWidgetUI(
-                      controller: rncCtrl,
-                      label: 'Documento (Opcional)',
-                      requiredField: false,
+                      width: double.infinity,
                     ),
                   ],
                 ),
@@ -162,7 +321,7 @@ class _AddClienteDialogState extends ConsumerState<AddClienteDialog> {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
 
           /// 🔻 BOTONES
           Row(
@@ -175,13 +334,19 @@ class _AddClienteDialogState extends ConsumerState<AddClienteDialog> {
               const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: loading ? null : () => guardar(auth.token!),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 15,
+                  ),
+                ),
                 child: loading
                     ? const SizedBox(
                         height: 16,
                         width: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(isEdit ? 'Actualizar' : 'Guardar'),
+                    : Text(isEdit ? 'ACTUALIZAR CLIENTE' : 'CREAR CLIENTE'),
               ),
             ],
           ),
@@ -191,41 +356,40 @@ class _AddClienteDialogState extends ConsumerState<AddClienteDialog> {
   }
 
   /// 🔧 HELPERS UI
-  Widget _buildText(
-    TextEditingController ctrl,
-    String label, {
-    bool required = false,
-    TextInputType? type,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: TextFormField(
-        controller: ctrl,
-        keyboardType: type,
-        decoration: InputDecoration(labelText: label),
-        validator: (v) {
-          if (required && (v == null || v.isEmpty)) return 'Requerido';
-          return null;
-        },
-      ),
-    );
-  }
-
   Widget _buildDropdown(
     String label,
     String value,
-    List<String> items,
-    Function(String) onChanged,
+    List<Map<String, String>> items,
+    Function(String)? onChanged,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: DropdownButtonFormField(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: DropdownButtonFormField<String>(
         value: value,
         items: items
-            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+            .map(
+              (e) =>
+                  DropdownMenuItem(value: e['val'], child: Text(e['label']!)),
+            )
             .toList(),
-        onChanged: (v) => onChanged(v as String),
-        decoration: InputDecoration(labelText: label),
+        onChanged: onChanged != null ? (v) => onChanged(v!) : null,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 15,
+            vertical: 12,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+          ),
+        ),
       ),
     );
   }

@@ -4,6 +4,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\FacturaController;
 use App\Http\Controllers\Api\NcfSecuenciaController;
+use App\Http\Controllers\Api\CajaController;
+use App\Http\Controllers\Api\ProductoController;
+use App\Http\Controllers\Api\IngredienteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,6 +62,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/facturas', [FacturaController::class, 'index'])
         ->middleware('permission:ver_facturas');
 
+    Route::get('/facturas/reportes', [FacturaController::class, 'reportes'])
+        ->middleware('permission:ver_facturas');
+
     Route::get('/facturas/{id}', [FacturaController::class, 'show'])
         ->middleware('permission:ver_facturas');
 
@@ -76,9 +82,42 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('permission:crear_facturas');
 
     // ================= CAJA Y TURNOS =================
-    Route::get('/caja/estado', [\App\Http\Controllers\Api\CajaController::class, 'estadoActual']);
-    Route::post('/caja/abrir', [\App\Http\Controllers\Api\CajaController::class, 'abrir']);
-    Route::post('/caja/cerrar', [\App\Http\Controllers\Api\CajaController::class, 'cerrar']);
+    Route::get('/cajas', [CajaController::class, 'index']);
+    Route::get('/turnos', [CajaController::class, 'turnos']);
+    Route::get('/caja/estado', [CajaController::class, 'estadoActual']);
+    Route::post('/caja/abrir', [CajaController::class, 'abrir']);
+    Route::get('/caja/resumen', [CajaController::class, 'resumen']);
+    Route::post('/caja/cerrar', [CajaController::class, 'cerrar']);
+    Route::get('/caja/historial', [CajaController::class, 'historial']);
+
+    // ================= PRODUCTOS =================
+    Route::get('/productos', [ProductoController::class, 'index'])
+        ->middleware('permission:ver_productos');
+
+    Route::get('/productos/{id}', [ProductoController::class, 'show'])
+        ->middleware('permission:ver_productos');
+
+    Route::post('/productos', [ProductoController::class, 'store'])
+        ->middleware('permission:crear_productos');
+
+    Route::put('/productos/{id}', [ProductoController::class, 'update'])
+        ->middleware('permission:editar_productos');
+
+    Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])
+        ->middleware('permission:eliminar_productos');
+
+    // ================= INGREDIENTES =================
+    Route::get('/ingredientes', [IngredienteController::class, 'index'])
+        ->middleware('permission:ver_inventario');
+
+    Route::post('/ingredientes', [IngredienteController::class, 'store'])
+        ->middleware('permission:crear_inventario');
+
+    Route::put('/ingredientes/{id}', [IngredienteController::class, 'update'])
+        ->middleware('permission:crear_inventario');
+
+    Route::delete('/ingredientes/{id}', [IngredienteController::class, 'destroy'])
+        ->middleware('permission:crear_inventario');
 
 });
 

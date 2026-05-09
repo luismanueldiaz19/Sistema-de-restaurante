@@ -36,6 +36,7 @@ return new class extends Migration
             $table->decimal('monto_final_esperado', 15, 2)->default(0); // Suma de ventas
             $table->decimal('monto_final_fisico', 15, 2)->nullable(); // Lo que contó el cajero
             $table->decimal('diferencia', 15, 2)->default(0); // Sobrante o Faltante
+            $table->json('desglose_efectivo')->nullable(); // Desglose por denominaciones
             
             $table->enum('estado', ['abierta', 'cerrada'])->default('abierta');
             $table->timestamp('fecha_apertura')->useCurrent();

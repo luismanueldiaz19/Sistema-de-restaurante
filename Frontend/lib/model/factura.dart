@@ -96,21 +96,21 @@ class Factura {
     ncfSecuenciaId: json['ncf_secuencia_id'],
     ncf: json["ncf"],
     tipoFactura: json["tipo_factura"],
-    fechaEmision: DateTime.parse(json["fecha_emision"]),
-    fechaVencimiento: DateTime.parse(json["fecha_vencimiento"]),
-    subtotal: json["subtotal"],
-    descuentoTotal: json["descuento_total"],
-    itbis: json["itbis"],
-    total: json["total"],
+    fechaEmision: json["fecha_emision"] != null ? DateTime.parse(json["fecha_emision"]) : null,
+    fechaVencimiento: json["fecha_vencimiento"] != null ? DateTime.parse(json["fecha_vencimiento"]) : null,
+    subtotal: json["subtotal"]?.toString(),
+    descuentoTotal: json["descuento_total"]?.toString(),
+    itbis: json["itbis"]?.toString(),
+    total: json["total"]?.toString(),
     estado: json["estado"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
+    createdAt: json["created_at"] != null ? DateTime.parse(json["created_at"]) : null,
+    updatedAt: json["updated_at"] != null ? DateTime.parse(json["updated_at"]) : null,
     userId: json["user_id"],
-    cliente: Cliente.fromJson(json["cliente"]),
-    detalles: List<Detalle>.from(
-      json["detalles"].map((x) => Detalle.fromJson(x)),
-    ),
-    user: User.fromJson(json["user"]),
+    cliente: json["cliente"] != null ? Cliente.fromJson(json["cliente"]) : null,
+    detalles: json["detalles"] != null
+        ? List<Detalle>.from(json["detalles"].map((x) => Detalle.fromJson(x)))
+        : [],
+    user: json["user"] != null ? User.fromJson(json["user"]) : null,
   );
 
   Map<String, dynamic> toJson() => {

@@ -10,10 +10,18 @@ class Cliente extends Model
     use HasFactory;
 
     protected $fillable = [
-         'nombre',
-         'telefono',
-         'direccion',
-         'documento',
-         'email',
+        'nombre',
+        'rnc_cedula',
+        'email',
+        'telefono',
+        'direccion',
+        'tipo_cliente',
+        'limite_credito',
+        'saldo_actual',
+        'dias_credito',
+        'cuenta_contable',
+        'descuento_fijo',
+        'activo',
+        'notas',
     ];
 }

@@ -20,7 +20,8 @@ class Factura extends Model
         'itbis',
         'total',
         'estado',
-        
+        'nota',
+        'dias_credito',
     ];
 public function user() {
     return $this->belongsTo(User::class);

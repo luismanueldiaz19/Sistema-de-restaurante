@@ -34,5 +34,15 @@ class UserSeeder extends Seeder
             ]
         );
         $cajero->assignRole('cajero');
+
+        // Crear segundo usuario cajero
+        $cajero2 = User::firstOrCreate(
+            ['email' => 'cajero2@gmail.com'],
+            [
+                'name'     => 'Cajero Dos',
+                'password' => Hash::make('cajero123'),
+            ]
+        );
+        $cajero2->assignRole('cajero');
     }
 }

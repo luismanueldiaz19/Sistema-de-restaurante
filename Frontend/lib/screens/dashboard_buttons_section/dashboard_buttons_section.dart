@@ -35,12 +35,12 @@ class DashboardButtonsSection extends ConsumerWidget {
           color: Colors.indigo,
           onTap: () => onAction('reportes'),
         ),
-      if (auth.hasPermission('ver_gastos'))
+      if (auth.hasPermission('ver_inventario') || auth.hasPermission('ver_productos'))
         DashboardButton(
-          title: 'Inventario',
-          icon: Icons.inventory_rounded,
-          color: Colors.orange.shade700,
-          onTap: () => onAction('inventario'),
+          title: 'Productos',
+          icon: Icons.fastfood_rounded,
+          color: Colors.deepOrange,
+          onTap: () => onAction('productos'),
         ),
     ];
     return FadeInUp(

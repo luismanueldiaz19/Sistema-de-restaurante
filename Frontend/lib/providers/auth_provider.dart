@@ -4,6 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../model/user.dart';
 import '../services/auth_service.dart';
 import 'auth_state.dart';
+import '../modulo_caja/providers/caja_provider.dart';
+import '../facturacion/providers/facturacion_provider.dart';
+import '../facturacion/providers/facturacion_historial_provider.dart';
+import '../modulo_cliente/providers/cliente_admin_provider.dart';
+import '../modulo_producto/providers/producto_provider.dart';
+import '../modulo_producto/providers/ingrediente_provider.dart';
 
 part 'auth_provider.g.dart';
 
@@ -101,6 +107,14 @@ class Auth extends _$Auth {
 
     if (ref.mounted) {
       state = AuthState();
+
+      // Limpiar proveedores de datos sensibles
+      ref.invalidate(cajaProvider);
+      ref.invalidate(facturacionProvider);
+      ref.invalidate(facturacionHistorialProvider);
+      ref.invalidate(clienteAdminProvider);
+      ref.invalidate(productoProvider);
+      ref.invalidate(ingredienteProvider);
     }
   }
 
@@ -108,7 +122,7 @@ class Auth extends _$Auth {
   bool hasPermission(String permission) {
     // Si el usuario es administrador, tiene acceso total (bypass)
     if (state.roles.contains('admin')) return true;
-    
+
     // Si no es admin, verificamos el permiso específico
     return state.permissions.contains(permission);
   }

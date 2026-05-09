@@ -27,7 +27,7 @@ class ClienteAdmin extends _$ClienteAdmin {
       } else {
         final parts = q.split(' ');
         final filtered = _allClientes.where((c) {
-          final clientData = "${c.nombre} ${c.telefono} ${c.documento} ${c.email}".toLowerCase();
+          final clientData = "${c.nombre} ${c.telefono} ${c.rncCedula} ${c.email}".toLowerCase();
           return parts.every((part) => clientData.contains(part));
         }).toList();
         state = state.copyWith(clientes: filtered);

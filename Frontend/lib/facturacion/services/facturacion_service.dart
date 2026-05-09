@@ -1,11 +1,13 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../models/factura_item.dart';
 import '../../../modulo_cliente/models/cliente.dart';
 import '../../../model/comprobante.dart';
+import '../../../services/api_services.dart';
+import '../../../utils/constants.dart';
 
 class FacturacionService {
-  final String baseUrl = "http://127.0.0.1:8000/api";
+  final ApiService _api = ApiService();
+  final String _baseUrl = "$hostName/api";
 
   Future<Map<String, dynamic>> crearFactura({
     required Cliente cliente,
@@ -13,38 +15,129 @@ class FacturacionService {
     required List<FacturaItem> items,
     required String token,
     required int userId,
+    String tipoFactura = 'contado',
+    int diasCredito = 0,
+    String nota = "",
+    Map<String, dynamic>? pago,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/facturas"),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          "cliente_id": cliente.id,
-          "ncf_secuencia_id": comprobante.id,
-          "user_id": userId,
-          "fecha_emision": DateTime.now().toIso8601String(),
-          "fecha_vencimiento": DateTime.now().add(const Duration(days: 30)).toIso8601String(),
-          "detalles": items.map((item) => {
-            "descripcion": item.descripcion,
-            "cantidad": item.cantidad,
-            "precio": item.precio,
-            "itbis": item.montoItbis,
-            "descuento": item.montoDescuento,
-            "subtotal": item.subtotal,
-            "total": item.total,
-          }).toList(),
-        }),
+      final payload = {
+        "cliente_id": cliente.id,
+        "ncf_secuencia_id": comprobante.id,
+        "user_id": userId,
+        "tipo_factura": tipoFactura,
+        "dias_credito": diasCredito,
+        "nota": nota,
+        "pago": pago,
+        "fecha_emision": DateTime.now().toIso8601String(),
+        "fecha_vencimiento": DateTime.now()
+            .add(Duration(days: diasCredito))
+            .toIso8601String(),
+        "detalles": items
+            .map(
+              (item) => {
+                "producto_id": int.tryParse(item.id),
+                "descripcion": item.descripcion,
+                "cantidad": item.cantidad,
+                "precio": item.precio,
+                "itbis": item.montoItbis,
+                "descuento_porcentaje": item.descuentoPorcentaje,
+                "descuento": item.montoDescuento,
+                "subtotal": item.subtotal,
+                "total": item.total,
+              },
+            )
+            .toList(),
+      };
+
+      print("DEBUG PAYLOAD: ${jsonEncode(payload)}");
+
+      final response = await _api.post(
+        "$_baseUrl/facturas",
+        payload,
+        token: token,
       );
 
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {"success": true, "data": data};
       } else {
-        return {"success": false, "message": data['message'] ?? "Error desconocido"};
+        return {
+          "success": false,
+          "message": data['message'] ?? "Error desconocido",
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Error de conexión: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getHistorial({
+    required String token,
+    Map<String, String>? filters,
+  }) async {
+    try {
+      String query = "";
+      if (filters != null && filters.isNotEmpty) {
+        query =
+            "?" + filters.entries.map((e) => "${e.key}=${e.value}").join("&");
+      }
+
+      final response = await _api.get("$_baseUrl/facturas$query", token: token);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true, 
+          "data": data['data'],
+          "resumen": data['resumen']
+        };
+      } else {
+        return {
+          "success": false,
+          "message": data['message'] ?? "Error al obtener facturas",
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Error de conexión: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getReportes({
+    required String token,
+    String? fechaDesde,
+    String? fechaHasta,
+  }) async {
+    try {
+      String query = "";
+      List<String> params = [];
+      if (fechaDesde != null) params.add("fecha_desde=$fechaDesde");
+      if (fechaHasta != null) params.add("fecha_hasta=$fechaHasta");
+      if (params.isNotEmpty) query = "?${params.join("&")}";
+
+      final response = await _api.get(
+        "$_baseUrl/facturas/reportes$query",
+        token: token,
+      );
+
+      dynamic data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (e) {
+        return {
+          "success": false,
+          "message": "Error al procesar respuesta del servidor (JSON inválido)",
+        };
+      }
+
+      if (response.statusCode == 200) {
+        return {"success": true, "data": data['data']};
+      } else {
+        return {
+          "success": false,
+          "message": data['message'] ?? "Error al obtener reportes",
+        };
       }
     } catch (e) {
       return {"success": false, "message": "Error de conexión: $e"};

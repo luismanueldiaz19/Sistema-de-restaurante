@@ -22,6 +22,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'editar_clientes',
             'eliminar_clientes',
 
+            // PRODUCTOS
+            'ver_productos',
+            'crear_productos',
+            'editar_productos',
+            'eliminar_productos',
+
             // FACTURAS
             'ver_facturas',
             'crear_facturas',
@@ -31,6 +37,11 @@ class RolesAndPermissionsSeeder extends Seeder
             // EVENTOS / BUFFET
             'ver_eventos',
             'crear_eventos',
+
+            // INVENTARIO
+            'ver_inventario',
+            'crear_inventario',
+            'gestionar_recetas',
 
             // GASTOS
             'ver_gastos',
@@ -59,7 +70,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'ver_facturas',
             'crear_facturas',
             'ver_eventos',
-            'crear_eventos'
+            'crear_eventos',
+            'ver_productos'
         ]);
 
         // 💰 CAJERO
@@ -69,6 +81,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear_clientes',
             'ver_facturas',
             'crear_facturas',
+            'ver_productos'
         ]);
     }
 }

@@ -56,13 +56,27 @@ class Detalle {
     descripcion: json["descripcion"],
     unidadMedida: json["unidad_medida"],
     cantidad: json["cantidad"],
-    precio: json["precio"],
-    descuento: json["descuento"],
-    descuentoPorcentaje: json["descuento_porcentaje"],
-    itbis: json["itbis"],
-    total: json["total"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
+    precio: json["precio"] != null
+        ? double.parse(json["precio"].toString())
+        : null,
+    descuento: json["descuento"] != null
+        ? double.parse(json["descuento"].toString())
+        : null,
+    descuentoPorcentaje: json["descuento_porcentaje"] != null
+        ? double.parse(json["descuento_porcentaje"].toString())
+        : null,
+    itbis: json["itbis"] != null
+        ? double.parse(json["itbis"].toString())
+        : null,
+    total: json["total"] != null
+        ? double.parse(json["total"].toString())
+        : null,
+    createdAt: json["created_at"] != null
+        ? DateTime.parse(json["created_at"])
+        : null,
+    updatedAt: json["updated_at"] != null
+        ? DateTime.parse(json["updated_at"])
+        : null,
   );
 
   Map<String, dynamic> toJson() => {

@@ -37,7 +37,7 @@ dependencies:
   http: ^1.6.0
   # flutter_secure_storage: ^10.0.0
   intl: ^0.20.2
-  icons_launcher: ^3.0.3
+  # icons_launcher: ^3.0.3
   google_fonts: ^8.0.0
   animate_do: ^4.2.0
   fl_chart: ^1.1.1
@@ -45,28 +45,32 @@ dependencies:
   shared_preferences: ^2.5.5
   flutter_riverpod: ^3.1.0
   riverpod_annotation: ^4.0.0
+  # pdf: ^3.11.1
+  # printing: ^5.13.2
+  esc_pos_printer: ^4.1.0
+  esc_pos_utils: ^1.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: "^0.13.1"
+  # flutter_launcher_icons: "^0.13.1"
   flutter_lints: ^6.0.0
   riverpod_generator: ^4.0.0+1
   build_runner: ^2.15.0
   custom_lint: ^0.8.1
   riverpod_lint: ^3.1.0
 
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "assets/icon/app_icon.png"
-  web:
-    generate: true
-    image_path: "assets/icon/app_icon.png"
-  windows:
-    generate: true
-    image_path: "assets/icon/app_icon.png"
-    icon_size: 48
+# flutter_launcher_icons:
+#   android: true
+#   ios: false
+#   image_path: "assets/icon/app_icon.png"
+#   web:
+#     generate: true
+#     image_path: "assets/icon/app_icon.png"
+#   windows:
+#     generate: true
+#     image_path: "assets/icon/app_icon.png"
+#     icon_size: 48
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

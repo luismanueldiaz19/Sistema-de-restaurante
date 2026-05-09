@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('factura_detalle', function (Blueprint $table) {
           // 🔗 Relación
     $table->foreignId('factura_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('producto_id')->nullable()->constrained('productos')->onDelete('set null');
 
     // 📦 Producto
     $table->string('descripcion');

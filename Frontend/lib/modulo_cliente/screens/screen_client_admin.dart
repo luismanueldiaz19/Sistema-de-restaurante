@@ -94,21 +94,31 @@ class _ScreenClientAdminState extends ConsumerState<ScreenClientAdmin> {
               children: [
                 Expanded(
                   child: CustomTextField(
-                    label: "Buscar",
-                    hintText: "Nombre, teléfono o RNC...",
+                    label: "",
+                    hintText: "Buscar por nombre, teléfono o RNC...",
                     controller: searchController,
-                    prefixIcon: Icons.search,
-                    onChanged: (value) => ref.read(clienteAdminProvider.notifier).searchClientes(value),
+                    prefixIcon: Icons.search_rounded,
+                    onChanged: (value) => ref
+                        .read(clienteAdminProvider.notifier)
+                        .searchClientes(value),
                     onSuffixIconTap: () {
                       searchController.clear();
-                      ref.read(clienteAdminProvider.notifier).searchClientes('');
+                      ref
+                          .read(clienteAdminProvider.notifier)
+                          .searchClientes('');
+                      setState(() {});
                     },
-                    suffixIcon: searchController.text.isNotEmpty ? Icons.clear : null,
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? Icons.clear_rounded
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 15),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 15,
+                  ),
                   margin: const EdgeInsets.only(bottom: 2),
                   decoration: BoxDecoration(
                     color: AppColors.azulOscuro.withValues(alpha: 0.1),
@@ -135,11 +145,18 @@ class _ScreenClientAdminState extends ConsumerState<ScreenClientAdmin> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.person_off_outlined, size: 80, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.person_off_outlined,
+                          size: 80,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 10),
                         Text(
                           "No se encontraron clientes",
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -150,9 +167,14 @@ class _ScreenClientAdminState extends ConsumerState<ScreenClientAdmin> {
                       clientes: provider.clientes,
                       onEdit: (cliente) async {
                         if (!auth.hasPermission("editar_clientes")) return;
-                        final result = await ClientFormBottomSheet.show(context, cliente: cliente);
+                        final result = await ClientFormBottomSheet.show(
+                          context,
+                          cliente: cliente,
+                        );
                         if (result == true) {
-                          ref.read(clienteAdminProvider.notifier).loadClients(auth.token!);
+                          ref
+                              .read(clienteAdminProvider.notifier)
+                              .loadClients(auth.token!);
                         }
                       },
                       onDelete: (cliente) async {
@@ -160,19 +182,22 @@ class _ScreenClientAdminState extends ConsumerState<ScreenClientAdmin> {
                         bool? ask = await CustomConfirmDialog.show(
                           context,
                           title: 'Eliminar Cliente',
-                          message: '¿Estás seguro que deseas eliminar a ${cliente.nombre}? Esta acción no se puede deshacer.',
+                          message:
+                              '¿Estás seguro que deseas eliminar a ${cliente.nombre}? Esta acción no se puede deshacer.',
                           confirmText: 'Eliminar',
                           cancelText: 'Cancelar',
                           icon: Icons.delete_forever_rounded,
                           primaryColor: Colors.redAccent,
                         );
                         if (ask == true) {
-                          ref.read(clienteAdminProvider.notifier).deleteClient(cliente.id!, auth.token!);
+                          ref
+                              .read(clienteAdminProvider.notifier)
+                              .deleteClient(cliente.id!, auth.token!);
                         }
                       },
                     ),
                   ),
-                
+
                 if (provider.isLoading)
                   Positioned.fill(
                     child: Container(
