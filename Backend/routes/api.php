@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\NcfSecuenciaController;
 use App\Http\Controllers\Api\CajaController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\IngredienteController;
+use App\Http\Controllers\Api\NominaController;
+use App\Http\Controllers\Api\EmpleadoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -118,6 +120,32 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::delete('/ingredientes/{id}', [IngredienteController::class, 'destroy'])
         ->middleware('permission:crear_inventario');
+
+    // ================= NÓMINA =================
+    Route::get('/empleados', [NominaController::class, 'getEmpleados'])
+        ->middleware('permission:ver_nomina');
+    
+    Route::get('/nominas', [NominaController::class, 'index'])
+        ->middleware('permission:ver_nomina');
+    
+    Route::post('/nominas', [NominaController::class, 'store'])
+        ->middleware('permission:ver_nomina');
+    
+    Route::patch('/nominas/{id}/status', [NominaController::class, 'updateStatus'])
+        ->middleware('permission:ver_nomina');
+
+    // ================= EMPLEADOS =================
+    Route::get('/empleados/all', [EmpleadoController::class, 'index'])
+        ->middleware('permission:ver_nomina');
+    
+    Route::post('/empleados', [EmpleadoController::class, 'store'])
+        ->middleware('permission:ver_nomina');
+    
+    Route::put('/empleados/{id}', [EmpleadoController::class, 'update'])
+        ->middleware('permission:ver_nomina');
+    
+    Route::patch('/empleados/{id}/toggle', [EmpleadoController::class, 'toggleStatus'])
+        ->middleware('permission:ver_nomina');
 
 });
 

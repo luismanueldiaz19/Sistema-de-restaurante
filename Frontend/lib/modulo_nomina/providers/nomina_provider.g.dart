@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_provider.dart';
+part of 'nomina_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,50 +9,50 @@ part of 'auth_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(Auth)
-final authProvider = AuthProvider._();
+@ProviderFor(Nomina)
+final nominaProvider = NominaProvider._();
 
-final class AuthProvider extends $NotifierProvider<Auth, AuthState> {
-  AuthProvider._()
+final class NominaProvider extends $NotifierProvider<Nomina, NominaState> {
+  NominaProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'authProvider',
+        name: r'nominaProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$authHash();
+  String debugGetCreateSourceHash() => _$nominaHash();
 
   @$internal
   @override
-  Auth create() => Auth();
+  Nomina create() => Nomina();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AuthState value) {
+  Override overrideWithValue(NominaState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<AuthState>(value),
+      providerOverride: $SyncValueProvider<NominaState>(value),
     );
   }
 }
 
-String _$authHash() => r'6c601d29efaa7a9fee4c57c2dc68008c8879d6c8';
+String _$nominaHash() => r'6fba16498caee2efcc2f87d5bd41c732b4142673';
 
-abstract class _$Auth extends $Notifier<AuthState> {
-  AuthState build();
+abstract class _$Nomina extends $Notifier<NominaState> {
+  NominaState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AuthState, AuthState>;
+    final ref = this.ref as $Ref<NominaState, NominaState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AuthState, AuthState>,
-              AuthState,
+              AnyNotifier<NominaState, NominaState>,
+              NominaState,
               Object?,
               Object?
             >;

@@ -43,12 +43,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
       'pass': 'cajero123',
       'icon': Icons.person_outline,
     },
-    {
-      'name': 'Cajero 2',
-      'email': 'cajero2@gmail.com',
-      'pass': 'cajero123',
-      'icon': Icons.person_add_alt_1_outlined,
-    },
+    // {
+    //   'name': 'Cajero 2',
+    //   'email': 'cajero2@gmail.com',
+    //   'pass': 'cajero123',
+    //   'icon': Icons.person_add_alt_1_outlined,
+    // },
   ];
   int _selectedProfileIndex = 0;
 
@@ -287,82 +287,95 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                     const SizedBox(height: 30),
 
                                     /// 👤 SELECTOR DE PERFIL (SLIDER / TABS)
-                                    Wrap(
-                                      spacing: 10,
-                                      runSpacing: 10,
-                                      alignment: WrapAlignment.start,
-                                      children: List.generate(
-                                        _profiles.length,
-                                        (index) {
-                                          final isSelected =
-                                              _selectedProfileIndex == index;
-                                          final profile = _profiles[index];
-                                          return InkWell(
-                                            onTap: () => _selectProfile(index),
-                                            borderRadius: BorderRadius.circular(
-                                              15,
-                                            ),
-                                            child: AnimatedContainer(
-                                              duration: const Duration(
-                                                milliseconds: 300,
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: List.generate(
+                                          _profiles.length,
+                                          (index) {
+                                            final isSelected =
+                                                _selectedProfileIndex == index;
+                                            final profile = _profiles[index];
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 10,
                                               ),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 10,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: isSelected
-                                                    ? AppColors.azulOscuro
-                                                    : Colors.grey.shade100,
+                                              child: InkWell(
+                                                onTap: () =>
+                                                    _selectProfile(index),
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                boxShadow: isSelected
-                                                    ? [
-                                                        BoxShadow(
-                                                          color: AppColors
-                                                              .azulOscuro
-                                                              .withValues(
-                                                                alpha: 0.3,
-                                                              ),
-                                                          blurRadius: 8,
-                                                          offset: const Offset(
-                                                            0,
-                                                            4,
-                                                          ),
-                                                        ),
-                                                      ]
-                                                    : [],
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    profile['icon'],
-                                                    size: 18,
+                                                child: AnimatedContainer(
+                                                  duration: const Duration(
+                                                    milliseconds: 300,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 10,
+                                                      ),
+                                                  decoration: BoxDecoration(
                                                     color: isSelected
-                                                        ? Colors.white
-                                                        : Colors.grey.shade600,
+                                                        ? AppColors.azulOscuro
+                                                        : Colors.grey.shade100,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          15,
+                                                        ),
+                                                    boxShadow: isSelected
+                                                        ? [
+                                                            BoxShadow(
+                                                              color: AppColors
+                                                                  .azulOscuro
+                                                                  .withValues(
+                                                                    alpha: 0.3,
+                                                                  ),
+                                                              blurRadius: 8,
+                                                              offset:
+                                                                  const Offset(
+                                                                    0,
+                                                                    4,
+                                                                  ),
+                                                            ),
+                                                          ]
+                                                        : [],
                                                   ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    profile['name'],
-                                                    style: TextStyle(
-                                                      color: isSelected
-                                                          ? Colors.white
-                                                          : Colors
-                                                                .grey
-                                                                .shade600,
-                                                      fontWeight: isSelected
-                                                          ? FontWeight.bold
-                                                          : FontWeight.normal,
-                                                      fontSize: 13,
-                                                    ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        profile['icon'],
+                                                        size: 18,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : Colors
+                                                                  .grey
+                                                                  .shade600,
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Text(
+                                                        profile['name'],
+                                                        style: TextStyle(
+                                                          color: isSelected
+                                                              ? Colors.white
+                                                              : Colors
+                                                                    .grey
+                                                                    .shade600,
+                                                          fontWeight: isSelected
+                                                              ? FontWeight.bold
+                                                              : FontWeight
+                                                                    .normal,
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        },
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
 

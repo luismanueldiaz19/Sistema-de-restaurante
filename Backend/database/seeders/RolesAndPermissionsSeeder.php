@@ -83,5 +83,21 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear_facturas',
             'ver_productos'
         ]);
+
+        // 🧮 CONTADOR
+        $contador = Role::firstOrCreate(['name' => 'contador']);
+        $contador->givePermissionTo([
+            'ver_clientes',
+            'ver_facturas',
+            'ver_gastos',
+            'ver_nomina',
+            'ver_inventario'
+        ]);
+
+        // 📝 AUXILIAR CONTABLE
+        $auxiliar = Role::firstOrCreate(['name' => 'auxiliar contable']);
+        $auxiliar->givePermissionTo([
+            'ver_nomina'
+        ]);
     }
 }

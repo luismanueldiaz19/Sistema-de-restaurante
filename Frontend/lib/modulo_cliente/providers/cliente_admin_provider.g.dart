@@ -41,7 +41,7 @@ final class ClienteAdminProvider
   }
 }
 
-String _$clienteAdminHash() => r'0ac65186a904c6bbf80b5b935384a5f57c8c7eb7';
+String _$clienteAdminHash() => r'43631b09aac31e8ef4334cb2bf77b490c16f6c35';
 
 abstract class _$ClienteAdmin extends $Notifier<ClienteAdminState> {
   ClienteAdminState build();

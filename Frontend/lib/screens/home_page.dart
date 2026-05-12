@@ -12,6 +12,7 @@ import '../facturacion/screens/reporte_ventas_screen.dart';
 import '../modulo_cliente/providers/cliente_admin_provider.dart';
 import '../modulo_caja/providers/caja_provider.dart';
 import '../modulo_caja/widgets/cierre_caja_dialog.dart';
+import '../modulo_nomina/providers/nomina_provider.dart';
 import '../palletes/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../providers/auth_state.dart';
@@ -20,6 +21,9 @@ import 'dashboard_buttons_section/dashboard_buttons_section.dart';
 import 'login_page.dart';
 import '../facturacion/screens/historial_caja_screen.dart';
 import '../facturacion/screens/historial_ventas_screen.dart';
+import '../modulo_nomina/screens/nomina_dashboard_screen.dart';
+import '../modulo_nomina/screens/add_nomina_screen.dart';
+import '../modulo_nomina/screens/empleado_list_screen.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
@@ -234,6 +238,47 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           title: 'Usuarios',
           icon: Icons.manage_accounts_outlined,
           onTap: () {},
+        ),
+
+      // Módulo de Nómina (Contabilidad)
+      if (auth.roles.contains('admin') ||
+          auth.roles.contains('contador') ||
+          auth.roles.contains('auxiliar contable') ||
+          auth.hasPermission('ver_nomina'))
+        SidebarItem(
+          title: 'Nómina',
+          icon: Icons.account_balance_outlined,
+          subItems: [
+            SidebarSubItem(
+              title: 'Dashboard Nómina',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NominaDashboardScreen(),
+                ),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Gestionar Empleados',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EmpleadoListScreen()),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Generar Nómina',
+              onTap: () async {
+                final result = await showDialog(
+                  context: context,
+                  builder: (_) => const AddNominaDialog(),
+                );
+                // Si se generó con éxito, recargar historial
+                if (result == true && context.mounted) {
+                  ref.read(nominaProvider.notifier).fetchHistorial();
+                }
+              },
+            ),
+          ],
         ),
     ];
 
