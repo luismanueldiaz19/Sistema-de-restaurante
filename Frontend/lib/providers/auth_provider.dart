@@ -10,6 +10,7 @@ import '../facturacion/providers/facturacion_historial_provider.dart';
 import '../modulo_cliente/providers/cliente_admin_provider.dart';
 import '../modulo_producto/providers/producto_provider.dart';
 import '../modulo_producto/providers/ingrediente_provider.dart';
+import 'configuracion_contable_provider.dart';
 
 part 'auth_provider.g.dart';
 
@@ -115,6 +116,7 @@ class Auth extends _$Auth {
       ref.invalidate(clienteAdminProvider);
       ref.invalidate(productoProvider);
       ref.invalidate(ingredienteProvider);
+      ref.invalidate(configuracionContableProvider);
     }
   }
 

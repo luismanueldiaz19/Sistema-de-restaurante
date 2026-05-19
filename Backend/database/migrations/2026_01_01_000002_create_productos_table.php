@@ -12,11 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('productos', function (Blueprint $table) {
+
             $table->id();
             $table->string('nombre');
             $table->string('codigo')->unique()->nullable();
             $table->string('descripcion')->nullable();
             $table->string('categoria')->default('GENERAL');
+            $table->string('tipo_producto', 20)->default('VENTA_DIRECTA');
             $table->string('unidad_medida')->default('UND'); // UND, KG, LB, etc.
             
             // Precios e Impuestos
@@ -35,6 +37,7 @@ return new class extends Migration
             $table->string('cuenta_contable_costos')->default('5.1'); // Costo Alimentos
             $table->boolean('activo')->default(true);
             $table->timestamps();
+            
         });
     }
 

@@ -147,6 +147,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/empleados/{id}/toggle', [EmpleadoController::class, 'toggleStatus'])
         ->middleware('permission:ver_nomina');
 
+    // ================= CONTABILIDAD =================
+    Route::get('/catalogo-cuentas', [\App\Http\Controllers\Api\CatalogoCuentaController::class, 'index']);
+    Route::get('/configuracion-contable', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'index']);
+    Route::put('/configuracion-contable/{id}', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'update']);
+    Route::post('/configuracion-contable/bulk', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'bulkUpdate']);
+    Route::get('/asientos', [\App\Http\Controllers\Api\AsientoContableController::class, 'index']);
+
 });
 
 // // Route::post('/facturas', [FacturaController::class, 'store'])

@@ -119,7 +119,7 @@ class FacturaController extends Controller {
         }
 
         // 💳 REGISTRAR PAGO (Si viene en la petición)
-        if ($request->has('pago')) {
+        if ($request->has('pago') && !is_null($request->pago)) {
             $pagoData = $request->pago;
             DB::table('pagos')->insert([
                 'factura_id' => $factura,
@@ -140,6 +140,21 @@ class FacturaController extends Controller {
                 DB::table('facturas')->where('id', $factura)->update(['estado' => 'pagada']);
             }
         }
+
+        // 🔥 GENERAR ASIENTO CONTABLE AUTOMÁTICO (Partida Doble)
+        $tienePago = $request->has('pago') && !is_null($request->pago);
+        $tipoTransaccion = $tienePago ? 'venta_efectivo' : 'venta_credito';
+        $glosa = "Venta al " . ($tienePago ? "Contado" : "Crédito") . " - Factura NCF " . $ncf;
+        
+        app(\App\Services\ContabilidadService::class)->registrarAsientoAuto(
+            $tipoTransaccion,
+            round($subtotal, 2),
+            round($itbisTotal, 2),
+            round($total, 2),
+            $ncf,
+            $glosa,
+            auth()->id()
+        );
 
         DB::commit();
 

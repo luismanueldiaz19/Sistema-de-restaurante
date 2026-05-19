@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CajaAndTurnoSeeder::class,
             ClienteSeeder::class,
             ProductosSeeder::class,
+            ConfiguracionContableSeeder::class,
         ]);
     }
 }

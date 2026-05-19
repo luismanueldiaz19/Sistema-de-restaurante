@@ -6,6 +6,8 @@ import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.d
 import 'package:sistema_restaurante/modulo_producto/screens/screen_productos.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_ingredientes.dart';
 import 'package:sistema_restaurante/screens/profile_screen.dart';
+import 'package:sistema_restaurante/screens/configuracion_contable_screen.dart';
+import 'package:sistema_restaurante/screens/libro_diario_screen.dart';
 import 'package:sistema_restaurante/widgets/custom_confirm_dialog.dart';
 import 'package:sistema_restaurante/widgets/custom_sidebar.dart';
 import '../facturacion/screens/reporte_ventas_screen.dart';
@@ -277,6 +279,33 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                   ref.read(nominaProvider.notifier).fetchHistorial();
                 }
               },
+            ),
+          ],
+        ),
+
+      // Módulo de Contabilidad (Sólo Admin/Contador)
+      if (auth.roles.contains('admin') || auth.roles.contains('contador'))
+        SidebarItem(
+          title: 'Contabilidad',
+          icon: Icons.account_balance_rounded,
+          subItems: [
+            SidebarSubItem(
+              title: 'Configuración Contable',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ConfiguracionContableScreen(),
+                ),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Libro Diario General',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LibroDiarioScreen(),
+                ),
+              ),
             ),
           ],
         ),
