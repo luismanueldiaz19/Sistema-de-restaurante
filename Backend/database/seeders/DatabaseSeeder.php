@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CajaAndTurnoSeeder::class,
             ClienteSeeder::class,
+            CatalogosSeeder::class,
             ProductosSeeder::class,
             ConfiguracionContableSeeder::class,
         ]);

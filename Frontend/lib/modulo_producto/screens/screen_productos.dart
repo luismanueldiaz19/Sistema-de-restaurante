@@ -40,7 +40,10 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
         backgroundColor: Colors.white,
         title: const Text(
           "Inventario de Productos",
-          style: TextStyle(color: AppColors.azulOscuro, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppColors.azulOscuro,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         iconTheme: const IconThemeData(color: AppColors.azulOscuro),
         actions: [
@@ -54,7 +57,9 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.azulOscuro,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
@@ -69,12 +74,15 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
               hintText: "Buscar por nombre, código o categoría...",
               controller: searchController,
               prefixIcon: Icons.search_rounded,
-              onChanged: (v) => ref.read(productoProvider.notifier).searchProductos(v),
+              onChanged: (v) =>
+                  ref.read(productoProvider.notifier).searchProductos(v),
               onSuffixIconTap: () {
                 searchController.clear();
                 ref.read(productoProvider.notifier).searchProductos('');
               },
-              suffixIcon: searchController.text.isNotEmpty ? Icons.clear_rounded : null,
+              suffixIcon: searchController.text.isNotEmpty
+                  ? Icons.clear_rounded
+                  : null,
             ),
           ),
           Expanded(
@@ -83,32 +91,32 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
               child: state.isLoading && state.productos.isEmpty
                   ? const CustomLoading(text: "Cargando productos...")
                   : state.productos.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.inventory_2_outlined,
-                                size: 80,
-                                color: Colors.grey.shade200,
-                              ),
-                              const SizedBox(height: 15),
-                              Text(
-                                "No hay productos registrados",
-                                style: TextStyle(
-                                  color: Colors.grey.shade400,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 80,
+                            color: Colors.grey.shade200,
                           ),
-                        )
-                      : ProductoTable(
-                          productos: state.productos,
-                          onEdit: (p) => _showAddEditDialog(producto: p),
-                          onDelete: (p) => _deleteProducto(p),
-                        ),
+                          const SizedBox(height: 15),
+                          Text(
+                            "No hay productos registrados",
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ProductoTable(
+                      productos: state.productos,
+                      onEdit: (p) => _showAddEditDialog(producto: p),
+                      onDelete: (p) => _deleteProducto(p),
+                    ),
             ),
           ),
           const SizedBox(height: 20),
@@ -135,14 +143,17 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     bool? confirm = await CustomConfirmDialog.show(
       context,
       title: 'Eliminar Producto',
-      message: '¿Estás seguro de eliminar ${p.nombre}? Esta acción no se puede deshacer.',
+      message:
+          '¿Estás seguro de eliminar ${p.nombre}? Esta acción no se puede deshacer.',
       confirmText: 'Eliminar',
       cancelText: 'Cancelar',
       primaryColor: Colors.redAccent,
     );
 
     if (confirm == true) {
-      await ref.read(productoProvider.notifier).deleteProducto(p.id!, auth.token!);
+      await ref
+          .read(productoProvider.notifier)
+          .deleteProducto(p.id!, auth.token!);
     }
   }
 }

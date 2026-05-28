@@ -55,7 +55,6 @@ class ProductoTable extends ConsumerWidget {
             const DataColumn2(label: Text("PRECIO", style: TextStyle(fontWeight: FontWeight.bold)), size: ColumnSize.S, numeric: true),
             if (isAdmin) ...[
               const DataColumn2(label: Text("COSTO", style: TextStyle(fontWeight: FontWeight.bold)), size: ColumnSize.S, numeric: true),
-              const DataColumn2(label: Text("STOCK", style: TextStyle(fontWeight: FontWeight.bold)), size: ColumnSize.S, numeric: true),
               const DataColumn2(label: Text("ESTADO", style: TextStyle(fontWeight: FontWeight.bold)), size: ColumnSize.S, fixedWidth: 100),
             ],
             if (auth.hasPermission('editar_productos'))
@@ -89,11 +88,10 @@ class ProductoTable extends ConsumerWidget {
                     ],
                   ),
                 ),
-                DataCell(_buildCategoryBadge(p.categoria)),
+                DataCell(_buildCategoryBadge(p.categoria?.nombre)),
                 DataCell(Text('RD\$ ${p.precioVenta?.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))),
                 if (isAdmin) ...[
-                  DataCell(Text('RD\$ ${p.costo?.toStringAsFixed(2)}', style: TextStyle(color: Colors.grey.shade600))),
-                  DataCell(_buildStockText(p)),
+                  DataCell(Text('RD\$ ${p.ultimoCosto?.toStringAsFixed(2)}', style: TextStyle(color: Colors.grey.shade600))),
                   DataCell(_buildStatusBadge(p.activo ?? true)),
                 ],
                 if (auth.hasPermission('editar_productos'))
@@ -126,13 +124,7 @@ class ProductoTable extends ConsumerWidget {
     );
   }
 
-  Widget _buildStockText(Producto p) {
-    if (!(p.manejaInventario ?? true)) return const Text('--', style: TextStyle(color: Colors.grey));
-    final stock = p.stockActual ?? 0;
-    final min = p.stockMinimo ?? 0;
-    final color = stock <= min ? Colors.red : Colors.green;
-    return Text(stock.toStringAsFixed(0), style: TextStyle(color: color, fontWeight: FontWeight.bold));
-  }
+
 
   Widget _buildStatusBadge(bool active) {
     return Container(

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_text_field.dart';
 import '../models/producto.dart';
 import '../providers/producto_provider.dart';
+import '../providers/catalogo_provider.dart';
 
 class AddProductoDialog extends ConsumerStatefulWidget {
   final Producto? producto;
@@ -23,18 +23,19 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
   final descCtrl = TextEditingController();
   final precioCtrl = TextEditingController(text: '0');
   final costoCtrl = TextEditingController(text: '0');
-  final itbisCtrl = TextEditingController(text: '18');
-  final stockActualCtrl = TextEditingController(text: '0');
   final stockMinimoCtrl = TextEditingController(text: '0');
 
-  // Cuentas contables por defecto
-  final cuentaIngresosCtrl = TextEditingController(text: '4.1.01');
-  final cuentaInventarioCtrl = TextEditingController(text: '1.1.05.01');
-  final cuentaCostosCtrl = TextEditingController(text: '5.1');
+  final cuentaIngresosCtrl = TextEditingController(text: '');
+  final cuentaInventarioCtrl = TextEditingController(text: '');
+  final cuentaCostosCtrl = TextEditingController(text: '');
 
-  String categoria = 'COMIDA';
-  String tipoProducto = 'VENTA_DIRECTA';
-  String unidadMedida = 'UND';
+  int? categoriaId;
+  int? marcaId;
+  int? unidadMedidaId;
+  int? impuestoId;
+
+  String tipoProducto = 'PRODUCTO';
+  String tipoContable = 'INVENTARIO';
   bool manejaInventario = true;
   bool activo = true;
 
@@ -43,22 +44,36 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final token = ref.read(authProvider).token;
+      if (token != null) {
+        ref.read(categoriasProvider.notifier).fetchAll(token);
+        ref.read(marcasProvider.notifier).fetchAll(token);
+        ref.read(unidadesProvider.notifier).fetchAll(token);
+        ref.read(impuestosProvider.notifier).fetchAll(token);
+      }
+    });
+
     if (isEdit) {
       final p = widget.producto!;
       nombreCtrl.text = p.nombre ?? '';
       codigoCtrl.text = p.codigo ?? '';
       descCtrl.text = p.descripcion ?? '';
-      unidadMedida = p.unidadMedida ?? 'UND';
       precioCtrl.text = p.precioVenta?.toString() ?? '0';
-      costoCtrl.text = p.costo?.toString() ?? '0';
-      itbisCtrl.text = p.itbisPorcentaje?.toString() ?? '18';
-      stockActualCtrl.text = p.stockActual?.toString() ?? '0';
+      costoCtrl.text = p.ultimoCosto?.toString() ?? '0';
       stockMinimoCtrl.text = p.stockMinimo?.toString() ?? '0';
-      cuentaIngresosCtrl.text = p.cuentaContableIngresos ?? '4.1.01';
-      cuentaInventarioCtrl.text = p.cuentaContableInventario ?? '1.1.05.01';
-      cuentaCostosCtrl.text = p.cuentaContableCostos ?? '5.1';
-      categoria = p.categoria ?? 'COMIDA';
-      tipoProducto = p.tipoProducto ?? 'VENTA_DIRECTA';
+
+      cuentaIngresosCtrl.text = p.cuentaIngresoId?.toString() ?? '';
+      cuentaInventarioCtrl.text = p.cuentaInventarioId?.toString() ?? '';
+      cuentaCostosCtrl.text = p.cuentaCostoId?.toString() ?? '';
+
+      categoriaId = p.categoriaId;
+      marcaId = p.marcaId;
+      unidadMedidaId = p.unidadMedidaId;
+      impuestoId = p.impuestoId;
+
+      tipoProducto = p.tipoProducto ?? 'PRODUCTO';
+      tipoContable = p.tipoContable ?? 'INVENTARIO';
       manejaInventario = p.manejaInventario ?? true;
       activo = p.activo ?? true;
     }
@@ -69,10 +84,15 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
     final auth = ref.watch(authProvider);
     final isAdmin = auth.roles.contains('admin');
 
+    final categorias = ref.watch(categoriasProvider).items;
+    final marcas = ref.watch(marcasProvider).items;
+    final unidades = ref.watch(unidadesProvider).items;
+    final impuestos = ref.watch(impuestosProvider).items;
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
-        width: 600,
+        width: 700,
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -101,7 +121,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                 const Divider(),
                 const SizedBox(height: 16),
 
-                // Información básica
                 Row(
                   children: [
                     Expanded(
@@ -117,7 +136,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     Expanded(
                       child: CustomTextField(
                         controller: codigoCtrl,
-                        label: 'Código / SKU',
+                        label: 'Codigo / SKU',
                         hintText: 'HAM-001',
                       ),
                     ),
@@ -131,57 +150,105 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                       child: _buildDropdown(
                         label: 'Tipo de Producto',
                         value: tipoProducto,
-                        items: ['VENTA_DIRECTA', 'PLATO'],
-                        onChanged: (val) => setState(() => tipoProducto = val!),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Categoría',
-                        value: categoria,
-                        items: ['COMIDA', 'BEBIDA', 'SERVICIOS', 'OTROS'],
-                        onChanged: (val) => setState(() => categoria = val!),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: CustomTextField(
-                        controller: descCtrl,
-                        label: 'Descripción Corta',
-                        hintText: 'Opcional...',
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Unidad Medida',
-                        value: unidadMedida,
-                        items: [
-                          "UND",
-                          "KG",
-                          "LB",
-                          "GR",
-                          "ONZ",
-                          "LT",
-                          "ML",
-                          "GAL",
-                          "DOC",
-                          "PAR",
-                          "BAN",
-                          "POR",
-                          "ROL",
-                          "BOT",
-                          "LAT",
-                          "TAZ",
-                          "VAS",
-                          "PAQ",
-                          "SER",
-                          "PZA",
-                          "CJA",
-                          "MED",
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'PRODUCTO',
+                            child: Text('PRODUCTO'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'SERVICIO',
+                            child: Text('SERVICIO'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'COMBO',
+                            child: Text('COMBO'),
+                          ),
                         ],
-                        onChanged: (val) => setState(() => unidadMedida = val!),
+                        onChanged: (val) =>
+                            setState(() => tipoProducto = val as String),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildDropdown(
+                        label: 'Tipo Contable',
+                        value: tipoContable,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'INVENTARIO',
+                            child: Text('INVENTARIO'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'GASTO',
+                            child: Text('GASTO'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'SERVICIO',
+                            child: Text('SERVICIO'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'ACTIVO_FIJO',
+                            child: Text('ACTIVO_FIJO'),
+                          ),
+                        ],
+                        onChanged: (val) =>
+                            setState(() => tipoContable = val as String),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdown(
+                        label: 'Categoria',
+                        value: categoriaId,
+                        items: categorias
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text(e.nombre),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => categoriaId = val as int?),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildDropdown(
+                        label: 'Marca',
+                        value: marcaId,
+                        items: marcas
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text(e.nombre),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => marcaId = val as int?),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildDropdown(
+                        label: 'Unidad de Medida',
+                        value: unidadMedidaId,
+                        items: unidades
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text("${e.nombre} (${e.abreviatura})"),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => unidadMedidaId = val as int?),
                       ),
                     ),
                   ],
@@ -189,7 +256,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
                 const SizedBox(height: 24),
                 const Text(
-                  'CONFIGURACIÓN FINANCIERA',
+                  'CONFIGURACION FINANCIERA',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blueGrey,
@@ -206,18 +273,13 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                         label: 'Precio de Venta',
                         prefixIcon: Icons.attach_money,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d{0,2}'),
-                          ),
-                        ],
                       ),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
                       child: CustomTextField(
                         controller: costoCtrl,
-                        label: 'Costo (Compra)',
+                        label: 'Ultimo Costo (Compra)',
                         prefixIcon: Icons.shopping_cart_outlined,
                         keyboardType: TextInputType.number,
                         enabled: isAdmin,
@@ -225,11 +287,19 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     ),
                     const SizedBox(width: 15),
                     Expanded(
-                      child: CustomTextField(
-                        controller: itbisCtrl,
-                        label: '% ITBIS',
-                        prefixIcon: Icons.percent,
-                        keyboardType: TextInputType.number,
+                      child: _buildDropdown(
+                        label: 'Impuesto Aplicado',
+                        value: impuestoId,
+                        items: impuestos
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text("${e.nombre} (${e.tasa}%)"),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => impuestoId = val as int?),
                       ),
                     ),
                   ],
@@ -270,73 +340,27 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     ),
                     Expanded(
                       child: CustomTextField(
-                        controller: stockActualCtrl,
-                        label: 'Stock Actual',
+                        controller: stockMinimoCtrl,
+                        label: 'Stock Minimo (Alerta)',
                         enabled: manejaInventario,
                         keyboardType: TextInputType.number,
                       ),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
-                      child: CustomTextField(
-                        controller: stockMinimoCtrl,
-                        label: 'Stock Mínimo',
-                        enabled: manejaInventario,
-                        keyboardType: TextInputType.number,
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Activo',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Switch(
+                            value: activo,
+                            onChanged: (v) => setState(() => activo = v),
+                            activeColor: Colors.green,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-
-                if (isAdmin) ...[
-                  const SizedBox(height: 24),
-                  const Text(
-                    'CONFIGURACIÓN CONTABLE (ADMIN)',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey,
-                      fontSize: 12,
-                    ),
-                  ),
-                  const Divider(),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          controller: cuentaIngresosCtrl,
-                          label: 'Cuenta Ingresos',
-                          hintText: '4.1.01',
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: CustomTextField(
-                          controller: cuentaInventarioCtrl,
-                          label: 'Cuenta Inventario',
-                          hintText: '1.1.05.01',
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: CustomTextField(
-                          controller: cuentaCostosCtrl,
-                          label: 'Cuenta Costos',
-                          hintText: '5.1',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Text('Producto Activo'),
-                    const Spacer(),
-                    Switch(
-                      value: activo,
-                      onChanged: (v) => setState(() => activo = v),
-                      activeColor: Colors.green,
                     ),
                   ],
                 ),
@@ -369,9 +393,9 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
   Widget _buildDropdown({
     required String label,
-    required String value,
-    required List<String> items,
-    required Function(String?) onChanged,
+    required dynamic value,
+    required List<DropdownMenuItem<dynamic>> items,
+    required Function(dynamic) onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,12 +417,11 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
+            child: DropdownButton<dynamic>(
+              value: items.any((e) => e.value == value) ? value : null,
               isExpanded: true,
-              items: items
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
+              hint: const Text("Seleccionar..."),
+              items: items,
               onChanged: onChanged,
             ),
           ),
@@ -417,18 +440,16 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       "nombre": nombreCtrl.text.trim(),
       "codigo": codigoCtrl.text.trim(),
       "descripcion": descCtrl.text.trim(),
-      "categoria": categoria,
+      "categoria_id": categoriaId,
+      "marca_id": marcaId,
+      "unidad_medida_id": unidadMedidaId,
+      "impuesto_id": impuestoId,
       "tipo_producto": tipoProducto,
-      "unidad_medida": unidadMedida,
+      "tipo_contable": tipoContable,
       "precio_venta": double.tryParse(precioCtrl.text) ?? 0,
-      "costo": double.tryParse(costoCtrl.text) ?? 0,
-      "itbis_porcentaje": double.tryParse(itbisCtrl.text) ?? 18,
+      "ultimo_costo": double.tryParse(costoCtrl.text) ?? 0,
       "maneja_inventario": manejaInventario,
-      "stock_actual": double.tryParse(stockActualCtrl.text) ?? 0,
       "stock_minimo": double.tryParse(stockMinimoCtrl.text) ?? 0,
-      "cuenta_contable_ingresos": cuentaIngresosCtrl.text.trim(),
-      "cuenta_contable_inventario": cuentaInventarioCtrl.text.trim(),
-      "cuenta_contable_costos": cuentaCostosCtrl.text.trim(),
       "activo": activo,
     };
 
@@ -446,18 +467,5 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
     if (success && mounted) {
       Navigator.pop(context, true);
     }
-  }
-}
-
-class UpperCaseTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    return TextEditingValue(
-      text: newValue.text.toUpperCase(),
-      selection: newValue.selection,
-    );
   }
 }

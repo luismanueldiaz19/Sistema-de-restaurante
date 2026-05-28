@@ -4,28 +4,33 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Producto;
+use App\Models\Categoria;
+use App\Models\Impuesto;
 
 class ProductosSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        $catComida = Categoria::where('nombre', 'Comida')->first();
+        $catBebida = Categoria::where('nombre', 'Bebidas')->first();
+        $catServicio = Categoria::where('nombre', 'Servicios')->first();
+
+        $imp18 = Impuesto::where('tasa', 18)->first();
+        $imp0 = Impuesto::where('tasa', 0)->first();
+
         Producto::create([
             'nombre' => 'Hamburguesa Clásica',
             'codigo' => 'HAM-001',
             'descripcion' => 'Hamburguesa con queso y lechuga',
-            'categoria' => 'COMIDA',
+            'categoria_id' => $catComida->id ?? null,
+            'tipo_producto' => 'PRODUCTO',
+            'tipo_contable' => 'INVENTARIO',
             'precio_venta' => 350,
-            'costo' => 120,
-            'itbis_porcentaje' => 18,
+            'ultimo_costo' => 120,
+            'costo_promedio' => 120,
+            'impuesto_id' => $imp18->id ?? null,
             'maneja_inventario' => true,
-            'stock_actual' => 50,
             'stock_minimo' => 10,
-            'cuenta_contable_ingresos' => '4.1.01',
-            'cuenta_contable_inventario' => '1.1.05.01',
-            'cuenta_contable_costos' => '5.1',
             'activo' => true,
         ]);
 
@@ -33,16 +38,15 @@ class ProductosSeeder extends Seeder
             'nombre' => 'Coca Cola 12oz',
             'codigo' => 'BEB-001',
             'descripcion' => 'Refresco de cola',
-            'categoria' => 'BEBIDA',
+            'categoria_id' => $catBebida->id ?? null,
+            'tipo_producto' => 'PRODUCTO',
+            'tipo_contable' => 'INVENTARIO',
             'precio_venta' => 75,
-            'costo' => 30,
-            'itbis_porcentaje' => 18,
+            'ultimo_costo' => 30,
+            'costo_promedio' => 30,
+            'impuesto_id' => $imp18->id ?? null,
             'maneja_inventario' => true,
-            'stock_actual' => 100,
             'stock_minimo' => 24,
-            'cuenta_contable_ingresos' => '4.1.02',
-            'cuenta_contable_inventario' => '1.1.05.02',
-            'cuenta_contable_costos' => '5.1',
             'activo' => true,
         ]);
 
@@ -50,16 +54,15 @@ class ProductosSeeder extends Seeder
             'nombre' => 'Servicio de Delivery',
             'codigo' => 'SERV-001',
             'descripcion' => 'Envío a domicilio',
-            'categoria' => 'SERVICIOS',
+            'categoria_id' => $catServicio->id ?? null,
+            'tipo_producto' => 'SERVICIO',
+            'tipo_contable' => 'SERVICIO',
             'precio_venta' => 100,
-            'costo' => 0,
-            'itbis_porcentaje' => 0,
+            'ultimo_costo' => 0,
+            'costo_promedio' => 0,
+            'impuesto_id' => $imp0->id ?? null,
             'maneja_inventario' => false,
-            'stock_actual' => 0,
             'stock_minimo' => 0,
-            'cuenta_contable_ingresos' => '4.1.01',
-            'cuenta_contable_inventario' => '1.1.05.01',
-            'cuenta_contable_costos' => '5.1',
             'activo' => true,
         ]);
     }

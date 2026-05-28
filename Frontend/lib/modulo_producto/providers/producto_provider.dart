@@ -20,8 +20,9 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
     try {
       final results = await _api.fetchProductos(token);
       results.sort(
-        (a, b) =>
-            (a.nombre ?? '').toLowerCase().compareTo((b.nombre ?? '').toLowerCase()),
+        (a, b) => (a.nombre ?? '').toLowerCase().compareTo(
+          (b.nombre ?? '').toLowerCase(),
+        ),
       );
       _allProductos = results;
       state = state.copyWith(productos: _allProductos, isLoading: false);
@@ -38,7 +39,7 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
       final filtered = _allProductos.where((p) {
         return (p.nombre?.toLowerCase().contains(q) ?? false) ||
             (p.codigo?.toLowerCase().contains(q) ?? false) ||
-            (p.categoria?.toLowerCase().contains(q) ?? false);
+            (p.categoria?.nombre.toLowerCase().contains(q) ?? false);
       }).toList();
       state = state.copyWith(productos: filtered);
     }

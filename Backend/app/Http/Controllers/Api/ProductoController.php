@@ -10,47 +10,45 @@ use Exception;
 
 class ProductoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $productos = Producto::latest()->get();
+        $productos = Producto::with(['categoria', 'marca', 'unidadMedida', 'impuesto'])->latest()->get();
         return response()->json($productos);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'nombre'          => 'required|string|max:255',
             'codigo'          => 'nullable|string|unique:productos',
             'descripcion'     => 'nullable|string',
-            'categoria'       => 'nullable|string',
-            'unidad_medida'   => 'nullable|string|max:10',
+            'categoria_id'    => 'nullable|integer|exists:categorias,id',
+            'marca_id'        => 'nullable|integer|exists:marcas,id',
+            'unidad_medida_id'=> 'nullable|integer|exists:unidades_medida,id',
+            'impuesto_id'     => 'nullable|integer|exists:impuestos,id',
+            'tipo_producto'   => 'required|in:PRODUCTO,SERVICIO,COMBO',
+            'tipo_contable'   => 'required|in:INVENTARIO,GASTO,SERVICIO,ACTIVO_FIJO',
             'precio_venta'    => 'required|numeric',
-            'costo'           => 'nullable|numeric',
-            'itbis_porcentaje'=> 'nullable|numeric',
+            'ultimo_costo'    => 'nullable|numeric',
+            'costo_promedio'  => 'nullable|numeric',
             'maneja_inventario'=> 'nullable|boolean',
-            'stock_actual'    => 'nullable|numeric',
             'stock_minimo'    => 'nullable|numeric',
-            'cuenta_contable_ingresos'   => 'nullable|string',
-            'cuenta_contable_inventario' => 'nullable|string',
-            'cuenta_contable_costos'     => 'nullable|string',
+            'cuenta_ingreso_id'=> 'nullable|integer',
+            'cuenta_inventario_id'=> 'nullable|integer',
+            'cuenta_costo_id' => 'nullable|integer',
             'activo'          => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Error en la validaciÃ³n',
+                'message' => 'Error en la validación',
                 'errors' => $validator->errors()
             ], 400);
         }
 
         try {
             $producto = Producto::create($request->all());
+            $producto->load(['categoria', 'marca', 'unidadMedida', 'impuesto']);
             return response()->json([
                 'message' => 'Producto creado correctamente',
                 'data' => $producto
@@ -63,21 +61,15 @@ class ProductoController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        $producto = Producto::find($id);
+        $producto = Producto::with(['categoria', 'marca', 'unidadMedida', 'impuesto'])->find($id);
         if (!$producto) {
             return response()->json(['message' => 'Producto no encontrado'], 404);
         }
         return response()->json($producto);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id) {
         $producto = Producto::find($id);
         if (!$producto) {
@@ -88,29 +80,33 @@ class ProductoController extends Controller
             'nombre'          => 'required|string|max:255',
             'codigo'          => 'nullable|string|unique:productos,codigo,' . $id,
             'descripcion'     => 'nullable|string',
-            'categoria'       => 'nullable|string',
-            'unidad_medida'   => 'nullable|string|max:10',
+            'categoria_id'    => 'nullable|integer|exists:categorias,id',
+            'marca_id'        => 'nullable|integer|exists:marcas,id',
+            'unidad_medida_id'=> 'nullable|integer|exists:unidades_medida,id',
+            'impuesto_id'     => 'nullable|integer|exists:impuestos,id',
+            'tipo_producto'   => 'required|in:PRODUCTO,SERVICIO,COMBO',
+            'tipo_contable'   => 'required|in:INVENTARIO,GASTO,SERVICIO,ACTIVO_FIJO',
             'precio_venta'    => 'required|numeric',
-            'costo'           => 'nullable|numeric',
-            'itbis_porcentaje'=> 'nullable|numeric',
+            'ultimo_costo'    => 'nullable|numeric',
+            'costo_promedio'  => 'nullable|numeric',
             'maneja_inventario'=> 'nullable|boolean',
-            'stock_actual'    => 'nullable|numeric',
             'stock_minimo'    => 'nullable|numeric',
-            'cuenta_contable_ingresos'   => 'nullable|string',
-            'cuenta_contable_inventario' => 'nullable|string',
-            'cuenta_contable_costos'     => 'nullable|string',
+            'cuenta_ingreso_id'=> 'nullable|integer',
+            'cuenta_inventario_id'=> 'nullable|integer',
+            'cuenta_costo_id' => 'nullable|integer',
             'activo'          => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Error en la validaciÃ³n',
+                'message' => 'Error en la validación',
                 'errors' => $validator->errors()
             ], 400);
         }
 
         try {
             $producto->update($request->all());
+            $producto->load(['categoria', 'marca', 'unidadMedida', 'impuesto']);
             return response()->json([
                 'message' => 'Producto actualizado correctamente',
                 'data' => $producto
@@ -123,9 +119,6 @@ class ProductoController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         $producto = Producto::find($id);

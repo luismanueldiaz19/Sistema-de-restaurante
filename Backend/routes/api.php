@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\IngredienteController;
 use App\Http\Controllers\Api\NominaController;
 use App\Http\Controllers\Api\EmpleadoController;
+use App\Http\Controllers\Api\ProveedorController;
+use App\Http\Controllers\Api\CompraController;
+use App\Http\Controllers\Api\CxpController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,6 +40,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
+
+    // Compras Module
+    Route::apiResource('proveedores', ProveedorController::class);
+    Route::apiResource('compras', CompraController::class)->except(['update', 'destroy']);
+    Route::get('/cxp', [CxpController::class, 'index']);
+    Route::post('/cxp/{id}/pagar', [CxpController::class, 'registrarPago']);
 
     Route::get('/clientes', [ClienteController::class, 'index'])
         ->middleware('permission:ver_clientes');
@@ -153,6 +162,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/configuracion-contable/{id}', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'update']);
     Route::post('/configuracion-contable/bulk', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'bulkUpdate']);
     Route::get('/asientos', [\App\Http\Controllers\Api\AsientoContableController::class, 'index']);
+
+    // ================= CATÁLOGOS PRODUCTOS =================
+    Route::apiResource('categorias', \App\Http\Controllers\Api\CategoriaController::class)->middleware('permission:ver_inventario');
+    Route::apiResource('marcas', \App\Http\Controllers\Api\MarcaController::class)->middleware('permission:ver_inventario');
+    Route::apiResource('unidades-medida', \App\Http\Controllers\Api\UnidadMedidaController::class)->middleware('permission:ver_inventario');
+    Route::apiResource('impuestos', \App\Http\Controllers\Api\ImpuestoController::class)->middleware('permission:ver_inventario');
+
 
 });
 

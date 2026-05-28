@@ -6,6 +6,8 @@ use App\Accounting\Strategies\VentaEfectivoStrategy;
 use App\Accounting\Strategies\VentaCreditoStrategy;
 use App\Accounting\Strategies\CompraInventarioStrategy;
 use App\Accounting\Strategies\PagoNominaStrategy;
+use App\Accounting\Strategies\PagoCompraStrategy;
+use App\Accounting\Strategies\DevolucionCompraStrategy;
 use Exception;
 
 class AsientoStrategyFactory
@@ -20,6 +22,8 @@ class AsientoStrategyFactory
         'venta_credito' => VentaCreditoStrategy::class,
         'compra_inventario' => CompraInventarioStrategy::class,
         'pago_nomina' => PagoNominaStrategy::class,
+        'pago_compra' => PagoCompraStrategy::class,
+        'devolucion_compra' => DevolucionCompraStrategy::class,
     ];
 
     /**

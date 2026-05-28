@@ -20,7 +20,6 @@ import '../../model/comprobante.dart';
 import '../../palletes/app_colors.dart';
 import '../../modulo_caja/providers/caja_provider.dart';
 import 'apertura_caja_page.dart';
-import 'arqueo_caja_page.dart';
 
 class CrearFacturaPage extends ConsumerStatefulWidget {
   const CrearFacturaPage({super.key});
@@ -94,7 +93,9 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     _aplicarConfiguracionPorDefecto();
 
     // 3. Opcional: Actualizar stock de productos en segundo plano (silencioso)
-    ref.read(productoProvider.notifier).loadProductos(auth.token!, silent: true);
+    ref
+        .read(productoProvider.notifier)
+        .loadProductos(auth.token!, silent: true);
   }
 
   Future<void> _procesarVenta() async {
@@ -576,7 +577,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'S: ${prod.stockActual?.toInt() ?? 0}',
+                          'S: --',
                           style: const TextStyle(
                             color: AppColors.success,
                             fontSize: 10,

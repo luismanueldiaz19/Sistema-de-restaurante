@@ -13,35 +13,52 @@ class Producto extends Model
         'nombre',
         'codigo',
         'descripcion',
-        'categoria',
+        'categoria_id',
+        'marca_id',
+        'unidad_medida_id',
+        'impuesto_id',
         'tipo_producto',
-        'unidad_medida',
+        'tipo_contable',
         'precio_venta',
-        'costo',
-        'itbis_porcentaje',
+        'ultimo_costo',
+        'costo_promedio',
         'maneja_inventario',
-        'stock_actual',
         'stock_minimo',
-        'cuenta_contable_ingresos',
-        'cuenta_contable_inventario',
-        'cuenta_contable_costos',
+        'cuenta_ingreso_id',
+        'cuenta_inventario_id',
+        'cuenta_costo_id',
         'activo',
     ];
 
     protected $casts = [
         'precio_venta' => 'double',
-        'costo' => 'double',
-        'itbis_porcentaje' => 'double',
+        'ultimo_costo' => 'double',
+        'costo_promedio' => 'double',
         'maneja_inventario' => 'boolean',
-        'stock_actual' => 'double',
         'stock_minimo' => 'double',
         'activo' => 'boolean',
     ];
 
-    public function setUnidadMedidaAttribute($value)
+    public function categoria()
     {
-        $this->attributes['unidad_medida'] = strtoupper($value);
+        return $this->belongsTo(Categoria::class);
     }
+
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class);
+    }
+
+    public function unidadMedida()
+    {
+        return $this->belongsTo(UnidadMedida::class);
+    }
+
+    public function impuesto()
+    {
+        return $this->belongsTo(Impuesto::class);
+    }
+
     public function recetas()
     {
         return $this->hasMany(Receta::class);

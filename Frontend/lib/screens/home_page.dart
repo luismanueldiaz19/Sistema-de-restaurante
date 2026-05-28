@@ -26,6 +26,10 @@ import '../facturacion/screens/historial_ventas_screen.dart';
 import '../modulo_nomina/screens/nomina_dashboard_screen.dart';
 import '../modulo_nomina/screens/add_nomina_screen.dart';
 import '../modulo_nomina/screens/empleado_list_screen.dart';
+import '../modulo_compras/screens/proveedores_screen.dart';
+import '../modulo_compras/screens/nueva_compra_screen.dart';
+import '../modulo_compras/screens/compras_list_screen.dart';
+import '../modulo_compras/screens/cxp_list_screen.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
@@ -163,7 +167,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 ),
               ),
             SidebarSubItem(
-              title: 'Historial de Ventas',
+              title: 'Facturas',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -171,20 +175,82 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 ),
               ),
             ),
+            SidebarSubItem(title: 'Cotizaciones', onTap: () {}),
+            SidebarSubItem(title: 'Devoluciones', onTap: () {}),
+          ],
+        ),
+
+      // Módulo de Compras
+      if (auth.hasPermission('ver_compras') || auth.roles.contains('admin'))
+        SidebarItem(
+          title: 'Compras',
+          icon: Icons.shopping_bag_outlined,
+          subItems: [
             SidebarSubItem(
-              title: 'Historial de Cajas',
+              title: 'Nueva Compra',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const HistorialCajaScreen()),
+                MaterialPageRoute(builder: (_) => const NuevaCompraScreen()),
               ),
             ),
             SidebarSubItem(
-              title: 'Reportes Agrupados',
+              title: 'Historial',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ReporteVentasScreen()),
+                MaterialPageRoute(builder: (_) => const ComprasListScreen()),
               ),
             ),
+            SidebarSubItem(
+              title: 'Cuentas por Pagar',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CxpListScreen()),
+              ),
+            ),
+          ],
+        ),
+
+      // Módulo de Inventario
+      if (auth.hasPermission('ver_inventario') ||
+          auth.hasPermission('ver_productos') ||
+          auth.roles.contains('admin'))
+        SidebarItem(
+          title: 'Inventario',
+          icon: Icons.inventory_2_outlined,
+          subItems: [
+            if (auth.hasPermission('ver_productos') ||
+                auth.hasPermission('ver_inventario') ||
+                auth.roles.contains('admin'))
+              SidebarSubItem(
+                title: 'Productos',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScreenProductos()),
+                ),
+              ),
+            if (auth.hasPermission('ver_inventario') ||
+                auth.roles.contains('admin'))
+              SidebarSubItem(
+                title: 'Ingredientes',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScreenIngredientes()),
+                ),
+              ),
+            if (auth.hasPermission('ver_inventario') ||
+                auth.roles.contains('admin'))
+              SidebarSubItem(title: 'Categorías', onTap: () {}),
+            // if (auth.hasPermission('ver_inventario') || auth.roles.contains('admin'))
+            //   SidebarSubItem(
+            //     title: 'Ajustes',
+            //     onTap: () => Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (_) => const ScreenAjustesInventario()),
+            //     ),
+            //   ),
+            if (auth.hasPermission('ver_inventario') ||
+                auth.roles.contains('admin'))
+              SidebarSubItem(title: 'Kardex', onTap: () {}),
           ],
         ),
 
@@ -193,63 +259,107 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         SidebarItem(
           title: 'Clientes',
           icon: Icons.people_outline,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ScreenClientAdmin()),
+          ),
+        ),
+
+      // Proveedores
+      if (auth.hasPermission('ver_proveedores') || auth.roles.contains('admin'))
+        SidebarItem(
+          title: 'Proveedores',
+          icon: Icons.local_shipping_outlined,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ProveedoresScreen()),
+          ),
+        ),
+
+      // Caja y Bancos
+      if (auth.hasPermission('gestionar_caja') ||
+          auth.roles.contains('admin') ||
+          auth.roles.any((r) => r.toLowerCase() == 'cajero') ||
+          auth.roles.contains('CAJERO'))
+        SidebarItem(
+          title: 'Caja y Bancos',
+          icon: Icons.point_of_sale_outlined,
           subItems: [
+            SidebarSubItem(title: 'Apertura', onTap: () {}),
+            SidebarSubItem(title: 'Cierre', onTap: () {}),
             SidebarSubItem(
-              title: 'Administrar Clientes',
+              title: 'Movimientos',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ScreenClientAdmin()),
+                MaterialPageRoute(builder: (_) => const HistorialCajaScreen()),
               ),
             ),
-            SidebarSubItem(title: 'Reporte de Clientes', onTap: () {}),
           ],
         ),
 
-      // Módulo de Productos
-
-      // Módulo de Inventario
-      if (auth.hasPermission('ver_inventario'))
+      // Contabilidad
+      if (auth.roles.contains('admin') || auth.roles.contains('contador'))
         SidebarItem(
-          title: 'Inventario',
-          icon: Icons.inventory_2_outlined,
+          title: 'Contabilidad',
+          icon: Icons.account_balance_rounded,
           subItems: [
             SidebarSubItem(
-              title: 'Productos',
+              title: 'Diario',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ScreenProductos()),
+                MaterialPageRoute(builder: (_) => const LibroDiarioScreen()),
               ),
             ),
+            SidebarSubItem(title: 'Mayor', onTap: () {}),
+            SidebarSubItem(title: 'Balance', onTap: () {}),
             SidebarSubItem(
-              title: 'Ingredientes (Materia Prima)',
+              title: 'Catálogo cuentas',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ScreenIngredientes()),
+                MaterialPageRoute(
+                  builder: (_) => const ConfiguracionContableScreen(),
+                ),
               ),
             ),
-            SidebarSubItem(title: 'Ajuste de Inventario', onTap: () {}),
-
-            SidebarSubItem(title: 'Reporte de Stock', onTap: () {}),
-            SidebarSubItem(title: 'Kardex de Movimientos', onTap: () {}),
           ],
         ),
 
-      // Reportes y Usuarios (Solo Admin)
-      if (auth.hasPermission('gestionar_usuarios'))
+      // CxC
+      if (auth.hasPermission('ver_cxc') ||
+          auth.roles.contains('admin') ||
+          auth.roles.contains('contador'))
         SidebarItem(
-          title: 'Usuarios',
-          icon: Icons.manage_accounts_outlined,
+          title: 'CxC',
+          icon: Icons.request_quote_outlined,
           onTap: () {},
         ),
 
-      // Módulo de Nómina (Contabilidad)
+      // Gastos
+      if (auth.hasPermission('ver_gastos') ||
+          auth.roles.contains('admin') ||
+          auth.roles.contains('contador'))
+        SidebarItem(
+          title: 'Gastos',
+          icon: Icons.money_off_outlined,
+          onTap: () {},
+        ),
+
+      // Activos Fijos
+      if (auth.roles.contains('admin') || auth.roles.contains('contador'))
+        SidebarItem(
+          title: 'Activos Fijos',
+          icon: Icons.domain_outlined,
+          onTap: () {},
+        ),
+
+      // Nómina
       if (auth.roles.contains('admin') ||
           auth.roles.contains('contador') ||
           auth.roles.contains('auxiliar contable') ||
           auth.hasPermission('ver_nomina'))
         SidebarItem(
           title: 'Nómina',
-          icon: Icons.account_balance_outlined,
+          icon: Icons.group_outlined,
           subItems: [
             SidebarSubItem(
               title: 'Dashboard Nómina',
@@ -283,31 +393,50 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           ],
         ),
 
-      // Módulo de Contabilidad (Sólo Admin/Contador)
+      // Reportes
+      if (auth.hasPermission('ver_reportes') ||
+          auth.roles.contains('admin') ||
+          auth.roles.contains('contador'))
+        SidebarItem(
+          title: 'Reportes',
+          icon: Icons.bar_chart_outlined,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ReporteVentasScreen()),
+          ),
+        ),
+
+      // DGII / e-CF
       if (auth.roles.contains('admin') || auth.roles.contains('contador'))
         SidebarItem(
-          title: 'Contabilidad',
-          icon: Icons.account_balance_rounded,
-          subItems: [
-            SidebarSubItem(
-              title: 'Configuración Contable',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ConfiguracionContableScreen(),
-                ),
-              ),
-            ),
-            SidebarSubItem(
-              title: 'Libro Diario General',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const LibroDiarioScreen(),
-                ),
-              ),
-            ),
-          ],
+          title: 'DGII / e-CF',
+          icon: Icons.receipt_outlined,
+          onTap: () {},
+        ),
+
+      // Usuarios
+      if (auth.hasPermission('gestionar_usuarios') ||
+          auth.roles.contains('admin'))
+        SidebarItem(
+          title: 'Usuarios',
+          icon: Icons.manage_accounts_outlined,
+          onTap: () {},
+        ),
+
+      // Configuración
+      if (auth.roles.contains('admin'))
+        SidebarItem(
+          title: 'Configuración',
+          icon: Icons.settings_outlined,
+          onTap: () {},
+        ),
+
+      // Auditoría
+      if (auth.roles.contains('admin'))
+        SidebarItem(
+          title: 'Auditoría',
+          icon: Icons.fact_check_outlined,
+          onTap: () {},
         ),
     ];
 

@@ -12,32 +12,57 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('productos', function (Blueprint $table) {
-
             $table->id();
+
+            // GENERAL
             $table->string('nombre');
             $table->string('codigo')->unique()->nullable();
-            $table->string('descripcion')->nullable();
-            $table->string('categoria')->default('GENERAL');
-            $table->string('tipo_producto', 20)->default('VENTA_DIRECTA');
-            $table->string('unidad_medida')->default('UND'); // UND, KG, LB, etc.
-            
-            // Precios e Impuestos
-            $table->decimal('precio_venta', 15, 2)->default(0);
-            $table->decimal('costo', 15, 2)->default(0);
-            $table->decimal('itbis_porcentaje', 5, 2)->default(18); // Por defecto 18% ITBIS
-            
-            // Inventario
+            $table->text('descripcion')->nullable();
+
+            // RELACIONES
+            $table->foreignId('categoria_id')->nullable();
+            $table->foreignId('marca_id')->nullable();
+
+            // TIPOS
+            $table->enum('tipo_producto', [
+                'PRODUCTO',
+                'SERVICIO',
+                'COMBO',
+                'MATERIA_PRIMA'
+            ]);
+
+            $table->enum('tipo_contable', [
+                'INVENTARIO',
+                'GASTO',
+                'ACTIVO_FIJO',
+                'SERVICIO'
+            ]);
+
+            // INVENTARIO
             $table->boolean('maneja_inventario')->default(true);
-            $table->decimal('stock_actual', 15, 2)->default(0);
             $table->decimal('stock_minimo', 15, 2)->default(0);
-            
-            // Configuración Contable
-            $table->string('cuenta_contable_ingresos')->default('4.1.01'); // Ventas Alimentos por defecto
-            $table->string('cuenta_contable_inventario')->default('1.1.05.01'); // Inventario Alimentos
-            $table->string('cuenta_contable_costos')->default('5.1'); // Costo Alimentos
+
+            // PRECIOS
+            $table->decimal('precio_venta', 15, 2)->default(0);
+            $table->decimal('ultimo_costo', 15, 2)->default(0);
+            $table->decimal('costo_promedio', 15, 2)->default(0);
+
+            // IMPUESTOS
+            $table->foreignId('impuesto_id')->nullable();
+
+            // CONTABILIDAD
+            $table->foreignId('cuenta_ingreso_id')->nullable();
+            $table->foreignId('cuenta_inventario_id')->nullable();
+            $table->foreignId('cuenta_costo_id')->nullable();
+            $table->foreignId('cuenta_gasto_id')->nullable();
+
+            // ESTADO
             $table->boolean('activo')->default(true);
+
+            // AUDITORÍA
+            $table->foreignId('created_by')->nullable();
+
             $table->timestamps();
-            
         });
     }
 
