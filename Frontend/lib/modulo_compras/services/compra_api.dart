@@ -1,15 +1,14 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../utils/constants.dart';
+import '../../services/api_services.dart';
 
 class CompraApi {
   final String baseUrl = "$hostName/api/compras";
 
   Future<List<dynamic>> getAll(String token) async {
-    final response = await http.get(
-      Uri.parse(baseUrl),
-      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
-    );
+    final api = ApiService();
+    final response = await api.get(baseUrl, token: token);
+
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
@@ -17,15 +16,9 @@ class CompraApi {
   }
 
   Future<dynamic> create(String token, Map<String, dynamic> data) async {
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: jsonEncode(data),
-    );
+    final api = ApiService();
+    final response = await api.post(baseUrl, data, token: token);
+
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body);
     }

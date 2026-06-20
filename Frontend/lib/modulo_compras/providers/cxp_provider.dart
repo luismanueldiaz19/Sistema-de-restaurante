@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/cxp.dart';
+import '../models/pago_compra.dart';
 import '../services/cxp_api.dart';
 import '../../providers/auth_provider.dart';
 
@@ -9,18 +10,26 @@ final cxpApiProvider = Provider((ref) => CxpApi());
 class CxpState {
   final bool isLoading;
   final List<CuentaPorPagar> cxps;
+  final List<PagoCompra> historialPagos;
   final String? error;
 
-  CxpState({this.isLoading = false, this.cxps = const [], this.error});
+  CxpState({
+    this.isLoading = false,
+    this.cxps = const [],
+    this.historialPagos = const [],
+    this.error,
+  });
 
   CxpState copyWith({
     bool? isLoading,
     List<CuentaPorPagar>? cxps,
+    List<PagoCompra>? historialPagos,
     String? error,
   }) {
     return CxpState(
       isLoading: isLoading ?? this.isLoading,
       cxps: cxps ?? this.cxps,
+      historialPagos: historialPagos ?? this.historialPagos,
       error: error ?? this.error,
     );
   }
@@ -43,6 +52,18 @@ class CxpNotifier extends StateNotifier<CxpState> {
       final data = await api.getAll(token!);
       final list = data.map((e) => CuentaPorPagar.fromJson(e)).toList();
       state = state.copyWith(isLoading: false, cxps: list);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> fetchHistorialPagos() async {
+    state = state.copyWith(isLoading: true, error: '');
+    if (token == null) return;
+    try {
+      final data = await api.getHistorialPagos(token!);
+      final pagos = data.map((e) => PagoCompra.fromJson(e as Map<String, dynamic>)).toList();
+      state = state.copyWith(isLoading: false, historialPagos: pagos);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

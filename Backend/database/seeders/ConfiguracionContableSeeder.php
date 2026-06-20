@@ -61,6 +61,12 @@ class ConfiguracionContableSeeder extends Seeder
                 'grupo' => 'Compras',
                 'codigo_cuenta' => '2.1.02', // ITBIS POR PAGAR
             ],
+            [
+                'clave' => 'pago_compra_efectivo_haber',
+                'nombre' => 'Pago a Proveedor en Efectivo/Banco (Crédito)',
+                'grupo' => 'Compras',
+                'codigo_cuenta' => '1.1.01.01', // CAJA GENERAL
+            ],
 
             // Nómina
             [
@@ -74,6 +80,14 @@ class ConfiguracionContableSeeder extends Seeder
                 'nombre' => 'Banco de Desembolso de Nómina (Crédito)',
                 'grupo' => 'Nomina',
                 'codigo_cuenta' => '1.1.01.03', // BANCO OPERATIVO
+            ],
+
+            // Impuestos / DGII
+            [
+                'clave' => 'pago_dgii_itbis_debe',
+                'nombre' => 'Pago a la DGII (ITBIS por Pagar - Débito)',
+                'grupo' => 'Impuestos',
+                'codigo_cuenta' => '2.1.02', // ITBIS POR PAGAR
             ],
         ];
 

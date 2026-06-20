@@ -39,4 +39,25 @@ class ProductoApi {
     final response = await api.delete("$baseUrl/$id", token: token);
     return response.statusCode == 200 || response.statusCode == 204;
   }
+
+  Future<String> importProductos(List<int> bytes, String filename, String token) async {
+    final uri = Uri.parse("$baseUrl/import");
+    final request = http.MultipartRequest('POST', uri)
+      ..headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      })
+      ..files.add(
+        http.MultipartFile.fromBytes('documento', bytes, filename: filename),
+      );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      final value = jsonDecode(response.body);
+      return value['message'] ?? "Importado correctamente";
+    }
+    throw Exception("Error al importar: ${response.body}");
+  }
 }

@@ -43,9 +43,9 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
   }
 
   double get _subtotal => detalles.fold(
-        0,
-        (sum, item) => sum + (item['cantidad'] * item['costo_unitario']),
-      );
+    0,
+    (sum, item) => sum + (item['cantidad'] * item['costo_unitario']),
+  );
   double get _impuestos =>
       detalles.fold(0, (sum, item) => sum + item['impuesto_monto']);
   double get _total => _subtotal + _impuestos;
@@ -73,11 +73,19 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
       return;
     }
     if (detalles.isEmpty) {
-      showToast(context, 'Agregue al menos un producto al carrito', bgColor: Colors.orange);
+      showToast(
+        context,
+        'Agregue al menos un producto al carrito',
+        bgColor: Colors.orange,
+      );
       return;
     }
     if (tipoCompra == 'CREDITO' && fechaVencimiento == null) {
-      showToast(context, 'Seleccione fecha de vencimiento', bgColor: Colors.orange);
+      showToast(
+        context,
+        'Seleccione fecha de vencimiento',
+        bgColor: Colors.orange,
+      );
       return;
     }
 
@@ -248,7 +256,8 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
             onTap: () async {
               final prov = await showDialog(
                 context: context,
-                builder: (ctx) => BuscadorProveedorDialog(proveedores: provState.proveedores),
+                builder: (ctx) =>
+                    BuscadorProveedorDialog(proveedores: provState.proveedores),
               );
               if (prov != null) {
                 setState(() => selectedProveedorId = prov.id);
@@ -269,11 +278,19 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                     child: Text(
                       selectedProveedorId != null
                           ? (() {
-                              final matched = provState.proveedores.where((p) => p.id == selectedProveedorId).toList();
-                              return matched.isNotEmpty ? matched.first.nombre : 'Proveedor Seleccionado';
+                              final matched = provState.proveedores
+                                  .where((p) => p.id == selectedProveedorId)
+                                  .toList();
+                              return matched.isNotEmpty
+                                  ? matched.first.nombre
+                                  : 'Proveedor Seleccionado';
                             })()
                           : 'Seleccionar Proveedor',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
                   const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -313,14 +330,20 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
         ),
         const SizedBox(height: 16),
         ListTile(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           tileColor: Colors.white,
           title: const Text('Fecha de Compra', style: TextStyle(fontSize: 14)),
           subtitle: Text(
             fechaCompra.toLocal().toString().split(' ')[0],
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          trailing: const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+          trailing: const Icon(
+            Icons.calendar_today,
+            size: 20,
+            color: AppColors.primary,
+          ),
           onTap: () async {
             final date = await showDatePicker(
               context: context,
@@ -334,11 +357,14 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
         const SizedBox(height: 16),
         if (tipoCompra == 'CREDITO') ...[
           ListTile(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             tileColor: Colors.white,
             title: const Text('Vencimiento', style: TextStyle(fontSize: 14)),
             subtitle: Text(
-              fechaVencimiento?.toLocal().toString().split(' ')[0] ?? 'Seleccionar',
+              fechaVencimiento?.toLocal().toString().split(' ')[0] ??
+                  'Seleccionar',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             trailing: const Icon(Icons.event, size: 20, color: Colors.orange),
@@ -512,60 +538,204 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
 
   void _showProductModal(Producto prod) {
     final cantCtrl = TextEditingController(text: '1');
-    final costoCtrl = TextEditingController(text: (prod.ultimoCosto ?? 0).toString());
-    final impCtrl = TextEditingController(text: '0');
+    final costoCtrl = TextEditingController(
+      text: (prod.ultimoCosto ?? 0).toString(),
+    );
+    final impCtrl = TextEditingController(
+      text: ((prod.ultimoCosto ?? 0) * 0.18).toStringAsFixed(2),
+    );
+    bool isExento = false;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Comprar: ${prod.nombre}'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomTextField(
-                  controller: cantCtrl,
-                  label: 'Cantidad',
-                  keyboardType: TextInputType.number,
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            void updateCalc() {
+              final cant = double.tryParse(cantCtrl.text) ?? 0.0;
+              final costoConItbis = double.tryParse(costoCtrl.text) ?? 0.0;
+              if (isExento) {
+                impCtrl.text = '0.00';
+              } else {
+                final totalLinea = cant * costoConItbis;
+                final base = totalLinea / 1.18;
+                impCtrl.text = (totalLinea - base).toStringAsFixed(2);
+              }
+            }
+
+            final cant = double.tryParse(cantCtrl.text) ?? 0.0;
+            final costoConItbis = double.tryParse(costoCtrl.text) ?? 0.0;
+            final imp = double.tryParse(impCtrl.text) ?? 0.0;
+            // Si no es exento, el costo unitario real es costoConItbis - (imp / cant).
+            // Pero para mostrar el total de la línea al usuario:
+            final total = cant * costoConItbis;
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Text(
+                'Comprar: ${prod.nombre}',
+                style: const TextStyle(
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  controller: costoCtrl,
-                  label: 'Costo Unitario',
-                  keyboardType: TextInputType.number,
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.history,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Costo Anterior (Ref): ${formatCurrency(prod.ultimoCosto ?? 0)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    CustomTextField(
+                      controller: cantCtrl,
+                      label: 'Cantidad a Comprar',
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => setStateDialog(() => updateCalc()),
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: costoCtrl,
+                      label: 'Nuevo Costo Unitario (Incluye ITBIS)',
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => setStateDialog(() => updateCalc()),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '¿Producto Exento de ITBIS?',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                          Switch(
+                            value: isExento,
+                            activeColor: AppColors.primary,
+                            onChanged: (val) {
+                              setStateDialog(() {
+                                isExento = val;
+                                updateCalc();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: impCtrl,
+                      label: 'Monto Impuesto (Total)',
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => setStateDialog(() {}),
+                    ),
+                    const SizedBox(height: 20),
+                    const Divider(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total de esta línea:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          formatCurrency(total),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  controller: impCtrl,
-                  label: 'Monto Impuesto (Total)',
-                  keyboardType: TextInputType.number,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (cantCtrl.text.isEmpty || costoCtrl.text.isEmpty) return;
+                    setState(() {
+                      final cantIngresada = double.parse(cantCtrl.text);
+                      final costoIngresado = double.parse(costoCtrl.text);
+                      final impuestoManual =
+                          double.tryParse(impCtrl.text) ?? 0.0;
+
+                      // Extraemos el costo base real descontando el impuesto total de la línea
+                      double costoBaseReal = costoIngresado;
+                      if (cantIngresada > 0) {
+                        costoBaseReal =
+                            (costoIngresado * cantIngresada - impuestoManual) /
+                            cantIngresada;
+                      }
+
+                      detalles.add({
+                        'producto_id': prod.id,
+                        'producto_nombre': prod.nombre,
+                        'cantidad': cantIngresada,
+                        'costo_unitario': costoBaseReal,
+                        'impuesto_monto': impuestoManual,
+                      });
+                    });
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.add_shopping_cart, size: 18),
+                  label: const Text('Agregar al Carrito'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (cantCtrl.text.isEmpty || costoCtrl.text.isEmpty) return;
-                setState(() {
-                  detalles.add({
-                    'producto_id': prod.id,
-                    'producto_nombre': prod.nombre,
-                    'cantidad': double.parse(cantCtrl.text),
-                    'costo_unitario': double.parse(costoCtrl.text),
-                    'impuesto_monto': double.parse(impCtrl.text),
-                  });
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Agregar al Carrito'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -583,12 +753,20 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                 color: AppColors.light,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey),
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                size: 64,
+                color: Colors.grey,
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
               'Carrito Vacío',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.secondary),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.secondary,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -606,7 +784,10 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
           padding: EdgeInsets.all(20),
           child: Row(
             children: [
-              Icon(Icons.shopping_cart_checkout_outlined, color: AppColors.primary),
+              Icon(
+                Icons.shopping_cart_checkout_outlined,
+                color: AppColors.primary,
+              ),
               SizedBox(width: 10),
               Text(
                 'Detalle de Compra',
@@ -623,7 +804,8 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (ctx, i) {
               final d = detalles[i];
-              final totalItem = (d['cantidad'] * d['costo_unitario']) + d['impuesto_monto'];
+              final totalItem =
+                  (d['cantidad'] * d['costo_unitario']) + d['impuesto_monto'];
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -639,18 +821,27 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                         children: [
                           Text(
                             d['producto_nombre'] ?? 'Sin nombre',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Cant: ${d['cantidad']} x ${formatCurrency(d['costo_unitario'])}',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                            ),
                           ),
                           if (d['impuesto_monto'] > 0)
                             Text(
                               '+ Impuesto: ${formatCurrency(d['impuesto_monto'])}',
-                              style: const TextStyle(color: AppColors.danger, fontSize: 11),
-                            )
+                              style: const TextStyle(
+                                color: AppColors.danger,
+                                fontSize: 11,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -659,10 +850,17 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                       children: [
                         Text(
                           formatCurrency(totalItem),
-                          style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                          ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
                           onPressed: () => setState(() => detalles.removeAt(i)),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -724,7 +922,9 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: ref.watch(comprasProvider).isLoading ? null : _guardarCompra,
+              onPressed: ref.watch(comprasProvider).isLoading
+                  ? null
+                  : _guardarCompra,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -738,12 +938,19 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   : const Icon(Icons.check_circle_outline, size: 24),
               label: const Text(
                 'REGISTRAR COMPRA',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),

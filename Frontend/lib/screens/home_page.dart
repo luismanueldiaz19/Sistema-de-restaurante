@@ -30,6 +30,8 @@ import '../modulo_compras/screens/proveedores_screen.dart';
 import '../modulo_compras/screens/nueva_compra_screen.dart';
 import '../modulo_compras/screens/compras_list_screen.dart';
 import '../modulo_compras/screens/cxp_list_screen.dart';
+import '../modulo_dgii/screens/dgii_dashboard_screen.dart';
+import '../modulo_compras/screens/historial_pagos_cxp_screen.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
@@ -205,6 +207,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CxpListScreen()),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Pagos Realizados',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistorialPagosCxpScreen()),
               ),
             ),
           ],
@@ -411,7 +420,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         SidebarItem(
           title: 'DGII / e-CF',
           icon: Icons.receipt_outlined,
-          onTap: () {},
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DgiiDashboardScreen()),
+          ),
         ),
 
       // Usuarios

@@ -118,9 +118,9 @@ class _ProveedoresScreenState extends ConsumerState<ProveedoresScreen> {
           .read(proveedoresProvider.notifier)
           .deleteProveedor(proveedor.id);
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Proveedor eliminado')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Proveedor eliminado')));
       }
     }
   }

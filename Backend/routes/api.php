@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\EmpleadoController;
 use App\Http\Controllers\Api\ProveedorController;
 use App\Http\Controllers\Api\CompraController;
 use App\Http\Controllers\Api\CxpController;
+use App\Http\Controllers\Api\DgiiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,6 +47,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('compras', CompraController::class)->except(['update', 'destroy']);
     Route::get('/cxp', [CxpController::class, 'index']);
     Route::post('/cxp/{id}/pagar', [CxpController::class, 'registrarPago']);
+    Route::get('/cxp/pagos/historial', [CxpController::class, 'historialPagos']);
 
     Route::get('/clientes', [ClienteController::class, 'index'])
         ->middleware('permission:ver_clientes');
@@ -104,6 +106,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // ================= PRODUCTOS =================
     Route::get('/productos', [ProductoController::class, 'index'])
         ->middleware('permission:ver_productos');
+
+    Route::post('/productos/import', [ProductoController::class, 'import'])
+        ->middleware('permission:crear_productos');
 
     Route::get('/productos/{id}', [ProductoController::class, 'show'])
         ->middleware('permission:ver_productos');
@@ -169,6 +174,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('unidades-medida', \App\Http\Controllers\Api\UnidadMedidaController::class)->middleware('permission:ver_inventario');
     Route::apiResource('impuestos', \App\Http\Controllers\Api\ImpuestoController::class)->middleware('permission:ver_inventario');
 
+    // ================= DGII / IMPUESTOS =================
+    Route::get('/dgii/balance', [DgiiController::class, 'getBalance']);
+    Route::get('/dgii/pagos', [DgiiController::class, 'getPagos']);
+    Route::post('/dgii/pagar', [DgiiController::class, 'registrarPago']);
+    Route::get('/dgii/preview-606', [DgiiController::class, 'preview606']);
+    Route::get('/dgii/preview-607', [DgiiController::class, 'preview607']);
+    Route::get('/dgii/exportar-606', [DgiiController::class, 'exportar606']);
+    Route::get('/dgii/exportar-607', [DgiiController::class, 'exportar607']);
 
 });
 

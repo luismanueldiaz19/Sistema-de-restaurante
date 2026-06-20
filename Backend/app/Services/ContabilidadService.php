@@ -31,15 +31,19 @@ class ContabilidadService
         float $total,
         string $referencia,
         string $glosa,
-        int $usuarioId = null
+        int $usuarioId = null,
+        array $customConfigs = []
     ) {
         if ($total <= 0) {
             return null;
         }
 
-        return DB::transaction(function () use ($tipoTransaccion, $subtotal, $itbis, $total, $referencia, $glosa, $usuarioId) {
+        return DB::transaction(function () use ($tipoTransaccion, $subtotal, $itbis, $total, $referencia, $glosa, $usuarioId, $customConfigs) {
             // 1. Cargar las configuraciones contables para obtener las cuentas correspondientes
             $configs = ConfiguracionContable::pluck('cuenta_id', 'clave')->toArray();
+            if (!empty($customConfigs)) {
+                $configs = array_merge($configs, $customConfigs);
+            }
 
             // 2. Obtener la estrategia contable adecuada mediante el Factory (Patrón Estrategia)
             $strategy = AsientoStrategyFactory::make($tipoTransaccion);

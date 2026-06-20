@@ -23,6 +23,7 @@ class Producto extends Model
         'ultimo_costo',
         'costo_promedio',
         'maneja_inventario',
+        'stock_actual',
         'stock_minimo',
         'cuenta_ingreso_id',
         'cuenta_inventario_id',
@@ -35,6 +36,7 @@ class Producto extends Model
         'ultimo_costo' => 'double',
         'costo_promedio' => 'double',
         'maneja_inventario' => 'boolean',
+        'stock_actual' => 'double',
         'stock_minimo' => 'double',
         'activo' => 'boolean',
     ];

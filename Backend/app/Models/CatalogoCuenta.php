@@ -29,4 +29,9 @@ class CatalogoCuenta extends Model
     {
         return $this->hasMany(CatalogoCuenta::class, 'padre_id');
     }
+
+    public function entradas()
+    {
+        return $this->hasMany(AsientoDetalle::class, 'cuenta_id');
+    }
 }

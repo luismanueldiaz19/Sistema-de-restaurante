@@ -41,7 +41,7 @@ class ProductoController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Error en la validaci�n',
+                'message' => 'Error en la validación',
                 'errors' => $validator->errors()
             ], 400);
         }
@@ -99,7 +99,7 @@ class ProductoController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Error en la validaci�n',
+                'message' => 'Error en la validación',
                 'errors' => $validator->errors()
             ], 400);
         }
@@ -135,5 +135,106 @@ class ProductoController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'documento' => 'required|file|max:20480',
+        ]);
+
+        $file = $request->file('documento');
+        $path = $file->getRealPath();
+
+        try {
+            $data = (new \Rap2hpoutre\FastExcel\FastExcel)->import($path);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error leyendo el archivo: ' . $e->getMessage()], 400);
+        }
+
+        if ($data->isEmpty()) {
+            return response()->json(['message' => 'El archivo está vacío o no tiene el formato correcto'], 400);
+        }
+
+        $exitosos = 0;
+        $errores = [];
+
+        foreach ($data as $index => $row) {
+            // Normalizar llaves a minúsculas para evitar problemas de mayúsculas/minúsculas
+            $normalizedRow = [];
+            foreach ($row as $key => $value) {
+                $normalizedRow[trim(strtolower($key))] = $value;
+            }
+
+            // Mapeo flexible de columnas
+            $nombre = $normalizedRow['nombre'] ?? null;
+            $codigo = $normalizedRow['codigo'] ?? null;
+            $descripcion = $normalizedRow['descripcion'] ?? $normalizedRow['destalle'] ?? $normalizedRow['detalle'] ?? null;
+            $tipo_producto = $normalizedRow['tipo_producto'] ?? $normalizedRow['tipo'] ?? null;
+            $tipo_contable = $normalizedRow['tipo_contable'] ?? $normalizedRow['contable'] ?? null;
+            $precio_venta = $normalizedRow['precio_venta'] ?? $normalizedRow['precio'] ?? null;
+            $ultimo_costo = $normalizedRow['ultimo_costo'] ?? $normalizedRow['costo'] ?? 0;
+            $impuesto_id = $normalizedRow['impuesto_id'] ?? $normalizedRow['itbis'] ?? null;
+            $stock_actual = $normalizedRow['stock_actual'] ?? $normalizedRow['stock'] ?? 0;
+            $stock_minimo = $normalizedRow['stock_minimo'] ?? 0;
+            $maneja_inventario = $normalizedRow['maneja_inventario'] ?? $normalizedRow['inventario'] ?? true;
+
+            // Validar requeridos
+            if (empty($nombre) || empty($tipo_producto) || empty($tipo_contable) || !isset($precio_venta) || $precio_venta === '') {
+                $errores[] = "Fila " . ($index + 2) . ": Faltan campos requeridos (nombre, tipo, contable, precio).";
+                continue;
+            }
+
+            // Convertir booleanos textuales si aplican
+            if (is_string($maneja_inventario)) {
+                $maneja_inventario = filter_var($maneja_inventario, FILTER_VALIDATE_BOOLEAN);
+            }
+
+            try {
+                if ($codigo) {
+                    $producto = Producto::where('codigo', $codigo)->first();
+                    if ($producto) {
+                        $producto->update([
+                            'nombre' => $nombre,
+                            'descripcion' => $descripcion ?? $producto->descripcion,
+                            'tipo_producto' => $tipo_producto,
+                            'tipo_contable' => $tipo_contable,
+                            'precio_venta' => $precio_venta,
+                            'ultimo_costo' => $ultimo_costo !== 0 ? $ultimo_costo : $producto->ultimo_costo,
+                            'stock_actual' => $stock_actual !== 0 ? $stock_actual : $producto->stock_actual,
+                            'stock_minimo' => $stock_minimo !== 0 ? $stock_minimo : $producto->stock_minimo,
+                            'impuesto_id'  => !empty($impuesto_id) ? $impuesto_id : $producto->impuesto_id,
+                            'maneja_inventario' => $maneja_inventario,
+                        ]);
+                        $exitosos++;
+                        continue;
+                    }
+                }
+
+                Producto::create([
+                    'nombre' => $nombre,
+                    'codigo' => $codigo,
+                    'descripcion' => $descripcion,
+                    'tipo_producto' => $tipo_producto,
+                    'tipo_contable' => $tipo_contable,
+                    'precio_venta' => $precio_venta,
+                    'ultimo_costo' => $ultimo_costo,
+                    'costo_promedio' => 0,
+                    'stock_actual' => $stock_actual,
+                    'stock_minimo' => $stock_minimo,
+                    'impuesto_id'  => !empty($impuesto_id) ? $impuesto_id : null,
+                    'maneja_inventario' => $maneja_inventario,
+                    'activo' => true,
+                ]);
+                $exitosos++;
+            } catch (Exception $e) {
+                $errores[] = "Fila " . ($index + 2) . ": Error - " . $e->getMessage();
+            }
+        }
+
+        return response()->json([
+            'message' => "Importación completada. $exitosos procesados con éxito.",
+            'errores' => $errores
+        ], 200);
     }
 }

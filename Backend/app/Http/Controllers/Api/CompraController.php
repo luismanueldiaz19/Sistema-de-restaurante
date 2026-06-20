@@ -94,14 +94,18 @@ class CompraController extends Controller
                 if (!empty($d['producto_id'])) {
                     $producto = Producto::find($d['producto_id']);
                     if ($producto) {
-                        $producto->update(['costo' => $d['costo_unitario']]);
+                        $producto->update(['ultimo_costo' => $d['costo_unitario']]);
+                        
+                        if ($producto->maneja_inventario) {
+                            $producto->increment('stock_actual', $d['cantidad']);
+                        }
                     }
                 }
             }
 
-            // Registro Contable de la Compra (Aplica a Contado y CrÃ©dito)
+            // Registro Contable de la Compra (Aplica a Contado y Crédito)
             // Usa 'compra_inventario' que asume que va a inventario/gasto y genera la CxP
-            $asientoCompra = $this->contabilidadService->registrarAsiento(
+            $asientoCompra = $this->contabilidadService->registrarAsientoAuto(
                 'compra_inventario',
                 $subtotal,
                 $impuestos,
@@ -147,12 +151,13 @@ class CompraController extends Controller
                 ]);
 
                 // Asiento Contable del Pago
-                $asientoPago = $this->contabilidadService->registrarAsiento(
+                $asientoPago = $this->contabilidadService->registrarAsientoAuto(
                     'pago_compra',
                     0, 0, $total,
                     "PAGO-COMPRA-{$compra->id}",
                     "Pago de contado por compra Fac: {$compra->numero_factura_proveedor}",
-                    auth()->id() ?? 1
+                    auth()->id() ?? 1,
+                    ['pago_compra_efectivo_haber' => 1] // <- INYECCIÓN DINÁMICA DE LA CUENTA ORIGEN
                 );
 
                 if ($asientoPago) {

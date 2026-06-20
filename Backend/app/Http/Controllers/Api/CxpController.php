@@ -22,7 +22,7 @@ class CxpController extends Controller
     public function index()
     {
         // Get all unpaid or partially paid CxPs
-        $cxps = CuentaPorPagar::with(['proveedor', 'compra'])
+        $cxps = CuentaPorPagar::with(['proveedor', 'compra.detalles.producto'])
             ->orderBy('fecha_vencimiento', 'asc')
             ->get();
             
@@ -81,12 +81,13 @@ class CxpController extends Controller
             // Pero como la firma es generarDetalles(configs, ...), adaptaremos el servicio 
             // o lo registramos manualmente si es necesario. 
             // Vamos a registrarlo con el service y si falta algo, se ajusta después.
-            $asientoPago = $this->contabilidadService->registrarAsiento(
+            $asientoPago = $this->contabilidadService->registrarAsientoAuto(
                 'pago_compra',
                 0, 0, $validated['monto_pagado'],
                 "PAGO-CXP-{$pago->id}",
                 "Abono a CxP de Compra Fac: " . ($cxp->compra->numero_factura_proveedor ?? 'N/A'),
-                auth()->id() ?? 1
+                auth()->id() ?? 1,
+                ['pago_compra_efectivo_haber' => $validated['cuenta_origen_id']]
             );
 
             if ($asientoPago) {
@@ -99,5 +100,17 @@ class CxpController extends Controller
             DB::rollBack();
             return response()->json(['error' => 'Error al registrar el abono: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function historialPagos()
+    {
+        $pagos = PagoCompra::with([
+            'cuentaPorPagar.proveedor',
+            'cuentaPorPagar.compra',
+            'cuentaOrigen',
+            'usuario'
+        ])->orderBy('fecha_pago', 'desc')->get();
+
+        return response()->json($pagos);
     }
 }

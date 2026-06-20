@@ -40,6 +40,7 @@ return new class extends Migration
 
             // INVENTARIO
             $table->boolean('maneja_inventario')->default(true);
+            $table->decimal('stock_actual', 15, 2)->default(0);
             $table->decimal('stock_minimo', 15, 2)->default(0);
 
             // PRECIOS

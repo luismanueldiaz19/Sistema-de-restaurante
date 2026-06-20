@@ -93,4 +93,16 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
       return false;
     }
   }
+
+  Future<String> importProductos(List<int> bytes, String filename, String token) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final message = await _api.importProductos(bytes, filename, token);
+      await loadProductos(token, silent: true);
+      return message;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      throw e;
+    }
+  }
 }
