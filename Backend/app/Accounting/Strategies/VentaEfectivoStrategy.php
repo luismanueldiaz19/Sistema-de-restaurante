@@ -7,7 +7,7 @@ use Exception;
 
 class VentaEfectivoStrategy implements AsientoStrategy
 {
-    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total): array
+    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array
     {
         $cuentaCobro = $configs['venta_efectivo_debe'] ?? null;
         $cuentaVenta = $configs['venta_haber'] ?? null;
@@ -46,6 +46,26 @@ class VentaEfectivoStrategy implements AsientoStrategy
                 'debito' => 0.00,
                 'credito' => $itbis
             ];
+        }
+
+        // DÉBITO: Costo de Ventas -> Costo
+        // CRÉDITO: Inventario -> Costo
+        if ($costo > 0) {
+            $cuentaCosto = $configs['venta_costo_debe'] ?? null;
+            $cuentaInventario = $configs['venta_inventario_haber'] ?? null;
+            
+            if ($cuentaCosto && $cuentaInventario) {
+                $detalles[] = [
+                    'cuenta_id' => $cuentaCosto,
+                    'debito' => $costo,
+                    'credito' => 0.00
+                ];
+                $detalles[] = [
+                    'cuenta_id' => $cuentaInventario,
+                    'debito' => 0.00,
+                    'credito' => $costo
+                ];
+            }
         }
 
         return $detalles;

@@ -7,7 +7,7 @@ use Exception;
 
 class DevolucionCompraStrategy implements AsientoStrategy
 {
-    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total): array
+    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array
     {
         $cuentaInventario = $configs['compra_inventario_debe'] ?? null;
         $cuentaProveedor = $configs['compra_proveedor_haber'] ?? null;

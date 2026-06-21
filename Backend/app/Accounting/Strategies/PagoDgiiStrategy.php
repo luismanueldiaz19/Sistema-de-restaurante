@@ -7,7 +7,7 @@ use Exception;
 
 class PagoDgiiStrategy implements AsientoStrategy
 {
-    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total): array
+    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array
     {
         // En este caso, $total representa el monto pagado a la DGII.
         // El ITBIS POR PAGAR (2.1.02) se debita (disminuye pasivo).

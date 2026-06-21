@@ -32,13 +32,14 @@ class ContabilidadService
         string $referencia,
         string $glosa,
         int $usuarioId = null,
-        array $customConfigs = []
+        array $customConfigs = [],
+        float $costo = 0.0
     ) {
         if ($total <= 0) {
             return null;
         }
 
-        return DB::transaction(function () use ($tipoTransaccion, $subtotal, $itbis, $total, $referencia, $glosa, $usuarioId, $customConfigs) {
+        return DB::transaction(function () use ($tipoTransaccion, $subtotal, $itbis, $total, $referencia, $glosa, $usuarioId, $customConfigs, $costo) {
             // 1. Cargar las configuraciones contables para obtener las cuentas correspondientes
             $configs = ConfiguracionContable::pluck('cuenta_id', 'clave')->toArray();
             if (!empty($customConfigs)) {
@@ -49,7 +50,7 @@ class ContabilidadService
             $strategy = AsientoStrategyFactory::make($tipoTransaccion);
             
             // 3. Generar las líneas de débito y crédito del asiento de forma dinámica
-            $detalles = $strategy->generarDetalles($configs, $subtotal, $itbis, $total);
+            $detalles = $strategy->generarDetalles($configs, $subtotal, $itbis, $total, $costo);
 
             // 4. Crear la cabecera del asiento contable (Journal Entry Header)
             $asiento = AsientoContable::create([

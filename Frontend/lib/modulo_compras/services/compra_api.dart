@@ -5,9 +5,14 @@ import '../../services/api_services.dart';
 class CompraApi {
   final String baseUrl = "$hostName/api/compras";
 
-  Future<List<dynamic>> getAll(String token) async {
+  Future<List<dynamic>> getAll(String token, {String? fechaDesde, String? fechaHasta}) async {
     final api = ApiService();
-    final response = await api.get(baseUrl, token: token);
+    String query = baseUrl;
+    if (fechaDesde != null && fechaHasta != null) {
+      query += '?fecha_desde=$fechaDesde&fecha_hasta=$fechaHasta';
+    }
+    
+    final response = await api.get(query, token: token);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);

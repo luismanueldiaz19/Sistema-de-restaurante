@@ -20,6 +20,8 @@ class Producto {
   final int? marcaId;
   final int? unidadMedidaId;
   final int? impuestoId;
+  final int? impuestoVentaId;
+  final int? impuestoCompraId;
 
   final CategoriaModel? categoria;
   final MarcaModel? marca;
@@ -33,7 +35,9 @@ class Producto {
   final double? ultimoCosto;
   final double? costoPromedio;
   
+  final bool? precioIncluyeImpuesto;
   final bool? manejaInventario;
+  final bool? manejaVencimiento;
   final double? stockMinimo;
   
   final int? cuentaIngresoId;
@@ -62,8 +66,12 @@ class Producto {
     this.precioVenta,
     this.ultimoCosto,
     this.costoPromedio,
+    this.precioIncluyeImpuesto,
     this.manejaInventario,
+    this.manejaVencimiento,
     this.stockMinimo,
+    this.impuestoVentaId,
+    this.impuestoCompraId,
     this.cuentaIngresoId,
     this.cuentaInventarioId,
     this.cuentaCostoId,
@@ -90,8 +98,12 @@ class Producto {
     precioVenta: json["precio_venta"]?.toDouble(),
     ultimoCosto: json["ultimo_costo"]?.toDouble(),
     costoPromedio: json["costo_promedio"]?.toDouble(),
+    precioIncluyeImpuesto: json["precio_incluye_impuesto"] == 1 || json["precio_incluye_impuesto"] == true,
     manejaInventario: json["maneja_inventario"] == 1 || json["maneja_inventario"] == true,
+    manejaVencimiento: json["maneja_vencimiento"] == 1 || json["maneja_vencimiento"] == true,
     stockMinimo: json["stock_minimo"]?.toDouble(),
+    impuestoVentaId: json["impuesto_venta_id"],
+    impuestoCompraId: json["impuesto_compra_id"],
     cuentaIngresoId: json["cuenta_ingreso_id"],
     cuentaInventarioId: json["cuenta_inventario_id"],
     cuentaCostoId: json["cuenta_costo_id"],
@@ -114,8 +126,12 @@ class Producto {
     "precio_venta": precioVenta,
     "ultimo_costo": ultimoCosto,
     "costo_promedio": costoPromedio,
+    "precio_incluye_impuesto": precioIncluyeImpuesto,
     "maneja_inventario": manejaInventario,
+    "maneja_vencimiento": manejaVencimiento,
     "stock_minimo": stockMinimo,
+    "impuesto_venta_id": impuestoVentaId,
+    "impuesto_compra_id": impuestoCompraId,
     "cuenta_ingreso_id": cuentaIngresoId,
     "cuenta_inventario_id": cuentaInventarioId,
     "cuenta_costo_id": cuentaCostoId,

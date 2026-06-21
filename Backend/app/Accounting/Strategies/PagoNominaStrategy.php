@@ -7,7 +7,7 @@ use Exception;
 
 class PagoNominaStrategy implements AsientoStrategy
 {
-    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total): array
+    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array
     {
         $cuentaGasto = $configs['nomina_gasto_debe'] ?? null;
         $cuentaPago = $configs['nomina_pago_haber'] ?? null;

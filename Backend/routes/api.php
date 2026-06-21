@@ -7,12 +7,16 @@ use App\Http\Controllers\Api\NcfSecuenciaController;
 use App\Http\Controllers\Api\CajaController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\IngredienteController;
+use App\Http\Controllers\Api\CotizacionController;
+use App\Http\Controllers\Api\OrdenCompraController;
 use App\Http\Controllers\Api\NominaController;
 use App\Http\Controllers\Api\EmpleadoController;
 use App\Http\Controllers\Api\ProveedorController;
 use App\Http\Controllers\Api\CompraController;
 use App\Http\Controllers\Api\CxpController;
+use App\Http\Controllers\Api\CxcController;
 use App\Http\Controllers\Api\DgiiController;
+use App\Http\Controllers\Api\ReporteContableController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,6 +52,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/cxp', [CxpController::class, 'index']);
     Route::post('/cxp/{id}/pagar', [CxpController::class, 'registrarPago']);
     Route::get('/cxp/pagos/historial', [CxpController::class, 'historialPagos']);
+
+    Route::get('/cxc', [CxcController::class, 'index']);
+    Route::post('/cxc/{id}/pagar', [CxcController::class, 'registrarPago']);
+    Route::get('/cxc/pagos/historial', [CxcController::class, 'historialPagos']);
 
     Route::get('/clientes', [ClienteController::class, 'index'])
         ->middleware('permission:ver_clientes');
@@ -93,6 +101,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
       Route::get('/ncf-secuencias/{id}', [NcfSecuenciaController::class, 'show'])
         ->middleware('permission:crear_facturas');
+
+    // ================= ASIGNACIÓN DE MESAS Y CUENTAS =================
+    Route::post('/cajas/{cajaId}/asignar-mesa', [CajaController::class, 'asignarMesa']);
+
+    // ================= CONTABILIDAD =================
+    Route::get('/contabilidad/mayor-general', [ReporteContableController::class, 'mayorGeneral']);
+    Route::get('/contabilidad/balance-general', [ReporteContableController::class, 'balanceGeneral']);
+    Route::get('/contabilidad/estado-resultados', [ReporteContableController::class, 'estadoResultados']);
 
     // ================= CAJA Y TURNOS =================
     Route::get('/cajas', [CajaController::class, 'index']);
@@ -182,6 +198,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dgii/preview-607', [DgiiController::class, 'preview607']);
     Route::get('/dgii/exportar-606', [DgiiController::class, 'exportar606']);
     Route::get('/dgii/exportar-607', [DgiiController::class, 'exportar607']);
+
+    // ================= COTIZACIONES =================
+    Route::apiResource('cotizaciones', \App\Http\Controllers\Api\CotizacionController::class);
+    Route::patch('cotizaciones/{id}/estado', [\App\Http\Controllers\Api\CotizacionController::class, 'updateStatus']);
+    Route::get('cotizaciones/{id}/pdf', [\App\Http\Controllers\Api\CotizacionController::class, 'pdf']);
+
+    // ================= ORDENES DE COMPRA =================
+    Route::apiResource('ordenes-compras', \App\Http\Controllers\Api\OrdenCompraController::class);
+    Route::patch('ordenes-compras/{id}/estado', [\App\Http\Controllers\Api\OrdenCompraController::class, 'updateStatus']);
+    Route::get('ordenes-compras/{id}/pdf', [\App\Http\Controllers\Api\OrdenCompraController::class, 'generatePdf']);
 
 });
 

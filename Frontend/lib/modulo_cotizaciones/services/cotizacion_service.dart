@@ -1,0 +1,138 @@
+import 'dart:convert';
+import 'package:sistema_restaurante/modulo_cotizaciones/models/cotizacion_model.dart';
+import 'package:sistema_restaurante/modulo_cliente/models/cliente.dart';
+import 'package:sistema_restaurante/facturacion/models/factura_item.dart';
+import 'package:sistema_restaurante/services/api_services.dart';
+import 'package:sistema_restaurante/utils/constants.dart';
+
+class CotizacionService {
+  final ApiService _api = ApiService();
+  final String _baseUrl = "$hostName/api";
+
+  Future<Map<String, dynamic>> crearCotizacion({
+    required Cliente cliente,
+    required List<FacturaItem> items,
+    required String token,
+    String nota = "",
+    int diasValidez = 15,
+  }) async {
+    try {
+      final payload = {
+        "cliente_id": cliente.id,
+        "nota": nota,
+        "fecha_emision": DateTime.now().toIso8601String(),
+        "fecha_vencimiento": DateTime.now()
+            .add(Duration(days: diasValidez))
+            .toIso8601String(),
+        "detalles": items
+            .map(
+              (item) => {
+                "producto_id": int.tryParse(item.id),
+                "descripcion": item.descripcion,
+                "cantidad": item.cantidad,
+                "precio": item.precio,
+                "descuento_porcentaje": item.descuentoPorcentaje,
+                "descuento": item.montoDescuento,
+              },
+            )
+            .toList(),
+      };
+
+      final response = await _api.post(
+        "$_baseUrl/cotizaciones",
+        payload,
+        token: token,
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {"success": true, "data": data};
+      } else {
+        return {
+          "success": false,
+          "message": data['message'] ?? "Error desconocido",
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Error de conexión: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getHistorial({
+    required String token,
+    Map<String, String>? filters,
+  }) async {
+    try {
+      String query = "";
+      if (filters != null && filters.isNotEmpty) {
+        query = "?" + filters.entries.map((e) => "${e.key}=${e.value}").join("&");
+      }
+
+      final response = await _api.get("$_baseUrl/cotizaciones$query", token: token);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true, 
+          "data": data['data'],
+          "resumen": data['resumen']
+        };
+      } else {
+        return {
+          "success": false,
+          "message": data['message'] ?? "Error al obtener cotizaciones",
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Error de conexión: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getCotizacion({
+    required String id,
+    required String token,
+  }) async {
+    try {
+      final response = await _api.get("$_baseUrl/cotizaciones/$id", token: token);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "data": data['data']
+        };
+      } else {
+        return {
+          "success": false,
+          "message": data['message'] ?? "Error al obtener cotización",
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Error de conexión: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateEstado({
+    required String id,
+    required String estado,
+    required String token,
+  }) async {
+    try {
+      final response = await _api.patch(
+        "$_baseUrl/cotizaciones/$id/estado",
+        {"estado": estado},
+        token: token,
+      );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {"success": true, "message": data['message']};
+      } else {
+        return {"success": false, "message": data['message'] ?? "Error al actualizar"};
+      }
+    } catch (e) {
+      return {"success": false, "message": "Error de conexión: $e"};
+    }
+  }
+}

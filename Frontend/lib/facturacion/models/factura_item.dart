@@ -1,5 +1,3 @@
-import '../../modulo_cliente/models/cliente.dart';
-
 class FacturaItem {
   final String id;
   final String descripcion;
@@ -17,21 +15,35 @@ class FacturaItem {
     this.descuentoPorcentaje = 0.0,
   });
 
-  // Cálculos Senior
-  double get subtotal => precio * cantidad;
-  double get montoDescuento => subtotal * (descuentoPorcentaje / 100);
-  double get baseImponible => subtotal - montoDescuento;
-  double get montoItbis => baseImponible * (itbisPorcentaje / 100);
-  double get total => baseImponible + montoItbis;
+  // Cálculos Senior (Precio INCLUYE ITBIS)
+  // 1. El valor bruto del ítem (precio con itbis * cantidad)
+  double get _valorBruto => precio * cantidad;
+  
+  // 2. El descuento se aplica sobre el valor bruto
+  double get montoDescuento => _valorBruto * (descuentoPorcentaje / 100);
+  
+  // 3. El total final que pagará el cliente
+  double get total => _valorBruto - montoDescuento;
+  
+  // 4. Extraemos la base imponible (sin itbis) del total final
+  double get baseImponible => total / (1 + (itbisPorcentaje / 100));
+  
+  // 5. El subtotal es la base imponible antes de aplicar el descuento
+  // (Asumiendo que el descuento también reduce el ITBIS proporcionalmente)
+  double get subtotal => _valorBruto / (1 + (itbisPorcentaje / 100));
+  
+  // 6. El monto de ITBIS es la diferencia
+  double get montoItbis => total - baseImponible;
 
   FacturaItem copyWith({
     double? cantidad,
     double? descuentoPorcentaje,
+    double? precio,
   }) {
     return FacturaItem(
       id: id,
       descripcion: descripcion,
-      precio: precio,
+      precio: precio ?? this.precio,
       cantidad: cantidad ?? this.cantidad,
       itbisPorcentaje: itbisPorcentaje,
       descuentoPorcentaje: descuentoPorcentaje ?? this.descuentoPorcentaje,
@@ -52,5 +64,6 @@ class TotalesFactura {
     required this.total,
   });
 
-  factory TotalesFactura.zero() => TotalesFactura(subtotal: 0, descuento: 0, itbis: 0, total: 0);
+  factory TotalesFactura.zero() =>
+      TotalesFactura(subtotal: 0, descuento: 0, itbis: 0, total: 0);
 }

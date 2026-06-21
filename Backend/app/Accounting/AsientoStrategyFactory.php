@@ -9,6 +9,7 @@ use App\Accounting\Strategies\PagoNominaStrategy;
 use App\Accounting\Strategies\PagoCompraStrategy;
 use App\Accounting\Strategies\DevolucionCompraStrategy;
 use App\Accounting\Strategies\PagoDgiiStrategy;
+use App\Accounting\Strategies\PagoCxcStrategy;
 use Exception;
 
 class AsientoStrategyFactory
@@ -26,6 +27,7 @@ class AsientoStrategyFactory
         'pago_compra' => PagoCompraStrategy::class,
         'devolucion_compra' => DevolucionCompraStrategy::class,
         'pago_dgii' => PagoDgiiStrategy::class,
+        'pago_cxc' => PagoCxcStrategy::class,
     ];
 
     /**

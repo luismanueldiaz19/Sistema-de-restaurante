@@ -4,34 +4,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistema_restaurante/facturacion/screens/add_factura.dart';
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_productos.dart';
-import 'package:sistema_restaurante/modulo_producto/screens/screen_ingredientes.dart';
-import 'package:sistema_restaurante/screens/profile_screen.dart';
-import 'package:sistema_restaurante/screens/configuracion_contable_screen.dart';
-import 'package:sistema_restaurante/screens/libro_diario_screen.dart';
+import 'package:sistema_restaurante/modulo_cotizaciones/screens/crear_cotizacion_screen.dart';
+import 'package:sistema_restaurante/modulo_cotizaciones/screens/historial_cotizaciones_screen.dart';
+import 'package:sistema_restaurante/modulo_ordenes_compra/screens/crear_orden_compra_screen.dart';
+import 'package:sistema_restaurante/modulo_ordenes_compra/screens/historial_ordenes_compra_screen.dart';
+import 'package:sistema_restaurante/modulo_compras/screens/cxp_list_screen.dart';
+import 'package:sistema_restaurante/modulo_cxc/screens/cxc_list_screen.dart';
 import 'package:sistema_restaurante/widgets/custom_confirm_dialog.dart';
 import 'package:sistema_restaurante/widgets/custom_sidebar.dart';
-import '../facturacion/screens/reporte_ventas_screen.dart';
 import '../modulo_cliente/providers/cliente_admin_provider.dart';
 import '../modulo_caja/providers/caja_provider.dart';
 import '../modulo_caja/widgets/cierre_caja_dialog.dart';
-import '../modulo_nomina/providers/nomina_provider.dart';
 import '../palletes/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../providers/auth_state.dart';
 import '../utils/helpers.dart';
+import '../modulo_menu/menu_builder.dart';
 import 'dashboard_buttons_section/dashboard_buttons_section.dart';
 import 'login_page.dart';
-import '../facturacion/screens/historial_caja_screen.dart';
-import '../facturacion/screens/historial_ventas_screen.dart';
-import '../modulo_nomina/screens/nomina_dashboard_screen.dart';
-import '../modulo_nomina/screens/add_nomina_screen.dart';
-import '../modulo_nomina/screens/empleado_list_screen.dart';
-import '../modulo_compras/screens/proveedores_screen.dart';
-import '../modulo_compras/screens/nueva_compra_screen.dart';
-import '../modulo_compras/screens/compras_list_screen.dart';
-import '../modulo_compras/screens/cxp_list_screen.dart';
-import '../modulo_dgii/screens/dgii_dashboard_screen.dart';
-import '../modulo_compras/screens/historial_pagos_cxp_screen.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
@@ -138,319 +128,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 1000;
 
-    // Definición de Menús Dinámica
-    final menuItems = [
-      SidebarItem(
-        title: 'Dashboard',
-        icon: Icons.dashboard_outlined,
-        onTap: () => setState(() => _selectedIndex = 0),
-      ),
-      SidebarItem(
-        title: 'Mi Perfil',
-        icon: Icons.person_pin_outlined,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
-        ),
-      ),
-
-      // Módulo de Ventas
-      if (auth.hasPermission('ver_facturas'))
-        SidebarItem(
-          title: 'Ventas',
-          icon: Icons.shopping_cart_outlined,
-          subItems: [
-            if (auth.hasPermission('crear_facturas'))
-              SidebarSubItem(
-                title: 'Nueva Venta',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CrearFacturaPage()),
-                ),
-              ),
-            SidebarSubItem(
-              title: 'Facturas',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const HistorialVentasScreen(),
-                ),
-              ),
-            ),
-            SidebarSubItem(title: 'Cotizaciones', onTap: () {}),
-            SidebarSubItem(title: 'Devoluciones', onTap: () {}),
-          ],
-        ),
-
-      // Módulo de Compras
-      if (auth.hasPermission('ver_compras') || auth.roles.contains('admin'))
-        SidebarItem(
-          title: 'Compras',
-          icon: Icons.shopping_bag_outlined,
-          subItems: [
-            SidebarSubItem(
-              title: 'Nueva Compra',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const NuevaCompraScreen()),
-              ),
-            ),
-            SidebarSubItem(
-              title: 'Historial',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ComprasListScreen()),
-              ),
-            ),
-            SidebarSubItem(
-              title: 'Cuentas por Pagar',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CxpListScreen()),
-              ),
-            ),
-            SidebarSubItem(
-              title: 'Pagos Realizados',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const HistorialPagosCxpScreen()),
-              ),
-            ),
-          ],
-        ),
-
-      // Módulo de Inventario
-      if (auth.hasPermission('ver_inventario') ||
-          auth.hasPermission('ver_productos') ||
-          auth.roles.contains('admin'))
-        SidebarItem(
-          title: 'Inventario',
-          icon: Icons.inventory_2_outlined,
-          subItems: [
-            if (auth.hasPermission('ver_productos') ||
-                auth.hasPermission('ver_inventario') ||
-                auth.roles.contains('admin'))
-              SidebarSubItem(
-                title: 'Productos',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ScreenProductos()),
-                ),
-              ),
-            if (auth.hasPermission('ver_inventario') ||
-                auth.roles.contains('admin'))
-              SidebarSubItem(
-                title: 'Ingredientes',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ScreenIngredientes()),
-                ),
-              ),
-            if (auth.hasPermission('ver_inventario') ||
-                auth.roles.contains('admin'))
-              SidebarSubItem(title: 'Categorías', onTap: () {}),
-            // if (auth.hasPermission('ver_inventario') || auth.roles.contains('admin'))
-            //   SidebarSubItem(
-            //     title: 'Ajustes',
-            //     onTap: () => Navigator.push(
-            //       context,
-            //       MaterialPageRoute(builder: (_) => const ScreenAjustesInventario()),
-            //     ),
-            //   ),
-            if (auth.hasPermission('ver_inventario') ||
-                auth.roles.contains('admin'))
-              SidebarSubItem(title: 'Kardex', onTap: () {}),
-          ],
-        ),
-
-      // Módulo de Clientes
-      if (auth.hasPermission('ver_clientes'))
-        SidebarItem(
-          title: 'Clientes',
-          icon: Icons.people_outline,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ScreenClientAdmin()),
-          ),
-        ),
-
-      // Proveedores
-      if (auth.hasPermission('ver_proveedores') || auth.roles.contains('admin'))
-        SidebarItem(
-          title: 'Proveedores',
-          icon: Icons.local_shipping_outlined,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ProveedoresScreen()),
-          ),
-        ),
-
-      // Caja y Bancos
-      if (auth.hasPermission('gestionar_caja') ||
-          auth.roles.contains('admin') ||
-          auth.roles.any((r) => r.toLowerCase() == 'cajero') ||
-          auth.roles.contains('CAJERO'))
-        SidebarItem(
-          title: 'Caja y Bancos',
-          icon: Icons.point_of_sale_outlined,
-          subItems: [
-            SidebarSubItem(title: 'Apertura', onTap: () {}),
-            SidebarSubItem(title: 'Cierre', onTap: () {}),
-            SidebarSubItem(
-              title: 'Movimientos',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const HistorialCajaScreen()),
-              ),
-            ),
-          ],
-        ),
-
-      // Contabilidad
-      if (auth.roles.contains('admin') || auth.roles.contains('contador'))
-        SidebarItem(
-          title: 'Contabilidad',
-          icon: Icons.account_balance_rounded,
-          subItems: [
-            SidebarSubItem(
-              title: 'Diario',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LibroDiarioScreen()),
-              ),
-            ),
-            SidebarSubItem(title: 'Mayor', onTap: () {}),
-            SidebarSubItem(title: 'Balance', onTap: () {}),
-            SidebarSubItem(
-              title: 'Catálogo cuentas',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ConfiguracionContableScreen(),
-                ),
-              ),
-            ),
-          ],
-        ),
-
-      // CxC
-      if (auth.hasPermission('ver_cxc') ||
-          auth.roles.contains('admin') ||
-          auth.roles.contains('contador'))
-        SidebarItem(
-          title: 'CxC',
-          icon: Icons.request_quote_outlined,
-          onTap: () {},
-        ),
-
-      // Gastos
-      if (auth.hasPermission('ver_gastos') ||
-          auth.roles.contains('admin') ||
-          auth.roles.contains('contador'))
-        SidebarItem(
-          title: 'Gastos',
-          icon: Icons.money_off_outlined,
-          onTap: () {},
-        ),
-
-      // Activos Fijos
-      if (auth.roles.contains('admin') || auth.roles.contains('contador'))
-        SidebarItem(
-          title: 'Activos Fijos',
-          icon: Icons.domain_outlined,
-          onTap: () {},
-        ),
-
-      // Nómina
-      if (auth.roles.contains('admin') ||
-          auth.roles.contains('contador') ||
-          auth.roles.contains('auxiliar contable') ||
-          auth.hasPermission('ver_nomina'))
-        SidebarItem(
-          title: 'Nómina',
-          icon: Icons.group_outlined,
-          subItems: [
-            SidebarSubItem(
-              title: 'Dashboard Nómina',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const NominaDashboardScreen(),
-                ),
-              ),
-            ),
-            SidebarSubItem(
-              title: 'Gestionar Empleados',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const EmpleadoListScreen()),
-              ),
-            ),
-            SidebarSubItem(
-              title: 'Generar Nómina',
-              onTap: () async {
-                final result = await showDialog(
-                  context: context,
-                  builder: (_) => const AddNominaDialog(),
-                );
-                // Si se generó con éxito, recargar historial
-                if (result == true && context.mounted) {
-                  ref.read(nominaProvider.notifier).fetchHistorial();
-                }
-              },
-            ),
-          ],
-        ),
-
-      // Reportes
-      if (auth.hasPermission('ver_reportes') ||
-          auth.roles.contains('admin') ||
-          auth.roles.contains('contador'))
-        SidebarItem(
-          title: 'Reportes',
-          icon: Icons.bar_chart_outlined,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ReporteVentasScreen()),
-          ),
-        ),
-
-      // DGII / e-CF
-      if (auth.roles.contains('admin') || auth.roles.contains('contador'))
-        SidebarItem(
-          title: 'DGII / e-CF',
-          icon: Icons.receipt_outlined,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const DgiiDashboardScreen()),
-          ),
-        ),
-
-      // Usuarios
-      if (auth.hasPermission('gestionar_usuarios') ||
-          auth.roles.contains('admin'))
-        SidebarItem(
-          title: 'Usuarios',
-          icon: Icons.manage_accounts_outlined,
-          onTap: () {},
-        ),
-
-      // Configuración
-      if (auth.roles.contains('admin'))
-        SidebarItem(
-          title: 'Configuración',
-          icon: Icons.settings_outlined,
-          onTap: () {},
-        ),
-
-      // Auditoría
-      if (auth.roles.contains('admin'))
-        SidebarItem(
-          title: 'Auditoría',
-          icon: Icons.fact_check_outlined,
-          onTap: () {},
-        ),
-    ];
+    // Definición de Menús Dinámica externalizada
+    final menuItems = MenuBuilder.buildMenu(
+      context: context,
+      auth: auth,
+      ref: ref,
+      onDashboardTap: () => setState(() => _selectedIndex = 0),
+    );
 
     return Scaffold(
       key: scaffoldKey,
@@ -611,6 +295,54 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const ScreenProductos(),
+                          ),
+                        );
+                        break;
+                      case 'crear_cotizacion':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CrearCotizacionScreen(),
+                          ),
+                        );
+                        break;
+                      case 'ver_cotizaciones':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HistorialCotizacionesScreen(),
+                          ),
+                        );
+                        break;
+                      case 'crear_orden_compra':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CrearOrdenCompraScreen(),
+                          ),
+                        );
+                        break;
+                      case 'ver_ordenes_compra':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HistorialOrdenesCompraScreen(),
+                          ),
+                        );
+                        break;
+                      case 'ver_cxp':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CxpListScreen(),
+                          ),
+                        );
+                        break;
+                      case 'ver_cxc':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CxcListScreen(),
                           ),
                         );
                         break;

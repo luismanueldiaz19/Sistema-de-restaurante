@@ -22,9 +22,20 @@ class CompraController extends Controller
         $this->contabilidadService = $contabilidadService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $compras = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar'])->orderBy('id', 'desc')->get();
+        $query = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar'])
+            ->orderBy('id', 'desc');
+
+        if ($request->filled('fecha_desde')) {
+            $query->where('fecha_compra', '>=', $request->fecha_desde);
+        }
+
+        if ($request->filled('fecha_hasta')) {
+            $query->where('fecha_compra', '<=', $request->fecha_hasta . ' 23:59:59');
+        }
+
+        $compras = $query->get();
         return response()->json($compras);
     }
 
@@ -94,7 +105,8 @@ class CompraController extends Controller
                 if (!empty($d['producto_id'])) {
                     $producto = Producto::find($d['producto_id']);
                     if ($producto) {
-                        $producto->update(['ultimo_costo' => $d['costo_unitario']]);
+                        // El usuario solicitó no actualizar el costo del producto en el catálogo automáticamente
+                        // $producto->update(['ultimo_costo' => $d['costo_unitario']]);
                         
                         if ($producto->maneja_inventario) {
                             $producto->increment('stock_actual', $d['cantidad']);

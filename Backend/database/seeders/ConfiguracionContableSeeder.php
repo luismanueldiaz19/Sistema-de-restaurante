@@ -42,6 +42,19 @@ class ConfiguracionContableSeeder extends Seeder
                 'codigo_cuenta' => '2.1.02', // ITBIS POR PAGAR
             ],
 
+            [
+                'clave' => 'venta_costo_debe',
+                'nombre' => 'Costo de Ventas (Débito)',
+                'grupo' => 'Ventas',
+                'codigo_cuenta' => '5.1', // COSTO DE VENTAS O COSTO DE MERCANCIA
+            ],
+            [
+                'clave' => 'venta_inventario_haber',
+                'nombre' => 'Salida de Inventario por Venta (Crédito)',
+                'grupo' => 'Ventas',
+                'codigo_cuenta' => '1.1.05.01', // INVENTARIO DE ALIMENTOS
+            ],
+
             // Compras
             [
                 'clave' => 'compra_inventario_debe',

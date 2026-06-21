@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../palletes/app_colors.dart';
 import '../../utils/helpers.dart'; // 🔥 Importar helpers
 import '../models/factura_item.dart';
@@ -7,12 +8,14 @@ class CarritoLista extends StatelessWidget {
   final List<FacturaItem> items;
   final Function(String, double) onUpdateCantidad;
   final Function(String) onRemove;
+  final Function(String, double)? onUpdatePrecio;
 
   const CarritoLista({
     super.key,
     required this.items,
     required this.onUpdateCantidad,
     required this.onRemove,
+    this.onUpdatePrecio,
   });
 
   @override
@@ -70,7 +73,10 @@ class CarritoLista extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -93,7 +99,7 @@ class CarritoLista extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemBuilder: (context, index) {
               final item = items[index];
-              return _buildItem(item);
+              return _buildItem(context, item);
             },
           ),
         ),
@@ -101,7 +107,7 @@ class CarritoLista extends StatelessWidget {
     );
   }
 
-  Widget _buildItem(FacturaItem item) {
+  Widget _buildItem(BuildContext context, FacturaItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -145,13 +151,29 @@ class CarritoLista extends StatelessWidget {
                         color: AppColors.secondary,
                       ),
                     ),
-                    Text(
-                      formatCurrency(item.precio),
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          formatCurrency(item.precio),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (onUpdatePrecio != null) ...[
+                          const SizedBox(width: 4),
+                          InkWell(
+                            onTap: () =>
+                                _mostrarDialogoEdicionPrecio(context, item),
+                            child: Icon(
+                              Icons.edit,
+                              size: 14,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -176,14 +198,11 @@ class CarritoLista extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    _buildQtyBtn(
-                      Icons.remove,
-                      () {
-                        if (item.cantidad > 1) {
-                          onUpdateCantidad(item.id, item.cantidad - 1);
-                        }
-                      },
-                    ),
+                    _buildQtyBtn(Icons.remove, () {
+                      if (item.cantidad > 1) {
+                        onUpdateCantidad(item.id, item.cantidad - 1);
+                      }
+                    }),
                     Container(
                       constraints: const BoxConstraints(minWidth: 40),
                       child: Text(
@@ -235,7 +254,12 @@ class CarritoLista extends StatelessWidget {
     );
   }
 
-  Widget _buildCircleBtn({required IconData icon, required Color color, required VoidCallback onTap, double size = 32}) {
+  Widget _buildCircleBtn({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    double size = 32,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(50),
@@ -248,6 +272,49 @@ class CarritoLista extends StatelessWidget {
         ),
         child: Icon(icon, color: color, size: size * 0.6),
       ),
+    );
+  }
+
+  void _mostrarDialogoEdicionPrecio(BuildContext context, FacturaItem item) {
+    final TextEditingController _precioController = TextEditingController(
+      text: item.precio.toStringAsFixed(2),
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Editar Precio'),
+          content: TextField(
+            controller: _precioController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Precio Unitario',
+              prefixText: '\$ ',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final double? newPrecio = double.tryParse(
+                  _precioController.text,
+                );
+                if (newPrecio != null && newPrecio >= 0) {
+                  onUpdatePrecio!(item.id, newPrecio);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -119,7 +119,9 @@ class ConfiguracionContableService {
       final List<dynamic> data = decoded['data']['data'] as List<dynamic>;
       return data.map((json) => AsientoContableModel.fromJson(json as Map<String, dynamic>)).toList();
     } else {
-      throw Exception('Error al obtener asientos contables');
+      final decoded = jsonDecode(response.body);
+      final msg = decoded['message'] ?? 'Error desconocido';
+      throw Exception('Error al obtener asientos contables: $msg');
     }
   }
 }

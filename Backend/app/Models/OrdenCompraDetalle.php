@@ -18,6 +18,8 @@ class OrdenCompraDetalle extends Model
         'cantidad',
         'costo_esperado',
         'subtotal',
+        'itbis',
+        'total',
     ];
 
     public function ordenCompra()

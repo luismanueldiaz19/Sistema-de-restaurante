@@ -7,7 +7,7 @@ use Exception;
 
 class PagoCompraStrategy implements AsientoStrategy
 {
-    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total): array
+    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array
     {
         $cuentaProveedor = $configs['compra_proveedor_haber'] ?? null;
         $cuentaCajaBanco = $configs['pago_compra_efectivo_haber'] ?? null;

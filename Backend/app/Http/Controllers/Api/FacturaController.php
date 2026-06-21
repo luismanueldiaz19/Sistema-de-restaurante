@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Factura;
 use App\Models\FacturaDetalle;
+use App\Models\CuentaPorCobrar;
 use App\Models\Pago;
 use Illuminate\Http\Request;
 use App\Services\InventoryService;
@@ -91,11 +92,22 @@ class FacturaController extends Controller {
             'updated_at' => now(),
         ]);
 
+        $costoTotalVenta = 0;
+
         // ✅ INSERTAR DETALLES
         foreach ($detallesCalculados as $detalle) {
 
             $item = $detalle['item'];
             $calc = $detalle['calc'];
+
+            // 💰 Calcular costo del producto
+            if (!empty($item['producto_id'])) {
+                $producto = \App\Models\Producto::find($item['producto_id']);
+                if ($producto) {
+                    $costoUnitario = $producto->costo_promedio > 0 ? $producto->costo_promedio : $producto->ultimo_costo;
+                    $costoTotalVenta += ($costoUnitario * $item['cantidad']);
+                }
+            }
 
             DB::table('factura_detalle')->insert([
                 'factura_id' => $factura,
@@ -146,6 +158,20 @@ class FacturaController extends Controller {
         $tipoTransaccion = $tienePago ? 'venta_efectivo' : 'venta_credito';
         $glosa = "Venta al " . ($tienePago ? "Contado" : "Crédito") . " - Factura NCF " . $ncf;
         
+        // 🔥 REGISTRAR CUENTA POR COBRAR
+        if (!$tienePago) {
+            CuentaPorCobrar::create([
+                'cliente_id' => $request->cliente_id,
+                'factura_id' => $factura,
+                'monto_original' => $total,
+                'balance_pendiente' => $total,
+                'fecha_emision' => now()->toDateString(),
+                'fecha_vencimiento' => now()->addDays(30)->toDateString(), // Asumiendo 30 días, o según política
+                'estado' => 'PENDIENTE',
+                'descripcion' => "Factura a crédito NCF: $ncf"
+            ]);
+        }
+        
         app(\App\Services\ContabilidadService::class)->registrarAsientoAuto(
             $tipoTransaccion,
             round($subtotal, 2),
@@ -153,7 +179,9 @@ class FacturaController extends Controller {
             round($total, 2),
             $ncf,
             $glosa,
-            auth()->id()
+            auth()->id(),
+            [],
+            round($costoTotalVenta, 2)
         );
 
         DB::commit();

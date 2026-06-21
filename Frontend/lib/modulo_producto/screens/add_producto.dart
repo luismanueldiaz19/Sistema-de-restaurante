@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
 import '../../providers/auth_provider.dart';
@@ -39,6 +40,11 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
   bool manejaInventario = true;
   bool activo = true;
 
+  int? impuestoVentaId;
+  int? impuestoCompraId;
+  bool precioIncluyeImpuesto = false;
+  bool manejaVencimiento = false;
+
   bool get isEdit => widget.producto != null;
 
   @override
@@ -76,7 +82,76 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       tipoContable = p.tipoContable ?? 'INVENTARIO';
       manejaInventario = p.manejaInventario ?? true;
       activo = p.activo ?? true;
+
+      impuestoVentaId = p.impuestoVentaId;
+      impuestoCompraId = p.impuestoCompraId;
+      precioIncluyeImpuesto = p.precioIncluyeImpuesto ?? false;
+      manejaVencimiento = p.manejaVencimiento ?? false;
     }
+  }
+
+  void _mostrarCalculadoraCosto() {
+    final calcCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'Calculadora de Costo',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ingresa el costo total (CON ITBIS) que le pagas al proveedor por unidad:',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: calcCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Costo total con ITBIS',
+                prefixText: 'RD\$ ',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              final val = double.tryParse(calcCtrl.text) ?? 0;
+              if (val > 0) {
+                final base = val / 1.18; // Extraer ITBIS 18%
+                setState(() {
+                  costoCtrl.text = base.toStringAsFixed(2);
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            icon: const Icon(Icons.calculate, size: 18),
+            label: const Text('Extraer ITBIS (18%)'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -279,16 +354,29 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     Expanded(
                       child: CustomTextField(
                         controller: costoCtrl,
-                        label: 'Ultimo Costo (Compra)',
+                        label: 'Costo Sin ITBIS',
                         prefixIcon: Icons.shopping_cart_outlined,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ],
                         enabled: isAdmin,
+                        suffixWidget: IconButton(
+                          tooltip: 'Extraer ITBIS del Costo',
+                          icon: const Icon(
+                            Icons.calculate,
+                            color: Colors.orange,
+                          ),
+                          onPressed: _mostrarCalculadoraCosto,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
                       child: _buildDropdown(
-                        label: 'Impuesto Aplicado',
+                        label: 'Impuesto General',
                         value: impuestoId,
                         items: impuestos
                             .map(
@@ -300,6 +388,65 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                             .toList(),
                         onChanged: (val) =>
                             setState(() => impuestoId = val as int?),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '¿Precio incluye ITBIS?',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Switch(
+                            value: precioIncluyeImpuesto,
+                            onChanged: (v) =>
+                                setState(() => precioIncluyeImpuesto = v),
+                            activeColor: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildDropdown(
+                        label: 'Impuesto Compra',
+                        value: impuestoCompraId,
+                        items: impuestos
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text("${e.nombre} (${e.tasa}%)"),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => impuestoCompraId = val as int?),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildDropdown(
+                        label: 'Impuesto Venta',
+                        value: impuestoVentaId,
+                        items: impuestos
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text("${e.nombre} (${e.tasa}%)"),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => impuestoVentaId = val as int?),
                       ),
                     ),
                   ],
@@ -333,6 +480,26 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                             value: manejaInventario,
                             onChanged: (v) =>
                                 setState(() => manejaInventario = v),
+                            activeColor: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Maneja Venc.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Switch(
+                            value: manejaVencimiento,
+                            onChanged: (v) =>
+                                setState(() => manejaVencimiento = v),
                             activeColor: AppColors.primary,
                           ),
                         ],
@@ -444,11 +611,15 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       "marca_id": marcaId,
       "unidad_medida_id": unidadMedidaId,
       "impuesto_id": impuestoId,
+      "impuesto_venta_id": impuestoVentaId,
+      "impuesto_compra_id": impuestoCompraId,
+      "precio_incluye_impuesto": precioIncluyeImpuesto,
       "tipo_producto": tipoProducto,
       "tipo_contable": tipoContable,
       "precio_venta": double.tryParse(precioCtrl.text) ?? 0,
       "ultimo_costo": double.tryParse(costoCtrl.text) ?? 0,
       "maneja_inventario": manejaInventario,
+      "maneja_vencimiento": manejaVencimiento,
       "stock_minimo": double.tryParse(stockMinimoCtrl.text) ?? 0,
       "activo": activo,
     };

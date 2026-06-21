@@ -6,22 +6,42 @@ import '../../providers/auth_provider.dart';
 
 final compraApiProvider = Provider((ref) => CompraApi());
 
+class TotalesCompras {
+  final double totalPagado;
+  final double totalPendiente;
+  final double totalGeneral;
+
+  TotalesCompras({
+    this.totalPagado = 0,
+    this.totalPendiente = 0,
+    this.totalGeneral = 0,
+  });
+}
+
 class ComprasState {
   final bool isLoading;
   final List<Compra> compras;
   final String? error;
+  final TotalesCompras totales;
 
-  ComprasState({this.isLoading = false, this.compras = const [], this.error});
+  ComprasState({
+    this.isLoading = false,
+    this.compras = const [],
+    this.error,
+    TotalesCompras? totales,
+  }) : totales = totales ?? TotalesCompras();
 
   ComprasState copyWith({
     bool? isLoading,
     List<Compra>? compras,
     String? error,
+    TotalesCompras? totales,
   }) {
     return ComprasState(
       isLoading: isLoading ?? this.isLoading,
       compras: compras ?? this.compras,
       error: error ?? this.error,
+      totales: totales ?? this.totales,
     );
   }
 }
@@ -36,13 +56,33 @@ class ComprasNotifier extends StateNotifier<ComprasState> {
     }
   }
 
-  Future<void> loadCompras() async {
+  Future<void> loadCompras({String? fechaDesde, String? fechaHasta}) async {
     if (token == null) return;
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final data = await api.getAll(token!);
+      final data = await api.getAll(token!, fechaDesde: fechaDesde, fechaHasta: fechaHasta);
       final list = data.map((e) => Compra.fromJson(e)).toList();
-      state = state.copyWith(isLoading: false, compras: list);
+      
+      double pagado = 0;
+      double pendiente = 0;
+      
+      for (var c in list) {
+        if (c.estado == 'PAGADA') {
+          pagado += c.total;
+        } else {
+          pendiente += c.total;
+        }
+      }
+      
+      state = state.copyWith(
+        isLoading: false, 
+        compras: list,
+        totales: TotalesCompras(
+          totalPagado: pagado,
+          totalPendiente: pendiente,
+          totalGeneral: pagado + pendiente,
+        )
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

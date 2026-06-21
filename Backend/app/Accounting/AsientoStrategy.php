@@ -14,5 +14,5 @@ interface AsientoStrategy
      * @return array  Listado de arrays asociativos con ['cuenta_id', 'debito', 'credito'].
      * @throws \Exception
      */
-    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total): array;
+    public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array;
 }

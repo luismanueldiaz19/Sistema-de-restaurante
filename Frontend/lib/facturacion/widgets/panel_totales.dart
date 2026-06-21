@@ -7,12 +7,16 @@ class PanelTotales extends StatelessWidget {
   final TotalesFactura totales;
   final VoidCallback onProcesar;
   final bool isLoading;
+  final bool esCotizacion;
+  final bool esOrdenCompra;
 
   const PanelTotales({
     super.key,
     required this.totales,
     required this.onProcesar,
     this.isLoading = false,
+    this.esCotizacion = false,
+    this.esOrdenCompra = false,
   });
 
   @override
@@ -64,8 +68,10 @@ class PanelTotales extends StatelessWidget {
               ),
               child: isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'PROCESAR FACTURA',
+                  : Text(
+                      esOrdenCompra
+                          ? 'PROCESAR ORDEN'
+                          : (esCotizacion ? 'PROCESAR COTIZACION' : 'PROCESAR FACTURA'),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
