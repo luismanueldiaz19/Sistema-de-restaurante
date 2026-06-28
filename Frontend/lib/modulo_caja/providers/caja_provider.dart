@@ -51,6 +51,8 @@ class CajaNotifier extends StateNotifier<CajaState> {
     state = state.copyWith(isLoading: true);
     final result = await _service.getEstadoCaja(token);
 
+    if (!mounted) return;
+
     if (result['success']) {
       state = state.copyWith(isLoading: false, sesionActiva: result['data']);
       if (result['data'] != null) {
@@ -63,6 +65,9 @@ class CajaNotifier extends StateNotifier<CajaState> {
 
   Future<void> fetchResumen(String token) async {
     final result = await _service.getResumenCierre(token);
+
+    if (!mounted) return;
+
     if (result['success']) {
       state = state.copyWith(resumenSesion: result['data']);
     }
@@ -85,6 +90,8 @@ class CajaNotifier extends StateNotifier<CajaState> {
       desglose: desglose,
       comentario: comentario,
     );
+
+    if (!mounted) return result;
 
     if (result['success']) {
       state = state.copyWith(
@@ -112,6 +119,8 @@ class CajaNotifier extends StateNotifier<CajaState> {
       montoInicial: montoInicial,
     );
 
+    if (!mounted) return result['success'] ? null : result['message'];
+
     if (result['success']) {
       state = state.copyWith(isLoading: false, sesionActiva: result['data']);
       return null; // Éxito
@@ -127,6 +136,8 @@ class CajaNotifier extends StateNotifier<CajaState> {
       token: token,
       filters: state.filters,
     );
+
+    if (!mounted) return;
 
     if (result['success']) {
       state = state.copyWith(
