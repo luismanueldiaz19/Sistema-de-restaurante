@@ -116,7 +116,7 @@ class OrdenCompraHistorialNotifier
   }
 }
 
-final OrdenCompraHistorialProvider =
+final ordenCompraHistorialProvider =
     StateNotifierProvider<
       OrdenCompraHistorialNotifier,
       OrdenCompraHistorialState
