@@ -89,8 +89,8 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
             child: CustomTextField(
-              label: "",
-              hintText: "Buscar por nombre, código o categoría...",
+              label: "Buscar por nombre, código o categoría",
+              hintText: "Producto...",
               controller: searchController,
               prefixIcon: Icons.search_rounded,
               onChanged: (v) =>
@@ -138,6 +138,7 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                     ),
             ),
           ),
+          Text('Total de productos: de ${state.productos.length}'),
           const SizedBox(height: 20),
         ],
       ),

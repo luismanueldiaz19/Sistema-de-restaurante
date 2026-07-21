@@ -41,9 +41,7 @@ class OrdenCompra {
   factory OrdenCompra.fromJson(Map<String, dynamic> json) => OrdenCompra(
     id: json["id"],
     proveedorId: json["proveedor_id"],
-    fechaEmision: json["fecha_emision"] != null
-        ? DateTime.parse(json["fecha_emision"])
-        : null,
+    fechaEmision: json["fecha"] != null ? DateTime.parse(json["fecha"]) : null,
     fechaVencimiento: json["fecha_vencimiento"] != null
         ? DateTime.parse(json["fecha_vencimiento"])
         : null,

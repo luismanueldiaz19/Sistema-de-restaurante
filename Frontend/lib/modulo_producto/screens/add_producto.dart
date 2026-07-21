@@ -90,6 +90,48 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
     }
   }
 
+  void _generarSKU() {
+    String name = nombreCtrl.text.trim();
+    String prefix = 'PROD';
+    if (name.isNotEmpty) {
+      final words = name.split(' ').where((w) => w.isNotEmpty).toList();
+      if (words.length == 1) {
+        prefix = words[0]
+            .substring(0, words[0].length < 3 ? words[0].length : 3)
+            .toUpperCase();
+      } else if (words.length >= 2) {
+        prefix = '${words[0][0]}${words[1][0]}'.toUpperCase();
+        if (words.length >= 3) {
+          prefix += words[2][0].toUpperCase();
+        }
+      }
+    }
+
+    // Clean prefix to keep only letters and numbers
+    prefix = prefix.replaceAll(RegExp(r'[^A-Z0-9]'), '');
+
+    if (prefix.isEmpty) prefix = 'PROD';
+
+    final randomNum = (1000 + DateTime.now().millisecondsSinceEpoch % 9000)
+        .toString();
+    setState(() {
+      codigoCtrl.text = '$prefix-$randomNum';
+    });
+  }
+
+  String get _margenGanancia {
+    final precio = double.tryParse(precioCtrl.text) ?? 0;
+    final costo = double.tryParse(costoCtrl.text) ?? 0;
+
+    if (precio <= 0) return '';
+    if (costo == 0 && precio > 0) return ' (100% Margen)';
+    if (precio > 0) {
+      final margen = ((precio - costo) / precio) * 100;
+      return ' (${margen.toStringAsFixed(1)}% Margen)';
+    }
+    return '';
+  }
+
   void _mostrarCalculadoraCosto() {
     final calcCtrl = TextEditingController();
     showDialog(
@@ -195,7 +237,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16),
-
                 Row(
                   children: [
                     Expanded(
@@ -213,6 +254,8 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                         controller: codigoCtrl,
                         label: 'Codigo / SKU',
                         hintText: 'HAM-001',
+                        suffixIcon: Icons.autorenew,
+                        onSuffixIconTap: _generarSKU,
                       ),
                     ),
                   ],

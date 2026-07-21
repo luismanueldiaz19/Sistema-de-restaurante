@@ -10,6 +10,7 @@ class OrdenCompraFormState {
   final String nota;
   final bool isLoading;
   final String? error;
+  final DateTime fechaEmision;
 
   OrdenCompraFormState({
     this.carrito = const [],
@@ -18,7 +19,8 @@ class OrdenCompraFormState {
     this.nota = "",
     this.isLoading = false,
     this.error,
-  });
+    DateTime? fechaEmision,
+  }) : fechaEmision = fechaEmision ?? DateTime.now();
 
   TotalesFactura get totales {
     double sub = 0;
@@ -50,6 +52,7 @@ class OrdenCompraFormState {
     bool? isLoading,
     String? error,
     bool clearError = false,
+    DateTime? fechaEmision,
   }) {
     return OrdenCompraFormState(
       carrito: carrito ?? this.carrito,
@@ -60,6 +63,7 @@ class OrdenCompraFormState {
       nota: nota ?? this.nota,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
+      fechaEmision: fechaEmision ?? this.fechaEmision,
     );
   }
 }
@@ -79,6 +83,10 @@ class OrdenCompraFormNotifier extends StateNotifier<OrdenCompraFormState> {
 
   void cambiarNota(String nota) {
     state = state.copyWith(nota: nota);
+  }
+
+  void cambiarFechaEmision(DateTime fecha) {
+    state = state.copyWith(fechaEmision: fecha);
   }
 
   void agregarProducto(FacturaItem item) {
@@ -148,6 +156,7 @@ class OrdenCompraFormNotifier extends StateNotifier<OrdenCompraFormState> {
       token: token,
       nota: state.nota,
       diasValidez: state.diasValidez,
+      fechaEmision: state.fechaEmision,
     );
 
     state = state.copyWith(isLoading: false);

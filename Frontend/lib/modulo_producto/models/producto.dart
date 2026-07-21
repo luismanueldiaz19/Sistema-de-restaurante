@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:sistema_restaurante/utils/normalize.dart';
+
 import 'categoria_model.dart';
 import 'marca_model.dart';
 import 'unidad_medida_model.dart';
@@ -15,7 +17,7 @@ class Producto {
   final String? nombre;
   final String? codigo;
   final String? descripcion;
-  
+
   final int? categoriaId;
   final int? marcaId;
   final int? unidadMedidaId;
@@ -30,23 +32,25 @@ class Producto {
 
   final String? tipoProducto;
   final String? tipoContable;
-  
+
   final double? precioVenta;
   final double? ultimoCosto;
   final double? costoPromedio;
-  
+
   final bool? precioIncluyeImpuesto;
   final bool? manejaInventario;
   final bool? manejaVencimiento;
   final double? stockMinimo;
-  
+
   final int? cuentaIngresoId;
   final int? cuentaInventarioId;
   final int? cuentaCostoId;
-  
+
   final bool? activo;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  late final String searchIndex;
 
   Producto({
     this.id,
@@ -78,7 +82,21 @@ class Producto {
     this.activo,
     this.createdAt,
     this.updatedAt,
-  });
+  }) {
+    // Código que se ejecuta después de crear el objeto.
+    // Inicializa el índice de búsqueda del producto
+    // utilizando los campos relevantes normalizados.`
+    searchIndex = TextNormalizer.normalizar(
+      [
+        nombre ?? '',
+        codigo ?? '',
+        categoria?.nombre ?? '',
+        marca?.nombre ?? '',
+        unidadMedida?.nombre ?? '',
+        impuesto?.nombre ?? '',
+      ].join(" "),
+    );
+  }
 
   factory Producto.fromJson(Map<String, dynamic> json) => Producto(
     id: json["id"],
@@ -89,18 +107,28 @@ class Producto {
     marcaId: json["marca_id"],
     unidadMedidaId: json["unidad_medida_id"],
     impuestoId: json["impuesto_id"],
-    categoria: json["categoria"] != null ? CategoriaModel.fromJson(json["categoria"]) : null,
+    categoria: json["categoria"] != null
+        ? CategoriaModel.fromJson(json["categoria"])
+        : null,
     marca: json["marca"] != null ? MarcaModel.fromJson(json["marca"]) : null,
-    unidadMedida: json["unidad_medida"] != null ? UnidadMedidaModel.fromJson(json["unidad_medida"]) : null,
-    impuesto: json["impuesto"] != null ? ImpuestoModel.fromJson(json["impuesto"]) : null,
+    unidadMedida: json["unidad_medida"] != null
+        ? UnidadMedidaModel.fromJson(json["unidad_medida"])
+        : null,
+    impuesto: json["impuesto"] != null
+        ? ImpuestoModel.fromJson(json["impuesto"])
+        : null,
     tipoProducto: json["tipo_producto"] ?? 'PRODUCTO',
     tipoContable: json["tipo_contable"] ?? 'INVENTARIO',
     precioVenta: json["precio_venta"]?.toDouble(),
     ultimoCosto: json["ultimo_costo"]?.toDouble(),
     costoPromedio: json["costo_promedio"]?.toDouble(),
-    precioIncluyeImpuesto: json["precio_incluye_impuesto"] == 1 || json["precio_incluye_impuesto"] == true,
-    manejaInventario: json["maneja_inventario"] == 1 || json["maneja_inventario"] == true,
-    manejaVencimiento: json["maneja_vencimiento"] == 1 || json["maneja_vencimiento"] == true,
+    precioIncluyeImpuesto:
+        json["precio_incluye_impuesto"] == 1 ||
+        json["precio_incluye_impuesto"] == true,
+    manejaInventario:
+        json["maneja_inventario"] == 1 || json["maneja_inventario"] == true,
+    manejaVencimiento:
+        json["maneja_vencimiento"] == 1 || json["maneja_vencimiento"] == true,
     stockMinimo: json["stock_minimo"]?.toDouble(),
     impuestoVentaId: json["impuesto_venta_id"],
     impuestoCompraId: json["impuesto_compra_id"],
@@ -108,8 +136,12 @@ class Producto {
     cuentaInventarioId: json["cuenta_inventario_id"],
     cuentaCostoId: json["cuenta_costo_id"],
     activo: json["activo"] == 1 || json["activo"] == true,
-    createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
-    updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
+    createdAt: json["created_at"] == null
+        ? null
+        : DateTime.parse(json["created_at"]),
+    updatedAt: json["updated_at"] == null
+        ? null
+        : DateTime.parse(json["updated_at"]),
   );
 
   Map<String, dynamic> toJson() => {

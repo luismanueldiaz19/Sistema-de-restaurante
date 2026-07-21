@@ -40,6 +40,7 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (label.isNotEmpty) ...[
           Text(
@@ -72,12 +73,14 @@ class CustomTextField extends StatelessWidget {
                     color: AppColors.azulOscuro.withValues(alpha: 0.6),
                   )
                 : null,
-            suffixIcon: suffixWidget ?? (suffixIcon != null
-                ? GestureDetector(
-                    onTap: onSuffixIconTap,
-                    child: Icon(suffixIcon, size: 20, color: Colors.grey),
-                  )
-                : null),
+            suffixIcon:
+                suffixWidget ??
+                (suffixIcon != null
+                    ? GestureDetector(
+                        onTap: onSuffixIconTap,
+                        child: Icon(suffixIcon, size: 20, color: Colors.grey),
+                      )
+                    : null),
             filled: true,
             fillColor: Colors.grey.shade50,
             border: OutlineInputBorder(

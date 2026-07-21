@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/legacy.dart';
+import '../../utils/normalize.dart';
 import '../models/producto.dart';
 import '../services/producto_api.dart';
 import 'producto_state.dart';
@@ -32,17 +33,15 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
   }
 
   void searchProductos(String query) {
-    if (query.isEmpty) {
-      state = state.copyWith(productos: _allProductos);
-    } else {
-      final q = query.toLowerCase();
-      final filtered = _allProductos.where((p) {
-        return (p.nombre?.toLowerCase().contains(q) ?? false) ||
-            (p.codigo?.toLowerCase().contains(q) ?? false) ||
-            (p.categoria?.nombre.toLowerCase().contains(q) ?? false);
-      }).toList();
-      state = state.copyWith(productos: filtered);
-    }
+    final normalizedQuery = TextNormalizer.normalizar(query);
+    final productos = normalizedQuery.isEmpty
+        ? _allProductos
+        : _allProductos
+              .where(
+                (producto) => producto.searchIndex.contains(normalizedQuery),
+              )
+              .toList();
+    state = state.copyWith(productos: productos);
   }
 
   Future<bool> createProducto(Map<String, dynamic> data, String token) async {
@@ -94,7 +93,11 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
     }
   }
 
-  Future<String> importProductos(List<int> bytes, String filename, String token) async {
+  Future<String> importProductos(
+    List<int> bytes,
+    String filename,
+    String token,
+  ) async {
     state = state.copyWith(isLoading: true);
     try {
       final message = await _api.importProductos(bytes, filename, token);

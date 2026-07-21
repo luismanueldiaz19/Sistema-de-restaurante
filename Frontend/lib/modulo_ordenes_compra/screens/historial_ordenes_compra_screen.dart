@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
@@ -34,7 +34,7 @@ class _HistorialOrdenesCompraScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = ref.read(authProvider);
       ref
-          .read(OrdenCompraHistorialProvider.notifier)
+          .read(ordenCompraHistorialProvider.notifier)
           .fetchHistorial(auth.token!);
     });
   }
@@ -42,7 +42,7 @@ class _HistorialOrdenesCompraScreenState
   Future<void> _cambiarEstado(String id, String estado) async {
     final auth = ref.read(authProvider);
     final success = await ref
-        .read(OrdenCompraHistorialProvider.notifier)
+        .read(ordenCompraHistorialProvider.notifier)
         .updateEstado(auth.token!, id, estado);
     if (success && mounted) {
       showToast(context, 'Estado actualizado a $estado', bgColor: Colors.green);
@@ -63,7 +63,10 @@ class _HistorialOrdenesCompraScreenState
     }
   }
 
-  Future<void> _mostrarDialogoConvertirCompra(BuildContext context, OrdenCompra orden) async {
+  Future<void> _mostrarDialogoConvertirCompra(
+    BuildContext context,
+    OrdenCompra orden,
+  ) async {
     final numeroFacturaCtrl = TextEditingController();
     final ncfCtrl = TextEditingController();
     String tipoCompra = 'CONTADO';
@@ -103,7 +106,9 @@ class _HistorialOrdenesCompraScreenState
                         border: OutlineInputBorder(),
                       ),
                       items: ['CONTADO', 'CREDITO']
-                          .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                          .map(
+                            (t) => DropdownMenuItem(value: t, child: Text(t)),
+                          )
                           .toList(),
                       onChanged: (val) {
                         if (val != null) {
@@ -111,23 +116,95 @@ class _HistorialOrdenesCompraScreenState
                         }
                       },
                     ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: fechaCompra,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          helpText: 'Fecha de la Compra',
+                        );
+                        if (picked != null) {
+                          setStateDialog(() => fechaCompra = picked);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Fecha de Compra',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${fechaCompra.day.toString().padLeft(2, '0')}/${fechaCompra.month.toString().padLeft(2, '0')}/${fechaCompra.year}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     if (numeroFacturaCtrl.text.isEmpty) {
-                      showToast(ctx, 'Debe ingresar el Nº de Factura', bgColor: Colors.red);
+                      showToast(
+                        ctx,
+                        'Debe ingresar el Nº de Factura',
+                        bgColor: Colors.red,
+                      );
                       return;
                     }
                     Navigator.pop(ctx, true);
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text('Procesar Compra'),
                 ),
               ],
@@ -139,7 +216,7 @@ class _HistorialOrdenesCompraScreenState
       if (procesar == true) {
         final auth = ref.read(authProvider);
         showToast(context, 'Procesando...', bgColor: Colors.blue);
-        
+
         final result = await _service.convertirACompra(
           ordenId: orden.id.toString(),
           proveedorId: orden.proveedorId.toString(),
@@ -153,7 +230,9 @@ class _HistorialOrdenesCompraScreenState
 
         if (result['success'] && mounted) {
           showToast(context, result['message'], bgColor: Colors.green);
-          ref.read(OrdenCompraHistorialProvider.notifier).fetchHistorial(auth.token!);
+          ref
+              .read(ordenCompraHistorialProvider.notifier)
+              .fetchHistorial(auth.token!);
           setState(() {
             _selectedOrdenCompra = null;
           });
@@ -191,7 +270,7 @@ class _HistorialOrdenesCompraScreenState
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(OrdenCompraHistorialProvider);
+    final state = ref.watch(ordenCompraHistorialProvider);
 
     return Scaffold(
       backgroundColor: AppColors.light,
@@ -211,7 +290,7 @@ class _HistorialOrdenesCompraScreenState
             onPressed: () {
               final auth = ref.read(authProvider);
               ref
-                  .read(OrdenCompraHistorialProvider.notifier)
+                  .read(ordenCompraHistorialProvider.notifier)
                   .fetchHistorial(auth.token!);
               setState(() {
                 _selectedOrdenCompra = null;
@@ -293,8 +372,11 @@ class _HistorialOrdenesCompraScreenState
                             isLoading: _isDetailLoading,
                             onPdfTap: () =>
                                 _verPdf(_selectedOrdenCompra!.id.toString()),
-                            onConvertirTap: () => _mostrarDialogoConvertirCompra(
-                                context, _selectedOrdenCompra!),
+                            onConvertirTap: () =>
+                                _mostrarDialogoConvertirCompra(
+                                  context,
+                                  _selectedOrdenCompra!,
+                                ),
                           ),
                         ),
                     ],
@@ -471,11 +553,11 @@ class _HistorialOrdenesCompraScreenState
       // Limpiamos totalmente o solo las fechas?
       // Es mejor actualizar solo pasando nulos o recargando con fetchHistorial y filtros vacíos,
       // pero nuestro updateFilters hace merge. Usaremos un replace.
-      ref.read(OrdenCompraHistorialProvider.notifier).clearFilters(auth.token!);
+      ref.read(ordenCompraHistorialProvider.notifier).clearFilters(auth.token!);
     } else {
       // Actualizamos los filtros de fecha y sobreescribimos los anteriores.
       ref
-          .read(OrdenCompraHistorialProvider.notifier)
+          .read(ordenCompraHistorialProvider.notifier)
           .updateFilters(auth.token!, newFilters, replace: true);
     }
   }

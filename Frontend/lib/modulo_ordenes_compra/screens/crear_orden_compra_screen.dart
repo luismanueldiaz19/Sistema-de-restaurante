@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistema_restaurante/modulo_producto/providers/producto_state.dart';
-
+import 'package:sistema_restaurante/widgets/custom_text_field.dart';
 import '../../modulo_producto/models/producto.dart';
 import '../../modulo_producto/providers/producto_provider.dart';
 import '../../utils/helpers.dart';
 import '../../providers/auth_provider.dart';
-import '../../facturacion/models/factura_item.dart';
 import '../../facturacion/widgets/carrito_lista.dart';
 import '../../facturacion/widgets/panel_totales.dart';
 import '../../palletes/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/constants.dart';
+import '../../utils/normalize.dart';
 import '../providers/orden_compra_form_provider.dart';
 import '../../modulo_compras/providers/proveedores_provider.dart';
 import '../../modulo_compras/screens/widgets/buscador_proveedor_dialog.dart';
 import '../../modulo_compras/models/proveedor.dart';
 import 'widgets/add_producto_orden_compra_dialog.dart';
+
 class CrearOrdenCompraScreen extends ConsumerStatefulWidget {
   const CrearOrdenCompraScreen({super.key});
 
@@ -49,7 +50,7 @@ class _CrearOrdenCompraScreenState
   void _aplicarConfiguracionPorDefecto() {
     final clients = ref.read(proveedoresProvider).proveedores;
     final generico = clients
-        .where((c) => c.nombre!.toLowerCase().contains('generico'))
+        .where((c) => c.nombre.toLowerCase().contains('generico'))
         .firstOrNull;
     if (generico != null) {
       ref.read(ordenCompraFormProvider.notifier).seleccionarProveedor(generico);
@@ -90,7 +91,7 @@ class _CrearOrdenCompraScreenState
   Widget build(BuildContext context) {
     final formState = ref.watch(ordenCompraFormProvider);
     final formNotifier = ref.read(ordenCompraFormProvider.notifier);
-    final ProveedoresState = ref.watch(proveedoresProvider);
+    final proveedoresState = ref.watch(proveedoresProvider);
     final prodState = ref.watch(productoProvider);
 
     return Scaffold(
@@ -131,11 +132,12 @@ class _CrearOrdenCompraScreenState
                     _buildConfigHeader(
                       formState,
                       formNotifier,
-                      ProveedoresState,
+                      proveedoresState,
                     ),
                     Expanded(
                       child: Container(
                         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(32),
@@ -163,6 +165,7 @@ class _CrearOrdenCompraScreenState
                     children: [
                       Expanded(
                         child: Container(
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(32),
@@ -203,70 +206,102 @@ class _CrearOrdenCompraScreenState
   Widget _buildConfigHeader(
     OrdenCompraFormState state,
     OrdenCompraFormNotifier notifier,
-    dynamic ProveedoresState,
+    dynamic proveedoresState,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            flex: 2,
-            child: _buildCompactSelector(
-              icon: Icons.person_outline,
-              label:
-                  state.proveedorSeleccionado?.nombre ??
-                  'Seleccionar Proveedor',
-              onTap: () async {
-                final proveedor = await showDialog<Proveedor>(
-                  context: context,
-                  builder: (ctx) => BuscadorProveedorDialog(
-                    proveedores: ProveedoresState.proveedores,
-                  ),
-                );
-                if (proveedor != null) notifier.seleccionarProveedor(proveedor);
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 1,
-            child: _buildCompactSelector(
-              icon: Icons.date_range,
-              label: '${state.diasValidez} días de validez',
-              onTap: () async {
-                String val = state.diasValidez.toString();
-                final result = await showDialog<String>(
-                  context: context,
-                  builder: (ctx) {
-                    return AlertDialog(
-                      title: const Text('Días de Validez'),
-                      content: TextField(
-                        keyboardType: TextInputType.number,
-                        onChanged: (v) => val = v,
-                        decoration: const InputDecoration(hintText: 'Ej. 15'),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: _buildCompactSelector(
+                  icon: Icons.person_outline,
+                  label:
+                      state.proveedorSeleccionado?.nombre ??
+                      'Seleccionar Proveedor',
+                  onTap: () async {
+                    final proveedor = await showDialog<Proveedor>(
+                      context: context,
+                      builder: (ctx) => BuscadorProveedorDialog(
+                        proveedores: proveedoresState.proveedores,
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, null),
-                          child: const Text('Cancelar'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, val),
-                          child: const Text('Guardar'),
-                        ),
-                      ],
                     );
+                    if (proveedor != null) {
+                      notifier.seleccionarProveedor(proveedor);
+                    }
                   },
-                );
-                if (result != null && int.tryParse(result) != null) {
-                  notifier.cambiarDiasValidez(int.parse(result));
-                }
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 2,
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: _buildCompactSelector(
+                  icon: Icons.calendar_month_outlined,
+                  label:
+                      '${state.fechaEmision.day.toString().padLeft(2, '0')}/${state.fechaEmision.month.toString().padLeft(2, '0')}/${state.fechaEmision.year}',
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: state.fechaEmision,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now().add(const Duration(days: 30)),
+                      helpText: 'Fecha de la Orden',
+                    );
+                    if (picked != null) {
+                      notifier.cambiarFechaEmision(picked);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 1,
+                child: _buildCompactSelector(
+                  icon: Icons.date_range,
+                  label: '${state.diasValidez} días de validez',
+                  onTap: () async {
+                    String val = state.diasValidez.toString();
+                    final result = await showDialog<String>(
+                      context: context,
+                      builder: (ctx) {
+                        return AlertDialog(
+                          title: const Text('Días de Validez'),
+                          content: TextField(
+                            keyboardType: TextInputType.number,
+                            onChanged: (v) => val = v,
+                            decoration: const InputDecoration(
+                              hintText: 'Ej. 15',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, null),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, val),
+                              child: const Text('Guardar'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    if (result != null && int.tryParse(result) != null) {
+                      notifier.cambiarDiasValidez(int.parse(result));
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
             child: _buildCompactSelector(
               icon: Icons.note_alt_outlined,
               label: state.nota.isEmpty ? 'Añadir Nota' : state.nota,
@@ -277,10 +312,17 @@ class _CrearOrdenCompraScreenState
                   builder: (ctx) {
                     return AlertDialog(
                       title: const Text('Nota de Orden de Compra'),
-                      content: TextField(
-                        onChanged: (v) => val = v,
-                        decoration: const InputDecoration(
-                          hintText: 'Comentarios adicionales...',
+                      content: SizedBox(
+                        width: 400,
+                        child: CustomTextField(
+                          label: 'Comentarios adicionales...',
+                          maxLines: 3,
+                          keyboardType: TextInputType.multiline,
+                          onChanged: (v) => val = v,
+                          // decoration: const InputDecoration(
+                          //   hintText: 'Comentarios adicionales...',
+                          //   border: OutlineInputBorder(),
+                          // ),
                         ),
                       ),
                       actions: [
@@ -354,10 +396,15 @@ class _CrearOrdenCompraScreenState
       );
     }
 
-    final filteredProducts = prodState.productos.where((p) {
-      final name = p.nombre?.toLowerCase() ?? "";
-      return name.contains(_searchQuery.toLowerCase());
-    }).toList();
+    final normalizedQuery = TextNormalizer.normalizar(_searchQuery);
+
+    final filteredProducts = normalizedQuery.isEmpty
+        ? prodState.productos
+        : prodState.productos
+              .where(
+                (producto) => producto.searchIndex.contains(normalizedQuery),
+              )
+              .toList();
 
     return Column(
       children: [

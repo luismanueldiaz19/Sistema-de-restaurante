@@ -159,16 +159,18 @@ class OrdenCompraDetallePanel extends StatelessWidget {
                 Expanded(
                   child: _buildInfoDato(
                     'Emisión',
-                    ordenCompra!.fechaEmision?.toString().split(' ')[0] ??
-                        'N/A',
+                    ordenCompra!.fechaEmision != null
+                        ? '${ordenCompra!.fechaEmision!.day.toString().padLeft(2, '0')}/${ordenCompra!.fechaEmision!.month.toString().padLeft(2, '0')}/${ordenCompra!.fechaEmision!.year}'
+                        : 'N/A',
                     Icons.calendar_today_outlined,
                   ),
                 ),
                 Expanded(
                   child: _buildInfoDato(
                     'Vencimiento',
-                    ordenCompra!.fechaVencimiento?.toString().split(' ')[0] ??
-                        'N/A',
+                    ordenCompra!.fechaVencimiento != null
+                        ? '${ordenCompra!.fechaVencimiento!.day.toString().padLeft(2, '0')}/${ordenCompra!.fechaVencimiento!.month.toString().padLeft(2, '0')}/${ordenCompra!.fechaVencimiento!.year}'
+                        : 'N/A',
                     Icons.event_busy_outlined,
                   ),
                 ),

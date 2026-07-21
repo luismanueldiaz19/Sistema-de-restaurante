@@ -16,13 +16,15 @@ class OrdenCompraService {
     required String token,
     String nota = "",
     int diasValidez = 15,
+    DateTime? fechaEmision,
   }) async {
     try {
+      final fecha = fechaEmision ?? DateTime.now();
       final payload = {
         "proveedor_id": proveedor.id,
         "nota": nota,
-        "fecha_emision": DateTime.now().toIso8601String(),
-        "fecha_vencimiento": DateTime.now()
+        "fecha_emision": fecha.toIso8601String(),
+        "fecha_vencimiento": fecha
             .add(Duration(days: diasValidez))
             .toIso8601String(),
         "detalles": items

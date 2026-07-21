@@ -39,9 +39,25 @@ class _AddProductoOrdenCompraDialogState
     totalCtrl = TextEditingController(
       text: (widget.producto.ultimoCosto ?? 0).toString(),
     );
+
+    isExento = _verificarSiEsExento();
+
+    final taxRate = isExento
+        ? 0.0
+        : (widget.producto.impuesto?.tasa != null &&
+                  widget.producto.impuesto!.tasa > 0
+              ? (widget.producto.impuesto!.tasa / 100)
+              : 0.18);
     impCtrl = TextEditingController(
-      text: ((widget.producto.ultimoCosto ?? 0) * 0.18).toStringAsFixed(2),
+      text: ((widget.producto.ultimoCosto ?? 0) * taxRate).toStringAsFixed(2),
     );
+  }
+
+  bool _verificarSiEsExento() {
+    if (widget.producto.impuesto != null) {
+      return widget.producto.impuesto!.tasa == 0.0;
+    }
+    return false; // Default: si no hay impuesto definido, asumimos que no es exento (paga 18% por defecto) o puedes ajustarlo.
   }
 
   @override
@@ -55,6 +71,13 @@ class _AddProductoOrdenCompraDialogState
 
   void _updateCalc({bool fromTotal = false}) {
     final cant = double.tryParse(cantCtrl.text) ?? 0.0;
+    final taxRate = isExento
+        ? 0.0
+        : (widget.producto.impuesto?.tasa != null &&
+                  widget.producto.impuesto!.tasa > 0
+              ? (widget.producto.impuesto!.tasa / 100)
+              : 0.18);
+    final divBase = 1 + taxRate;
 
     if (fromTotal) {
       final totalLinea = double.tryParse(totalCtrl.text) ?? 0.0;
@@ -64,7 +87,7 @@ class _AddProductoOrdenCompraDialogState
       if (isExento) {
         impCtrl.text = '0.00';
       } else {
-        final base = totalLinea / 1.18;
+        final base = totalLinea / divBase;
         impCtrl.text = (totalLinea - base).toStringAsFixed(2);
       }
     } else {
@@ -76,7 +99,7 @@ class _AddProductoOrdenCompraDialogState
       if (isExento) {
         impCtrl.text = '0.00';
       } else {
-        final base = totalLinea / 1.18;
+        final base = totalLinea / divBase;
         impCtrl.text = (totalLinea - base).toStringAsFixed(2);
       }
     }
@@ -95,6 +118,7 @@ class _AddProductoOrdenCompraDialogState
         style: const TextStyle(
           color: AppColors.secondary,
           fontWeight: FontWeight.bold,
+          fontSize: 16,
         ),
       ),
       content: SingleChildScrollView(
@@ -124,71 +148,56 @@ class _AddProductoOrdenCompraDialogState
               ),
             ),
             const SizedBox(height: 20),
-            CustomTextField(
-              controller: cantCtrl,
-              label: 'Cantidad a Comprar',
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-              ],
-              onChanged: (v) => setState(() => _updateCalc(fromTotal: false)),
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: totalCtrl,
-              label: 'Total Pagado por esta línea',
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-              ],
-              onChanged: (v) => setState(() => _updateCalc(fromTotal: true)),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '¿Producto Exento de ITBIS?',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.secondary,
-                    ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: CustomTextField(
+                    controller: cantCtrl,
+                    label: 'Cantidad a Comprar',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _updateCalc(fromTotal: false)),
                   ),
-                  Switch(
-                    value: isExento,
-                    activeColor: AppColors.primary,
-                    onChanged: (val) {
-                      setState(() {
-                        isExento = val;
-                        _updateCalc();
-                      });
-                    },
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CustomTextField(
+                    controller: costoCtrl,
+                    label: 'Costo Unitario (Auto)',
+                    enabled: false,
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: impCtrl,
-              label: 'Monto Impuesto (Total)',
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ),
               ],
-              onChanged: (v) => setState(() {}),
             ),
             const SizedBox(height: 16),
-            CustomTextField(
-              controller: costoCtrl,
-              label: 'Costo Unitario (Calculado automáticamente)',
-              enabled: false,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: CustomTextField(
+                    controller: totalCtrl,
+                    label: 'Total Pagado',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _updateCalc(fromTotal: true)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CustomTextField(
+                    controller: impCtrl,
+                    label: 'Monto Impuesto',
+                    enabled: false,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             const Divider(),
@@ -225,7 +234,12 @@ class _AddProductoOrdenCompraDialogState
             final costoIngresado = double.parse(
               costoCtrl.text,
             ); // Esto ya incluye ITBIS en el total calculado
-            final itbisPercent = isExento ? 0.0 : 18.0;
+            final taxRate =
+                widget.producto.impuesto?.tasa != null &&
+                    widget.producto.impuesto!.tasa > 0
+                ? widget.producto.impuesto!.tasa
+                : 18.0;
+            final itbisPercent = isExento ? 0.0 : taxRate;
 
             widget.onAdd(
               FacturaItem(

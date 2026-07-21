@@ -285,6 +285,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                     children: [
                       Expanded(
                         child: Container(
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(32),
@@ -429,9 +430,13 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
       );
     }
 
+    String normalize(String text) => text.trim().toLowerCase();
+
+    final normalizeQuery = normalize(_searchQuery.toString());
+
     final filteredProducts = prodState.productos.where((p) {
-      final name = p.nombre?.toLowerCase() ?? "";
-      return name.contains(_searchQuery.toLowerCase());
+      final name = p.nombre;
+      return normalize(name ?? '').contains(normalizeQuery);
     }).toList();
 
     return Column(
