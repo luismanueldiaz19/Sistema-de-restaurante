@@ -7,6 +7,7 @@ import '../../widgets/custom_loading.dart';
 import '../../widgets/custom_text_field.dart';
 import '../providers/producto_provider.dart';
 import '../widgets/producto_table.dart';
+import '../widgets/dialog_instrucciones_importacion.dart';
 import 'add_producto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io' as io;
@@ -181,92 +182,8 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: const Text(
-            'Importar Productos Masivamente',
-            style: TextStyle(
-              color: AppColors.azulOscuro,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Para cargar productos, debes subir un archivo de Excel (.xlsx, .xls) o CSV.',
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'La primera fila debe contener exactamente estos encabezados:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8.0,
-                runSpacing: 8.0,
-                children:
-                    [
-                          'nombre',
-                          'codigo',
-                          'descripcion',
-                          'tipo_producto',
-                          'tipo_contable',
-                          'precio_venta',
-                          'ultimo_costo',
-                          'impuesto_id',
-                          'stock_minimo',
-                          'maneja_inventario',
-                        ]
-                        .map(
-                          (col) => Chip(
-                            label: Text(
-                              col,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            backgroundColor: Colors.grey.shade200,
-                            side: BorderSide.none,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        )
-                        .toList(),
-              ),
-              const SizedBox(height: 15),
-              const Text(
-                'Valores permitidos:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              const Text(
-                '• tipo_producto: PRODUCTO, SERVICIO, COMBO, MATERIA_PRIMA\n• tipo_contable: INVENTARIO, GASTO, ACTIVO_FIJO, SERVICIO\n• maneja_inventario: true, false',
-                style: TextStyle(fontSize: 13, height: 1.5),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                _importarMasivo();
-              },
-              icon: const Icon(Icons.upload_file, size: 18),
-              label: const Text('Seleccionar Archivo'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.azulOscuro,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
+        return DialogInstruccionesImportacion(
+          onImport: _importarMasivo,
         );
       },
     );
