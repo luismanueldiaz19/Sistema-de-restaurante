@@ -73,14 +73,14 @@ class DashboardButtonsSection extends ConsumerWidget {
         ),
       if (auth.hasPermission('ver_cxp'))
         DashboardButton(
-          title: 'Cuentas por Pagar',
+          title: 'CxP',
           icon: Icons.money_off,
           color: Colors.red.shade600,
           onTap: () => onAction('ver_cxp'),
         ),
       if (auth.hasPermission('ver_cxc'))
         DashboardButton(
-          title: 'Cuentas por Cobrar',
+          title: 'CxC',
           icon: Icons.attach_money,
           color: Colors.green.shade800,
           onTap: () => onAction('ver_cxc'),
