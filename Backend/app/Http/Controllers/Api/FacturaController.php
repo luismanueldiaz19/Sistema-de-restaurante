@@ -9,12 +9,15 @@ use App\Models\CuentaPorCobrar;
 use App\Models\Pago;
 use Illuminate\Http\Request;
 use App\Services\InventoryService;
+use App\Traits\HasIdempotency;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 
 
 class FacturaController extends Controller {
+ use HasIdempotency;
+
  public function store(Request $request) {
     DB::beginTransaction();
 
@@ -22,19 +25,25 @@ class FacturaController extends Controller {
 
         // ✅ VALIDACIÓN
         $validator = Validator::make($request->all(), [
-            'cliente_id' => 'required|exists:clientes,id',
+            'cliente_id'       => 'required|exists:clientes,id',
             'ncf_secuencia_id' => 'required|exists:ncf_secuencias,id',
-            'fecha_emision' => 'required|date',
-            'detalles' => 'required|array|min:1',
+            'fecha_emision'    => 'required|date',
+            'detalles'         => 'required|array|min:1',
+            'idempotency_key'  => 'nullable|string|max:36',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Error en la validación',
-                'errors' => $validator->errors(),
-                'status' => 400
+                'errors'  => $validator->errors(),
+                'status'  => 400
             ], 400);
         }
+
+        // ── IDEMPOTENCIA ────────────────────────────────────────────────────
+        $cached = $this->checkIdempotency($request, 'factura.store');
+        if ($cached) return $cached;
+        // ─────────────────────────────────────────────────────────────────────
 
         // 🔥 GENERAR NCF
         $secuencia = $this->generarNCF($request->ncf_secuencia_id);
@@ -186,22 +195,26 @@ class FacturaController extends Controller {
 
         DB::commit();
 
-        return response()->json([
-            'message' => 'Factura creada correctamente',
-            'status' => 201,
-            'factura_id' => $factura,
-            'ncf' => $ncf,
+        // ── GUARDAR RESPUESTA EN TABLA DE IDEMPOTENCIA ───────────────────
+        $responseData = [
+            'message'      => 'Factura creada correctamente',
+            'status'       => 201,
+            'factura_id'   => $factura,
+            'ncf'          => $ncf,
             'tipo_factura' => $tipoFactura
-        ], 201);
+        ];
+        return $this->saveIdempotency($request, 'factura.store', $responseData, 201);
+        // ────────────────────────────────────────────────────────────────────
 
     } catch (\Exception $e) {
 
         DB::rollBack();
+        $this->failIdempotency($request, 'factura.store');
 
         return response()->json([
             'message' => 'Error al crear factura',
-            'error' => $e->getMessage(),
-            'status' => 500
+            'error'   => $e->getMessage(),
+            'status'  => 500
         ], 500);
     }
 }
@@ -214,6 +227,17 @@ class FacturaController extends Controller {
         // Si no es admin, solo puede ver sus propias facturas
         if (!$request->user()->hasRole('admin')) {
             $query->where('user_id', $request->user()->id);
+        }
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('id', 'like', "%{$searchTerm}%")
+                  ->orWhere('ncf', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('cliente', function ($q2) use ($searchTerm) {
+                      $q2->where('nombre', 'like', "%{$searchTerm}%");
+                  });
+            });
         }
 
         if ($request->filled('fecha_desde')) {

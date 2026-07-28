@@ -50,8 +50,11 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
 
     // 2. Cargar comprobantes (Solo una vez al entrar)
     final results = await _comprobanteRepo.getComprabante(auth.token!);
-    if (!mounted) return;
-    setState(() => _comprobantes = results);
+    final validSalesNcf = results.where((c) {
+      // 31: Crédito Fiscal, 32: Consumo, 44: Régimen Especial, 45: Gubernamental, 46: Exportaciones
+      return ['31', '32', '44', '45', '46'].contains(c.tipo.replaceAll(RegExp(r'[^0-9]'), ''));
+    }).toList();
+    setState(() => _comprobantes = validSalesNcf);
 
     // 3. Cargar clientes (Solo una vez al entrar)
     await ref.read(clienteAdminProvider.notifier).loadClients(auth.token!);
@@ -435,6 +438,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     final normalizeQuery = normalize(_searchQuery.toString());
 
     final filteredProducts = prodState.productos.where((p) {
+      if (p.tipoProducto == 'MATERIA_PRIMA') return false;
       final name = p.nombre;
       return normalize(name ?? '').contains(normalizeQuery);
     }).toList();

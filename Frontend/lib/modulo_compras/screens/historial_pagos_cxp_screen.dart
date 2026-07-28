@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../palletes/app_colors.dart';
 import '../providers/cxp_provider.dart';
-import '../models/pago_compra.dart';
 
 class HistorialPagosCxpScreen extends ConsumerStatefulWidget {
   const HistorialPagosCxpScreen({super.key});
@@ -126,7 +125,9 @@ class _HistorialPagosCxpScreenState
               'Abono Fac: ${p.numeroFactura}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Text('Proveedor: ${p.proveedorNombre}\nFecha: ${p.fechaPago} | ${p.metodoPago} (${p.bancoNombre})'),
+            subtitle: Text(
+              'Proveedor: ${p.proveedorNombre}\nFecha: ${p.fechaPago} | ${p.metodoPago} (${p.bancoNombre})',
+            ),
             isThreeLine: true,
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,

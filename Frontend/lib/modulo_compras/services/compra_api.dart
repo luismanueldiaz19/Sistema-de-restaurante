@@ -24,6 +24,9 @@ class CompraApi {
     final api = ApiService();
     final response = await api.post(baseUrl, data, token: token);
 
+    // 201 = compra nueva creada exitosamente
+    // 200 = respuesta idempotente: el backend detectó el mismo idempotency_key
+    //       y devuelve la compra existente sin duplicar ningún registro.
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body);
     }

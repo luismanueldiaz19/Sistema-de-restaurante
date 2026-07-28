@@ -7,6 +7,7 @@ import '../../utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../providers/facturacion_historial_provider.dart';
 import '../../model/factura.dart';
+import 'nota_credito_dialog.dart';
 
 class HistorialVentasScreen extends ConsumerStatefulWidget {
   const HistorialVentasScreen({super.key});
@@ -61,6 +62,8 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                _buildTopCards(state),
+                _buildQuickFilters(token),
                 _buildFilters(token, state),
                 Expanded(
                   child: SingleChildScrollView(
@@ -74,7 +77,6 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
                 ),
               ],
             ),
-      bottomNavigationBar: _buildResumenFooter(state),
     );
   }
 
@@ -185,6 +187,182 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTopCards(FacturacionHistorialState state) {
+    final resumen = state.resumen;
+    final totales = resumen?['totales'];
+    final porMetodo = resumen?['por_metodo'] as List? ?? [];
+
+    if (resumen == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildKpiCard(
+              title: 'FACTURAS',
+              value: '${totales?['cantidad_facturas'] ?? 0}',
+              icon: Icons.receipt_long_rounded,
+              color: Colors.blue,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildKpiCard(
+              title: 'TOTAL VENDIDO',
+              value: formatCurrency(
+                double.parse((totales?['total_venta'] ?? 0).toString()),
+              ),
+              icon: Icons.attach_money_rounded,
+              color: Colors.green,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildKpiCard(
+              title: 'MÉTODOS DE PAGO',
+              value: porMetodo.isEmpty
+                  ? 'RD\$ 0.00'
+                  : porMetodo
+                        .map(
+                          (m) =>
+                              "${(m['metodo_pago'] as String).substring(0, 3).toUpperCase()}: ${formatCurrency(double.parse(m['total'].toString()))}",
+                        )
+                        .join('\n'),
+              icon: Icons.account_balance_wallet_rounded,
+              color: Colors.orange,
+              valueSize: 12,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildKpiCard(
+              title: 'ITBIS Y DESCUENTOS',
+              value:
+                  'ITBIS: ${formatCurrency(double.parse((totales?['total_itbis'] ?? 0).toString()))}\nDesc: ${formatCurrency(double.parse((totales?['total_descuento'] ?? 0).toString()))}',
+              icon: Icons.percent_rounded,
+              color: Colors.purple,
+              valueSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKpiCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    double valueSize = 20,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: AppColors.azulOscuro,
+                    fontSize: valueSize,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickFilters(String? token) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Row(
+        children: ['Hoy', 'Ayer', 'Esta Semana', 'Este Mes'].map((filtro) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ActionChip(
+              label: Text(
+                filtro,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.white,
+              side: BorderSide(color: Colors.grey.shade300),
+              onPressed: () {
+                if (token == null) return;
+                final now = DateTime.now();
+                String fechaDesde = '';
+                String fechaHasta =
+                    "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+                if (filtro == 'Hoy') {
+                  fechaDesde = fechaHasta;
+                } else if (filtro == 'Ayer') {
+                  final ayer = now.subtract(const Duration(days: 1));
+                  fechaDesde =
+                      "${ayer.year}-${ayer.month.toString().padLeft(2, '0')}-${ayer.day.toString().padLeft(2, '0')}";
+                  fechaHasta = fechaDesde;
+                } else if (filtro == 'Esta Semana') {
+                  final inicioSemana = now.subtract(
+                    Duration(days: now.weekday - 1),
+                  );
+                  fechaDesde =
+                      "${inicioSemana.year}-${inicioSemana.month.toString().padLeft(2, '0')}-${inicioSemana.day.toString().padLeft(2, '0')}";
+                } else if (filtro == 'Este Mes') {
+                  fechaDesde =
+                      "${now.year}-${now.month.toString().padLeft(2, '0')}-01";
+                }
+                _fechaDesdeController.text = fechaDesde;
+                _fechaHastaController.text = fechaHasta;
+                ref.read(facturacionHistorialProvider.notifier).updateFilters(
+                  token,
+                  {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta},
+                );
+              },
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -440,16 +618,21 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
                         _tableIconButton(
                           icon: Icons.visibility_rounded,
                           color: Colors.blue,
+                          tooltip: 'Ver Detalle',
                           onTap: () => _showDetalles(context, f),
                         ),
                         const SizedBox(width: 8),
                         _tableIconButton(
                           icon: Icons.print_rounded,
                           color: AppColors.primary,
+                          tooltip: 'Imprimir',
                           onTap: () {
-                             // Puedes alternar entre PDF o ESC/POS aquí
-                             // FacturaTicket.imprimir(f); // Opción PDF
-                             FacturaEscPos.imprimirRed(f, '192.168.100.7'); // Opción Directa
+                            // Puedes alternar entre PDF o ESC/POS aquí
+                            // FacturaTicket.imprimir(f); // Opción PDF
+                            // FacturaEscPos.imprimirRed(
+                            //   f,
+                            //   '192.168.100.7',
+                            // ); // Opción Directa
                           },
                         ),
                       ],
@@ -515,8 +698,9 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    String? tooltip,
   }) {
-    return InkWell(
+    final button = InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -528,6 +712,11 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
         child: Icon(icon, size: 20, color: color),
       ),
     );
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip, child: button);
+    }
+    return button;
   }
 
   Color _getEstadoColor(String? estado) {

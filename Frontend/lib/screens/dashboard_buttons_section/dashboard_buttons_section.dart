@@ -21,6 +21,13 @@ class DashboardButtonsSection extends ConsumerWidget {
           color: Colors.green.shade600,
           onTap: () => onAction('venta'),
         ),
+      if (auth.hasPermission('ver_facturas'))
+        DashboardButton(
+          title: 'H. Ventas',
+          icon: Icons.history_rounded,
+          color: Colors.blue.shade600,
+          onTap: () => onAction('historial_ventas'),
+        ),
       if (auth.hasPermission('ver_clientes'))
         DashboardButton(
           title: 'Clientes',

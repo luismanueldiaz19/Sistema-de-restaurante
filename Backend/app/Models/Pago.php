@@ -23,3 +23,4 @@ class Pago extends Model
     {
         return $this->belongsTo(Factura::class);
     }
+}

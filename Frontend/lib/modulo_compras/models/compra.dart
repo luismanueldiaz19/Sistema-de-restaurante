@@ -1,4 +1,5 @@
 import '../../modulo_producto/models/producto.dart';
+import '../../model/user.dart';
 import 'proveedor.dart';
 
 class Compra {
@@ -7,6 +8,7 @@ class Compra {
   final Proveedor? proveedor;
   final String numeroFacturaProveedor;
   final String? ncf;
+  final User? usuario;
   final DateTime fechaCompra;
   final DateTime? fechaVencimiento;
   final String tipoCompra; // CONTADO, CREDITO
@@ -23,6 +25,7 @@ class Compra {
     this.proveedor,
     required this.numeroFacturaProveedor,
     this.ncf,
+    this.usuario,
     required this.fechaCompra,
     this.fechaVencimiento,
     required this.tipoCompra,
@@ -41,6 +44,7 @@ class Compra {
       proveedor: json['proveedor'] != null ? Proveedor.fromJson(json['proveedor']) : null,
       numeroFacturaProveedor: json['numero_factura_proveedor'] ?? '',
       ncf: json['ncf'],
+      usuario: json['usuario'] != null ? User.fromJson(json['usuario']) : null,
       fechaCompra: DateTime.parse(json['fecha_compra']),
       fechaVencimiento: json['fecha_vencimiento'] != null ? DateTime.parse(json['fecha_vencimiento']) : null,
       tipoCompra: json['tipo_compra'] ?? 'CONTADO',

@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 
-class BuscadorDialog extends StatefulWidget {
-  final List<String> items;
-  final Function(String) onSelected;
+class BuscadorDialog<T> extends StatefulWidget {
+  final List<T> items;
+  final Function(T) onSelected;
+  final String Function(T) itemLabel;
 
-  const BuscadorDialog(
-      {super.key, required this.items, required this.onSelected});
+  const BuscadorDialog({
+    super.key,
+    required this.items,
+    required this.onSelected,
+    required this.itemLabel,
+  });
 
   @override
-  State createState() => _BuscadorDialogState();
+  State<BuscadorDialog<T>> createState() => _BuscadorDialogState<T>();
 }
 
-class _BuscadorDialogState extends State<BuscadorDialog> {
-  List<String> _filteredItems = [];
+class _BuscadorDialogState<T> extends State<BuscadorDialog<T>> {
+  List<T> _filteredItems = [];
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -24,7 +29,7 @@ class _BuscadorDialogState extends State<BuscadorDialog> {
   void _filter(String query) {
     setState(() {
       _filteredItems = widget.items
-          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+          .where((item) => widget.itemLabel(item).toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -35,8 +40,9 @@ class _BuscadorDialogState extends State<BuscadorDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(6), // 👈 esquinas suaves estilo Windows
+        borderRadius: BorderRadius.circular(
+          6,
+        ), // 👈 esquinas suaves estilo Windows
       ),
       insetPadding: EdgeInsets.symmetric(
         horizontal: size.width * 0.25,
@@ -63,9 +69,13 @@ class _BuscadorDialogState extends State<BuscadorDialog> {
                 children: const [
                   Icon(Icons.search, color: Colors.black54),
                   SizedBox(width: 8),
-                  Text("Buscar elemento",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text(
+                    "Buscar elemento",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -95,14 +105,18 @@ class _BuscadorDialogState extends State<BuscadorDialog> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 12),
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(color: Colors.grey.shade300),
                         ),
                       ),
-                      child: Text(item,
-                          style: const TextStyle(color: Colors.black87)),
+                      child: Text(
+                        widget.itemLabel(item),
+                        style: const TextStyle(color: Colors.black87),
+                      ),
                     ),
                   );
                 },

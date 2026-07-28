@@ -203,6 +203,11 @@ class DgiiController extends Controller
             ->whereYear('fecha_emision', $anio)
             ->where('estado', '!=', 'anulada')
             ->get();
+            
+        $notasCredito = \App\Models\NotaCredito::with('factura.cliente')
+            ->whereMonth('created_at', $mes)
+            ->whereYear('created_at', $anio)
+            ->get();
 
         $lineas = [];
         foreach ($facturas as $factura) {
@@ -213,6 +218,17 @@ class DgiiController extends Controller
             $itbis = number_format($factura->itbis, 2, '.', '');
             
             $lineas[] = implode("|", [$rnc, $ncf, '', $fecha, $subtotal, $itbis]);
+        }
+
+        foreach ($notasCredito as $nc) {
+            $rnc = $nc->factura->cliente->rnc ?? '';
+            $ncf = $nc->ncf ?? '';
+            $ncfModificado = $nc->factura->ncf ?? '';
+            $fecha = \Carbon\Carbon::parse($nc->created_at)->format('Ymd');
+            $subtotal = number_format($nc->subtotal, 2, '.', '');
+            $itbis = number_format($nc->itbis, 2, '.', '');
+            
+            $lineas[] = implode("|", [$rnc, $ncf, $ncfModificado, $fecha, $subtotal, $itbis]);
         }
 
         $content = implode("\n", $lineas);
@@ -236,6 +252,11 @@ class DgiiController extends Controller
             ->whereYear('fecha_emision', $anio)
             ->where('estado', '!=', 'anulada')
             ->get();
+            
+        $notasCredito = \App\Models\NotaCredito::with('factura.cliente')
+            ->whereMonth('created_at', $mes)
+            ->whereYear('created_at', $anio)
+            ->get();
 
         $datos = [];
         foreach ($facturas as $factura) {
@@ -243,10 +264,24 @@ class DgiiController extends Controller
                 'rnc' => $factura->cliente->rnc ?? '',
                 'nombre' => $factura->cliente->nombre ?? 'Desconocido',
                 'ncf' => $factura->ncf ?? '',
+                'ncf_modificado' => '',
                 'fecha' => \Carbon\Carbon::parse($factura->fecha_emision)->format('Y/m/d'),
                 'subtotal' => (float)$factura->subtotal,
                 'itbis' => (float)$factura->itbis,
                 'total' => (float)$factura->total,
+            ];
+        }
+        
+        foreach ($notasCredito as $nc) {
+            $datos[] = [
+                'rnc' => $nc->factura->cliente->rnc ?? '',
+                'nombre' => $nc->factura->cliente->nombre ?? 'Desconocido',
+                'ncf' => $nc->ncf ?? '',
+                'ncf_modificado' => $nc->factura->ncf ?? '',
+                'fecha' => \Carbon\Carbon::parse($nc->created_at)->format('Y/m/d'),
+                'subtotal' => (float)$nc->subtotal,
+                'itbis' => (float)$nc->itbis,
+                'total' => (float)$nc->total,
             ];
         }
 

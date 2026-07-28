@@ -11,13 +11,13 @@ import 'package:sistema_restaurante/facturacion/screens/add_factura.dart';
 import 'package:sistema_restaurante/facturacion/screens/historial_ventas_screen.dart';
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_productos.dart';
-import 'package:sistema_restaurante/modulo_producto/screens/screen_ingredientes.dart';
+import 'package:sistema_restaurante/modulo_producto/screens/screen_recetas.dart';
+import 'package:sistema_restaurante/modulo_producto/screens/screen_movimientos_inventario.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/nueva_compra_screen.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/compras_list_screen.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/proveedores_screen.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/cxp_list_screen.dart';
 import '../modulo_compras/screens/historial_pagos_cxp_screen.dart';
-import '../modulo_cxc/screens/cxc_list_screen.dart';
 import '../modulo_contabilidad/screens/mayor_general_screen.dart';
 import '../modulo_contabilidad/screens/balance_general_screen.dart';
 import '../modulo_contabilidad/screens/estado_resultados_screen.dart';
@@ -34,6 +34,8 @@ import 'package:sistema_restaurante/modulo_cotizaciones/screens/crear_cotizacion
 import 'package:sistema_restaurante/modulo_cotizaciones/screens/historial_cotizaciones_screen.dart';
 import 'package:sistema_restaurante/modulo_ordenes_compra/screens/crear_orden_compra_screen.dart';
 import 'package:sistema_restaurante/modulo_ordenes_compra/screens/historial_ordenes_compra_screen.dart';
+import 'package:sistema_restaurante/facturacion/screens/gestion_documentos_screen.dart';
+import 'package:sistema_restaurante/facturacion/screens/historial_notas_credito_screen.dart';
 
 class MenuBuilder {
   /// Retorna la lista de [SidebarItem] basada en la estructura de módulos de negocio y los permisos del usuario.
@@ -66,32 +68,14 @@ class MenuBuilder {
         ),
       ),
 
-      // 2. OPERACIONES
+      // 2. VENTAS
       if (auth.hasPermission('ver_facturas') ||
           auth.hasPermission('ver_clientes') ||
           isAdmin)
         SidebarItem(
-          title: 'Operaciones',
+          title: 'Ventas',
           icon: Icons.point_of_sale_outlined,
           subItems: [
-            if (auth.hasPermission('crear_facturas') || isAdmin)
-              SidebarSubItem(
-                title: 'Nueva Venta',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CrearFacturaPage()),
-                ),
-              ),
-            if (auth.hasPermission('ver_facturas') || isAdmin)
-              SidebarSubItem(
-                title: 'Facturas',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HistorialVentasScreen(),
-                  ),
-                ),
-              ),
             if (auth.hasPermission('crear_facturas') || isAdmin)
               SidebarSubItem(
                 title: 'Nueva Cotización',
@@ -112,7 +96,40 @@ class MenuBuilder {
                   ),
                 ),
               ),
-            SidebarSubItem(title: 'Devoluciones', onTap: () {}),
+            SidebarSubItem(title: 'Pedidos', onTap: () {}),
+            if (auth.hasPermission('crear_facturas') || isAdmin)
+              SidebarSubItem(
+                title: 'Nueva Venta',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CrearFacturaPage()),
+                ),
+              ),
+            if (auth.hasPermission('ver_facturas') || isAdmin)
+              SidebarSubItem(
+                title: 'Facturas',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HistorialVentasScreen(),
+                  ),
+                ),
+              ),
+            SidebarSubItem(title: 'Recibos de Pago', onTap: () {}),
+            SidebarSubItem(
+              title: 'Gestión de Documentos',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const GestionDocumentosScreen()),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Notas de Crédito',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistorialNotasCreditoScreen()),
+              ),
+            ),
             if (auth.hasPermission('ver_clientes') || isAdmin)
               SidebarSubItem(
                 title: 'Clientes',
@@ -143,23 +160,27 @@ class MenuBuilder {
                 ),
               ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
-              SidebarSubItem(
-                title: 'Ingredientes',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ScreenIngredientes()),
-                ),
-              ),
-            if (auth.hasPermission('ver_inventario') || isAdmin)
               SidebarSubItem(title: 'Categorías', onTap: () {}),
             if (auth.hasPermission('ver_inventario') || isAdmin)
               SidebarSubItem(title: 'Kardex', onTap: () {}),
             if (auth.hasPermission('ver_inventario') || isAdmin)
-              SidebarSubItem(title: 'Ajustes de Inventario', onTap: () {}),
+              SidebarSubItem(
+                title: 'Ajustes de Inventario',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScreenMovimientosInventario()),
+                ),
+              ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
               SidebarSubItem(title: 'Transferencias', onTap: () {}),
             if (auth.hasPermission('ver_inventario') || isAdmin)
-              SidebarSubItem(title: 'Recetas', onTap: () {}),
+              SidebarSubItem(
+                title: 'Recetas',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScreenRecetas()),
+                ),
+              ),
           ],
         ),
 

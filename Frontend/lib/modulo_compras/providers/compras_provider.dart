@@ -60,12 +60,16 @@ class ComprasNotifier extends StateNotifier<ComprasState> {
     if (token == null) return;
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final data = await api.getAll(token!, fechaDesde: fechaDesde, fechaHasta: fechaHasta);
+      final data = await api.getAll(
+        token!,
+        fechaDesde: fechaDesde,
+        fechaHasta: fechaHasta,
+      );
       final list = data.map((e) => Compra.fromJson(e)).toList();
-      
+
       double pagado = 0;
       double pendiente = 0;
-      
+
       for (var c in list) {
         if (c.estado == 'PAGADA') {
           pagado += c.total;
@@ -73,15 +77,15 @@ class ComprasNotifier extends StateNotifier<ComprasState> {
           pendiente += c.total;
         }
       }
-      
+
       state = state.copyWith(
-        isLoading: false, 
+        isLoading: false,
         compras: list,
         totales: TotalesCompras(
           totalPagado: pagado,
           totalPendiente: pendiente,
           totalGeneral: pagado + pendiente,
-        )
+        ),
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

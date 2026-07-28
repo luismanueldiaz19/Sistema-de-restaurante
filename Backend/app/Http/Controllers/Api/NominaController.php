@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Empleado;
 use App\Models\Nomina;
 use App\Models\NominaDetalle;
+use App\Traits\HasIdempotency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class NominaController extends Controller
 {
+    use HasIdempotency;
+
     /**
      * Listado de empleados activos
      */
@@ -41,21 +44,27 @@ class NominaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'periodo' => 'required|string',
-            'fecha_creacion' => 'required|date',
-            'detalles' => 'required|array',
-            'detalles.*.empleado_id' => 'required|exists:empleados,id',
-            'detalles.*.nombre_empleado' => 'required|string',
-            'detalles.*.salario_bruto' => 'required|numeric',
-            'detalles.*.horas_extras' => 'nullable|numeric',
-            'detalles.*.incentivos' => 'nullable|numeric',
-            'detalles.*.feriados' => 'nullable|numeric',
-            'detalles.*.afp_empleado' => 'required|numeric',
-            'detalles.*.sfs_empleado' => 'required|numeric',
-            'detalles.*.isr_retencion' => 'required|numeric',
-            'detalles.*.otros_descuentos' => 'required|numeric',
-            'detalles.*.salario_neto' => 'required|numeric',
+            'periodo'                        => 'required|string',
+            'fecha_creacion'                 => 'required|date',
+            'detalles'                       => 'required|array',
+            'detalles.*.empleado_id'         => 'required|exists:empleados,id',
+            'detalles.*.nombre_empleado'     => 'required|string',
+            'detalles.*.salario_bruto'       => 'required|numeric',
+            'detalles.*.horas_extras'        => 'nullable|numeric',
+            'detalles.*.incentivos'          => 'nullable|numeric',
+            'detalles.*.feriados'            => 'nullable|numeric',
+            'detalles.*.afp_empleado'        => 'required|numeric',
+            'detalles.*.sfs_empleado'        => 'required|numeric',
+            'detalles.*.isr_retencion'       => 'required|numeric',
+            'detalles.*.otros_descuentos'    => 'required|numeric',
+            'detalles.*.salario_neto'        => 'required|numeric',
+            'idempotency_key'                => 'nullable|string|max:36',
         ]);
+
+        // ── IDEMPOTENCIA ────────────────────────────────────────────────────
+        $cached = $this->checkIdempotency($request, 'nomina.store');
+        if ($cached) return $cached;
+        // ─────────────────────────────────────────────────────────────────────
 
         try {
             return DB::transaction(function () use ($validated) {
@@ -99,15 +108,19 @@ class NominaController extends Controller
                     'total_neto' => $totalNeto,
                 ]);
 
-                return response()->json([
-                    'status' => true,
+                $responseData = [
+                    'status'  => true,
                     'message' => 'Nómina creada exitosamente',
-                    'data' => $nomina->load('detalles')
-                ], 201);
+                    'data'    => $nomina->load('detalles')
+                ];
+                // ── GUARDAR RESPUESTA EN TABLA DE IDEMPOTENCIA ───────────────────
+                return $this->saveIdempotency($request, 'nomina.store', $responseData, 201);
+                // ────────────────────────────────────────────────────────────────────
             });
         } catch (\Exception $e) {
+            $this->failIdempotency($request, 'nomina.store');
             return response()->json([
-                'status' => false,
+                'status'  => false,
                 'message' => 'Error al crear la nómina: ' . $e->getMessage()
             ], 500);
         }

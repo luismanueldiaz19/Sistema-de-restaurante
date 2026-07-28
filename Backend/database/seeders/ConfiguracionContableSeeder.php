@@ -75,6 +75,12 @@ class ConfiguracionContableSeeder extends Seeder
                 'codigo_cuenta' => '2.1.02', // ITBIS POR PAGAR
             ],
             [
+                'clave' => 'itbis_retenido_por_pagar',
+                'nombre' => 'ITBIS Retenido por Pagar (Crédito - Proveedores Informales)',
+                'grupo' => 'Compras',
+                'codigo_cuenta' => '2.1.03', // ITBIS RETENIDO POR PAGAR
+            ],
+            [
                 'clave' => 'pago_compra_efectivo_haber',
                 'nombre' => 'Pago a Proveedor en Efectivo/Banco (Crédito)',
                 'grupo' => 'Compras',

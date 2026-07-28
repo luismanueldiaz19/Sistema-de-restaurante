@@ -12,7 +12,7 @@ class MovimientoInventario extends Model
     protected $table = 'movimientos_inventario';
 
     protected $fillable = [
-        'ingrediente_id',
+        'producto_id',
         'tipo',
         'cantidad',
         'referencia',
@@ -24,8 +24,8 @@ class MovimientoInventario extends Model
         'fecha' => 'datetime'
     ];
 
-    public function ingrediente()
+    public function producto()
     {
-        return $this->belongsTo(Ingrediente::class);
+        return $this->belongsTo(Producto::class);
     }
 }

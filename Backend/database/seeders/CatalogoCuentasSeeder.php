@@ -138,6 +138,15 @@ class CatalogoCuentasSeeder extends Seeder
             'permite_movimiento' => true
         ]);
 
+        CatalogoCuenta::create([
+            'codigo' => '2.1.03',
+            'nombre' => 'ITBIS RETENIDO POR PAGAR',
+            'tipo'   => 'Pasivo',
+            'nivel'  => 3,
+            'padre_id' => $pasCorrientes->id,
+            'permite_movimiento' => true
+        ]);
+
         // --- 3. CAPITAL ---
         $capital = CatalogoCuenta::create([
             'codigo' => '3',

@@ -143,4 +143,62 @@ class FacturacionService {
       return {"success": false, "message": "Error de conexión: $e"};
     }
   }
+
+  Future<int> generarNotaCredito(
+    String token,
+    int facturaId,
+    List<Map<String, dynamic>> detalles,
+    String motivo,
+  ) async {
+    final response = await _api.post(
+      '$_baseUrl/facturas/$facturaId/nota-credito',
+      {
+        'detalles': detalles,
+        'motivo': motivo,
+      },
+      token: token,
+    );
+
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception('Error al generar la nota de crédito: ${response.body}');
+    }
+
+    final data = jsonDecode(response.body);
+    return data['data']['id'];
+  }
+
+  Future<Map<String, dynamic>> getNotasCredito({
+    required String token,
+    Map<String, String>? filters,
+  }) async {
+    try {
+      String query = "";
+      if (filters != null && filters.isNotEmpty) {
+        query =
+            "?" + filters.entries.map((e) => "${e.key}=${e.value}").join("&");
+      }
+
+      final response = await _api.get("$_baseUrl/notas-credito$query", token: token);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true, 
+          "data": data['data'],
+          "resumen": data['resumen']
+        };
+      } else {
+        print("Error del servidor (${response.statusCode}): ${data['message']}");
+        return {
+          "success": false,
+          "message": response.statusCode == 500 
+            ? "Ocurrió un error interno en el servidor." 
+            : (data['message'] ?? "Error al obtener notas de crédito"),
+        };
+      }
+    } catch (e) {
+      print("Excepción interna: $e");
+      return {"success": false, "message": "Ocurrió un error de conexión."};
+    }
+  }
 }

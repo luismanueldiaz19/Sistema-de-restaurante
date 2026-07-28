@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../palletes/app_colors.dart';
 import '../providers/compras_provider.dart';
 import '../providers/proveedores_provider.dart';
 import '../../modulo_producto/providers/producto_provider.dart';
@@ -73,12 +72,19 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
       )[0],
       'tipo_compra': formState.tipoCompra,
       'notas': formState.notas,
+      // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
+      // El mismo UUID se envía en cada reintento del formulario.
+      // El backend detecta si ya existe una compra con este key y,
+      // de ser así, devuelve la existente sin duplicar ningún registro.
+      'idempotency_key': formState.idempotencyKey,
+      // ──────────────────────────────────────────────────────────────────────
       'detalles': formState.detalles.map((d) => d.toJson()).toList(),
     };
 
     final success = await ref.read(comprasProvider.notifier).createCompra(data);
     if (success && mounted) {
       showToast(context, 'Compra registrada con éxito', bgColor: Colors.green);
+      // clearForm() genera un nuevo idempotency_key para el próximo formulario
       ref.read(nuevaCompraFormProvider.notifier).clearForm();
       Navigator.pop(context);
     } else if (mounted) {
@@ -120,7 +126,7 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
             children: [
               // PANEL IZQUIERDO: FORMULARIO CONFIGURACION
               SizedBox(
-                width: 320,
+                width: 360,
                 child: Container(
                   margin: const EdgeInsets.all(24),
                   padding: const EdgeInsets.all(24),

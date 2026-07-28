@@ -97,6 +97,23 @@ class FacturacionHistorialNotifier extends StateNotifier<FacturacionHistorialSta
     state = state.copyWith(filters: {});
     fetchHistorial(token);
   }
+
+  Future<int?> generarNotaCredito(
+    String token,
+    int facturaId,
+    List<Map<String, dynamic>> detalles,
+    String motivo,
+  ) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final id = await _service.generarNotaCredito(token, facturaId, detalles, motivo);
+      await fetchHistorial(token);
+      return id;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
+  }
 }
 
 final facturacionHistorialProvider =

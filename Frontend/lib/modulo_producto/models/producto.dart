@@ -5,6 +5,7 @@ import 'categoria_model.dart';
 import 'marca_model.dart';
 import 'unidad_medida_model.dart';
 import 'impuesto_model.dart';
+import 'receta.dart';
 
 List<Producto> productoFromJson(String str) =>
     List<Producto>.from(json.decode(str).map((x) => Producto.fromJson(x)));
@@ -40,6 +41,7 @@ class Producto {
   final bool? precioIncluyeImpuesto;
   final bool? manejaInventario;
   final bool? manejaVencimiento;
+  final double? stockActual;
   final double? stockMinimo;
 
   final int? cuentaIngresoId;
@@ -49,6 +51,7 @@ class Producto {
   final bool? activo;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final List<Receta>? recetas;
 
   late final String searchIndex;
 
@@ -73,6 +76,7 @@ class Producto {
     this.precioIncluyeImpuesto,
     this.manejaInventario,
     this.manejaVencimiento,
+    this.stockActual,
     this.stockMinimo,
     this.impuestoVentaId,
     this.impuestoCompraId,
@@ -82,6 +86,7 @@ class Producto {
     this.activo,
     this.createdAt,
     this.updatedAt,
+    this.recetas,
   }) {
     // Código que se ejecuta después de crear el objeto.
     // Inicializa el índice de búsqueda del producto
@@ -129,6 +134,7 @@ class Producto {
         json["maneja_inventario"] == 1 || json["maneja_inventario"] == true,
     manejaVencimiento:
         json["maneja_vencimiento"] == 1 || json["maneja_vencimiento"] == true,
+    stockActual: json["stock_actual"]?.toDouble(),
     stockMinimo: json["stock_minimo"]?.toDouble(),
     impuestoVentaId: json["impuesto_venta_id"],
     impuestoCompraId: json["impuesto_compra_id"],
@@ -142,6 +148,9 @@ class Producto {
     updatedAt: json["updated_at"] == null
         ? null
         : DateTime.parse(json["updated_at"]),
+    recetas: json["recetas"] == null 
+        ? [] 
+        : List<Receta>.from(json["recetas"].map((x) => Receta.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
@@ -161,6 +170,7 @@ class Producto {
     "precio_incluye_impuesto": precioIncluyeImpuesto,
     "maneja_inventario": manejaInventario,
     "maneja_vencimiento": manejaVencimiento,
+    "stock_actual": stockActual,
     "stock_minimo": stockMinimo,
     "impuesto_venta_id": impuestoVentaId,
     "impuesto_compra_id": impuestoCompraId,

@@ -11,7 +11,7 @@ class Receta extends Model
 
     protected $fillable = [
         'producto_id',
-        'ingrediente_id',
+        'ingrediente_producto_id',
         'cantidad'
     ];
 
@@ -26,6 +26,6 @@ class Receta extends Model
 
     public function ingrediente()
     {
-        return $this->belongsTo(Ingrediente::class);
+        return $this->belongsTo(Producto::class, 'ingrediente_producto_id');
     }
 }

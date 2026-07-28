@@ -120,6 +120,31 @@ class CompraDetallePanel extends StatelessWidget {
               ],
             ),
           ),
+          
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildInfoDato(
+                    'Comprobante (NCF)', 
+                    compra!.ncf?.isNotEmpty == true ? compra!.ncf! : 'N/A', 
+                    Icons.receipt_long
+                  ),
+                ),
+                Expanded(
+                  child: _buildInfoDato(
+                    'Registrado por', 
+                    compra!.usuario?.name ?? 'Desconocido', 
+                    Icons.person_outline
+                  ),
+                ),
+                Expanded(
+                  child: const SizedBox(), // Espacio en blanco para balancear las 3 columnas
+                ),
+              ],
+            ),
+          ),
 
           const Divider(height: 1),
 

@@ -25,6 +25,7 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
   late final TextEditingController direccionCtrl;
 
   bool get isEdit => widget.proveedor != null;
+  bool esInformal = false;
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
     telefonoCtrl = TextEditingController(text: widget.proveedor?.telefono ?? '');
     emailCtrl = TextEditingController(text: widget.proveedor?.email ?? '');
     direccionCtrl = TextEditingController(text: widget.proveedor?.direccion ?? '');
+    esInformal = widget.proveedor?.esInformal ?? false;
   }
 
   @override
@@ -61,6 +63,7 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
       'telefono': telefonoCtrl.text,
       'email': emailCtrl.text,
       'direccion': direccionCtrl.text,
+      'es_informal': esInformal,
     };
 
     bool success;
@@ -188,6 +191,31 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                   controller: direccionCtrl,
                   label: 'Dirección Física (Opcional)',
                   prefixIcon: Icons.location_on_outlined,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  ),
+                  child: SwitchListTile(
+                    title: const Text(
+                      'Proveedor Informal (Sin NCF)',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text(
+                      'Se retendrá el 100% del ITBIS y se generará un Comprobante de Compras E41.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: esInformal,
+                    activeColor: Colors.orange,
+                    onChanged: (val) {
+                      setState(() {
+                        esInformal = val;
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 32),
 

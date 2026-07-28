@@ -1,4 +1,11 @@
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:uuid/uuid.dart';
+
+// ── Generador de UUID v4 ─────────────────────────────────────────────────────
+// Se usa para crear idempotency_key únicos por formulario.
+const _uuid = Uuid();
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class NuevaCompraDetalleItem {
   final int productoId;
@@ -44,6 +51,12 @@ class NuevaCompraFormState {
   final String numFactura;
   final String notas;
 
+  /// UUID v4 generado una sola vez al crear/resetear el formulario.
+  /// Se envía al backend en cada intento de POST para garantizar idempotencia:
+  /// si el servidor ya procesó este key, devuelve la compra existente
+  /// sin duplicar ningún registro contable, CxP ni pago.
+  final String idempotencyKey;
+
   NuevaCompraFormState({
     this.detalles = const [],
     this.tipoCompra = 'CONTADO',
@@ -53,7 +66,8 @@ class NuevaCompraFormState {
     this.ncf = '',
     this.numFactura = '',
     this.notas = '',
-  });
+    String? idempotencyKey,
+  }) : idempotencyKey = idempotencyKey ?? _uuid.v4();
 
   double get subtotal => detalles.fold(0, (sum, item) => sum + item.subtotal);
 
@@ -73,6 +87,8 @@ class NuevaCompraFormState {
     String? ncf,
     String? numFactura,
     String? notas,
+    // idempotencyKey NO se expone en copyWith para evitar mutaciones accidentales.
+    // Solo se renueva explícitamente con clearForm().
   }) {
     return NuevaCompraFormState(
       detalles: detalles ?? this.detalles,
@@ -85,6 +101,7 @@ class NuevaCompraFormState {
       ncf: ncf ?? this.ncf,
       numFactura: numFactura ?? this.numFactura,
       notas: notas ?? this.notas,
+      idempotencyKey: idempotencyKey, // mantiene el mismo key en cada copyWith
     );
   }
 }
@@ -137,7 +154,10 @@ class NuevaCompraFormNotifier extends StateNotifier<NuevaCompraFormState> {
     state = state.copyWith(notas: notas);
   }
 
+  /// Resetea el formulario y genera un NUEVO idempotency_key.
+  /// Llamar esto solo al éxito o al descarte intencional del formulario.
   void clearForm() {
+    // Al NO pasar idempotencyKey, el constructor generará uno nuevo automáticamente.
     state = NuevaCompraFormState(fechaCompra: DateTime.now());
   }
 }

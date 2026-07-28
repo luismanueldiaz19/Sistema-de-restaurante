@@ -96,9 +96,15 @@ class ReporteContableController extends Controller
                     'hijos' => []
                 ];
             } else {
+                // Incluir cualquier saldo registrado directamente a la cuenta padre (evita descuadres visuales)
+                $saldoPadre = $saldos->get($cuenta->id);
+                $dP = $saldoPadre ? (float) $saldoPadre->debito : 0;
+                $cP = $saldoPadre ? (float) $saldoPadre->credito : 0;
+                $naturalezaDeudoraPadre = in_array($cuenta->tipo, ['Activo', 'Costos', 'Gastos']);
+                $sumaBalance = $naturalezaDeudoraPadre ? ($dP - $cP) : ($cP - $dP);
+
                 $hijosDB = $cuentas->where('padre_id', $cuenta->id)->sortBy('codigo');
                 $hijos = [];
-                $sumaBalance = 0;
                 foreach ($hijosDB as $hijo) {
                     $resHijo = $calcularBalance($hijo);
                     if ($resHijo['balance'] != 0 || count($resHijo['hijos']) > 0) {

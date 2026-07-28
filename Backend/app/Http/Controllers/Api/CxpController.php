@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\CuentaPorPagar;
 use App\Models\PagoCompra;
 use App\Services\ContabilidadService;
+use App\Traits\HasIdempotency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class CxpController extends Controller
 {
+    use HasIdempotency;
+
     protected $contabilidadService;
 
     public function __construct(ContabilidadService $contabilidadService)
@@ -34,12 +37,18 @@ class CxpController extends Controller
         $cxp = CuentaPorPagar::findOrFail($id);
 
         $validated = $request->validate([
-            'monto_pagado' => 'required|numeric|min:0.01|max:'.$cxp->balance_pendiente,
-            'fecha_pago' => 'required|date',
-            'metodo_pago' => 'required|in:EFECTIVO,TRANSFERENCIA,CHEQUE',
-            'cuenta_origen_id' => 'required|exists:catalogo_cuentas,id', // Bank or Cash account
-            'referencia' => 'nullable|string',
+            'monto_pagado'     => 'required|numeric|min:0.01|max:'.$cxp->balance_pendiente,
+            'fecha_pago'       => 'required|date',
+            'metodo_pago'      => 'required|in:EFECTIVO,TRANSFERENCIA,CHEQUE',
+            'cuenta_origen_id' => 'required|exists:catalogo_cuentas,id',
+            'referencia'       => 'nullable|string',
+            'idempotency_key'  => 'nullable|string|max:36',
         ]);
+
+        // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
+        $cached = $this->checkIdempotency($request, 'cxp.pago');
+        if ($cached) return $cached;
+        // ─────────────────────────────────────────────────────────────────────
 
         DB::beginTransaction();
         try {
@@ -95,9 +104,14 @@ class CxpController extends Controller
             }
 
             DB::commit();
-            return response()->json(['message' => 'Pago registrado con éxito', 'pago' => $pago]);
+
+            // ── GUARDAR RESPUESTA EN TABLA DE IDEMPOTENCIA ───────────────────
+            $responseData = ['message' => 'Pago registrado con éxito', 'pago' => $pago->load('cuentaPorPagar')];
+            return $this->saveIdempotency($request, 'cxp.pago', $responseData, 200);
+            // ─────────────────────────────────────────────────────────────────
         } catch (Exception $e) {
             DB::rollBack();
+            $this->failIdempotency($request, 'cxp.pago');
             return response()->json(['error' => 'Error al registrar el abono: ' . $e->getMessage()], 500);
         }
     }

@@ -20,10 +20,12 @@ class Proveedor extends Model
         'cuenta_contable_cxp_id',
         'cuenta_contable_gasto_id',
         'activo',
+        'es_informal',
     ];
 
     protected $casts = [
         'activo' => 'boolean',
+        'es_informal' => 'boolean',
     ];
 
     public function cuentaCxp()

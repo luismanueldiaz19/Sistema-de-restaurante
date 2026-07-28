@@ -12,6 +12,8 @@ class CompraInventarioStrategy implements AsientoStrategy
         $cuentaInventario = $configs['compra_inventario_debe'] ?? null;
         $cuentaProveedor = $configs['compra_proveedor_haber'] ?? null;
         $cuentaItbis = $configs['compra_itbis_debe'] ?? null;
+        $cuentaItbisRetenido = $configs['itbis_retenido_por_pagar'] ?? null;
+        $esInformal = isset($configs['es_informal']) && $configs['es_informal'] === true;
 
         if (!$cuentaInventario) {
             throw new Exception("Falta configurar la cuenta de débito para Inventario de Alimentos.");
@@ -41,12 +43,32 @@ class CompraInventarioStrategy implements AsientoStrategy
             ];
         }
 
-        // CRÉDITO: Cuentas por Pagar Proveedor -> Total
-        $detalles[] = [
-            'cuenta_id' => $cuentaProveedor,
-            'debito' => 0.00,
-            'credito' => $total
-        ];
+        // Si es informal y hay ITBIS, se retiene el 100%
+        if ($esInformal && $itbis > 0) {
+            if (!$cuentaItbisRetenido) {
+                throw new Exception("Falta configurar la cuenta de crédito para ITBIS Retenido por Pagar.");
+            }
+            // CRÉDITO: ITBIS Retenido por Pagar -> ITBIS
+            $detalles[] = [
+                'cuenta_id' => $cuentaItbisRetenido,
+                'debito' => 0.00,
+                'credito' => $itbis
+            ];
+            
+            // CRÉDITO: Cuentas por Pagar Proveedor -> Solo Subtotal (porque le retenemos el ITBIS)
+            $detalles[] = [
+                'cuenta_id' => $cuentaProveedor,
+                'debito' => 0.00,
+                'credito' => $subtotal
+            ];
+        } else {
+            // CRÉDITO: Cuentas por Pagar Proveedor -> Total Normal
+            $detalles[] = [
+                'cuenta_id' => $cuentaProveedor,
+                'debito' => 0.00,
+                'credito' => $total
+            ];
+        }
 
         return $detalles;
     }

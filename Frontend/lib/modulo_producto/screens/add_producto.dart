@@ -279,11 +279,24 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                           ),
                           DropdownMenuItem(
                             value: 'COMBO',
-                            child: Text('COMBO'),
+                            child: Text('COMBO / PLATO'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'MATERIA_PRIMA',
+                            child: Text('MATERIA PRIMA'),
                           ),
                         ],
-                        onChanged: (val) =>
-                            setState(() => tipoProducto = val as String),
+                        onChanged: (val) {
+                          setState(() {
+                            tipoProducto = val as String;
+                            if (tipoProducto == 'MATERIA_PRIMA') {
+                              precioCtrl.text = '0';
+                            }
+                            if (tipoProducto == 'SERVICIO') {
+                              manejaInventario = false;
+                            }
+                          });
+                        },
                       ),
                     ),
                     const SizedBox(width: 15),
@@ -391,6 +404,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                         label: 'Precio de Venta',
                         prefixIcon: Icons.attach_money,
                         keyboardType: TextInputType.number,
+                        enabled: tipoProducto != 'MATERIA_PRIMA',
                       ),
                     ),
                     const SizedBox(width: 15),

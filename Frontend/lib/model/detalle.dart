@@ -1,3 +1,5 @@
+import '../modulo_producto/models/producto.dart';
+
 class Detalle {
   final int? facturaId;
   final String? descripcion;
@@ -8,6 +10,8 @@ class Detalle {
   final double? descuentoPorcentaje;
   final double? itbis;
   final double? total;
+  final int? productoId;
+  final Producto? producto;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -21,6 +25,8 @@ class Detalle {
     this.descuentoPorcentaje,
     this.itbis,
     this.total,
+    this.productoId,
+    this.producto,
     this.createdAt,
     this.updatedAt,
   });
@@ -35,6 +41,8 @@ class Detalle {
     double? descuentoPorcentaje,
     double? itbis,
     double? total,
+    int? productoId,
+    Producto? producto,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Detalle(
@@ -47,6 +55,8 @@ class Detalle {
     descuentoPorcentaje: descuentoPorcentaje ?? this.descuentoPorcentaje,
     itbis: itbis ?? this.itbis,
     total: total ?? this.total,
+    productoId: productoId ?? this.productoId,
+    producto: producto ?? this.producto,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -55,7 +65,9 @@ class Detalle {
     facturaId: json["factura_id"],
     descripcion: json["descripcion"],
     unidadMedida: json["unidad_medida"],
-    cantidad: json["cantidad"],
+    cantidad: json["cantidad"] != null
+        ? double.tryParse(json["cantidad"].toString())?.toInt()
+        : null,
     precio: json["precio"] != null
         ? double.parse(json["precio"].toString())
         : null,
@@ -70,6 +82,10 @@ class Detalle {
         : null,
     total: json["total"] != null
         ? double.parse(json["total"].toString())
+        : null,
+    productoId: json["producto_id"],
+    producto: json["producto"] != null
+        ? Producto.fromJson(json["producto"])
         : null,
     createdAt: json["created_at"] != null
         ? DateTime.parse(json["created_at"])
@@ -89,6 +105,8 @@ class Detalle {
     "descuento_porcentaje": descuentoPorcentaje,
     "itbis": itbis,
     "total": total,
+    "producto_id": productoId,
+    "producto": producto?.toJson(),
     "created_at": createdAt?.toIso8601String(),
     "updated_at": updatedAt?.toIso8601String(),
   };

@@ -159,7 +159,7 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
 
   void _deleteProducto(dynamic p) async {
     final auth = ref.read(authProvider);
-    if (!auth.roles.contains('admin')) return;
+    if (!auth.hasPermission('eliminar_productos')) return;
 
     bool? confirm = await CustomConfirmDialog.show(
       context,
@@ -172,9 +172,28 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     );
 
     if (confirm == true) {
-      await ref
+      final success = await ref
           .read(productoProvider.notifier)
           .deleteProducto(p.id!, auth.token!);
+          
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Producto eliminado exitosamente.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          final error = ref.read(productoProvider).error;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al eliminar: ${error ?? 'Desconocido'}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 

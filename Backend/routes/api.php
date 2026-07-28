@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\FacturaController;
 use App\Http\Controllers\Api\NcfSecuenciaController;
 use App\Http\Controllers\Api\CajaController;
 use App\Http\Controllers\Api\ProductoController;
-use App\Http\Controllers\Api\IngredienteController;
 use App\Http\Controllers\Api\CotizacionController;
 use App\Http\Controllers\Api\OrdenCompraController;
 use App\Http\Controllers\Api\NominaController;
@@ -17,6 +16,8 @@ use App\Http\Controllers\Api\CxpController;
 use App\Http\Controllers\Api\CxcController;
 use App\Http\Controllers\Api\DgiiController;
 use App\Http\Controllers\Api\ReporteContableController;
+use App\Http\Controllers\Api\AjusteInventarioController;
+use App\Http\Controllers\Api\NotaCreditoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,6 +35,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf']);
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
@@ -92,6 +94,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/facturas/{id}/pagar', [FacturaController::class, 'pagar'])
         ->middleware('permission:editar_facturas');
 
+    Route::post('/facturas/{id}/nota-credito', [NotaCreditoController::class, 'store'])
+        ->middleware('permission:editar_facturas');
+
+    Route::get('/notas-credito', [NotaCreditoController::class, 'index'])
+        ->middleware('permission:ver_facturas');
+
+
 
 
   // ================= COMPROBANTES FISCALES =================
@@ -104,6 +113,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // ================= ASIGNACIÓN DE MESAS Y CUENTAS =================
     Route::post('/cajas/{cajaId}/asignar-mesa', [CajaController::class, 'asignarMesa']);
+
+    // ================= INVENTARIO =================
+    Route::post('/inventario/ajuste', [AjusteInventarioController::class, 'store'])
+        ->middleware('permission:ver_inventario');
+    
+    Route::get('/inventario/movimientos', [AjusteInventarioController::class, 'index'])
+        ->middleware('permission:ver_inventario');
 
     // ================= CONTABILIDAD =================
     Route::get('/contabilidad/mayor-general', [ReporteContableController::class, 'mayorGeneral']);
@@ -138,18 +154,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])
         ->middleware('permission:eliminar_productos');
 
-    // ================= INGREDIENTES =================
-    Route::get('/ingredientes', [IngredienteController::class, 'index'])
-        ->middleware('permission:ver_inventario');
-
-    Route::post('/ingredientes', [IngredienteController::class, 'store'])
-        ->middleware('permission:crear_inventario');
-
-    Route::put('/ingredientes/{id}', [IngredienteController::class, 'update'])
-        ->middleware('permission:crear_inventario');
-
-    Route::delete('/ingredientes/{id}', [IngredienteController::class, 'destroy'])
-        ->middleware('permission:crear_inventario');
+    // ================= INGREDIENTES (Eliminados, unificados en Productos) =================
+    Route::get('/recetas', [\App\Http\Controllers\Api\RecetaController::class, 'index'])
+        ->middleware('permission:gestionar_recetas');
+    Route::get('/recetas/{id}', [\App\Http\Controllers\Api\RecetaController::class, 'show'])
+        ->middleware('permission:gestionar_recetas');
+    Route::put('/recetas/{id}', [\App\Http\Controllers\Api\RecetaController::class, 'update'])
+        ->middleware('permission:gestionar_recetas');
 
     // ================= NÓMINA =================
     Route::get('/empleados', [NominaController::class, 'getEmpleados'])

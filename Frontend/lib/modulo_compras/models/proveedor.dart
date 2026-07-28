@@ -8,6 +8,7 @@ class Proveedor {
   final int? cuentaContableCxpId;
   final int? cuentaContableGastoId;
   final bool activo;
+  final bool esInformal;
 
   Proveedor({
     required this.id,
@@ -19,6 +20,7 @@ class Proveedor {
     this.cuentaContableCxpId,
     this.cuentaContableGastoId,
     required this.activo,
+    this.esInformal = false,
   });
 
   factory Proveedor.fromJson(Map<String, dynamic> json) {
@@ -31,7 +33,14 @@ class Proveedor {
       direccion: json['direccion'],
       cuentaContableCxpId: json['cuenta_contable_cxp_id'],
       cuentaContableGastoId: json['cuenta_contable_gasto_id'],
-      activo: json['activo'] == 1 || json['activo'] == true,
+      activo:
+          json['activo'] == 1 ||
+          json['activo'] == true ||
+          json['activo'] == '1',
+      esInformal:
+          json['es_informal'] == 1 ||
+          json['es_informal'] == true ||
+          json['es_informal'] == '1',
     );
   }
 
@@ -46,6 +55,7 @@ class Proveedor {
       'cuenta_contable_cxp_id': cuentaContableCxpId,
       'cuenta_contable_gasto_id': cuentaContableGastoId,
       'activo': activo,
+      'es_informal': esInformal,
     };
   }
 }

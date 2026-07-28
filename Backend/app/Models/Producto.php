@@ -81,4 +81,9 @@ class Producto extends Model
     {
         return $this->hasMany(Receta::class);
     }
+
+    public function movimientosInventario()
+    {
+        return $this->hasMany(MovimientoInventario::class);
+    }
 }

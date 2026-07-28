@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../palletes/app_colors.dart';
@@ -19,6 +20,23 @@ class _CompraConfiguracionFormState
   late TextEditingController ncfCtrl;
   late TextEditingController numFacturaCtrl;
   late TextEditingController notasCtrl;
+
+  /// Genera un número de factura temporal con formato TEMP-YYYYMMDD-XXXX.
+  /// Se usa cuando el usuario no tiene la factura original del proveedor.
+  String _generarNumFacturaTemporal() {
+    final now = DateTime.now();
+    final fecha =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final sufijo = (Random().nextInt(9000) + 1000).toString(); // 1000–9999
+    return 'TEMP-$fecha-$sufijo';
+  }
+
+  void _autoGenerarNumFactura() {
+    final generado = _generarNumFacturaTemporal();
+    numFacturaCtrl.text = generado;
+    ref.read(nuevaCompraFormProvider.notifier).setNumFactura(generado);
+    setState(() {}); // refresca el aviso naranja
+  }
 
   @override
   void initState() {
@@ -42,6 +60,13 @@ class _CompraConfiguracionFormState
     final formState = ref.watch(nuevaCompraFormProvider);
     final formNotifier = ref.read(nuevaCompraFormProvider.notifier);
     final provState = ref.watch(proveedoresProvider);
+
+    final proveedorSeleccionado = formState.proveedorId != null
+        ? provState.proveedores
+              .where((p) => p.id.toString() == formState.proveedorId)
+              .firstOrNull
+        : null;
+    final esInformal = proveedorSeleccionado?.esInformal ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,19 +134,115 @@ class _CompraConfiguracionFormState
             ),
           ),
         const SizedBox(height: 16),
-        CustomTextField(
-          controller: numFacturaCtrl,
-          label: 'Nº Factura',
-          prefixIcon: Icons.receipt_outlined,
-          onChanged: (val) => formNotifier.setNumFactura(val),
+        // ── Nº Factura + botón generador opcional ──────────────────────────
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: CustomTextField(
+                controller: numFacturaCtrl,
+                label: 'Nº Factura',
+                prefixIcon: Icons.receipt_outlined,
+                onChanged: (val) {
+                  formNotifier.setNumFactura(val);
+                  setState(() {}); // refresca el aviso TEMP
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text(
+                  ' ',
+                  style: TextStyle(fontSize: 13),
+                ), // Dummy label para alinear
+                const SizedBox(height: 8),
+                Tooltip(
+                  message:
+                      'Generar número temporal\n(cuando no tiene la factura original)',
+                  preferBelow: true,
+                  child: InkWell(
+                    onTap: _autoGenerarNumFactura,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      height: 47,
+                      width: 47,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.auto_fix_high_rounded,
+                        color: AppColors.primary,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
+        // Si el número fue generado automáticamente, mostrar aviso sutil
+        if (numFacturaCtrl.text.startsWith('TEMP-'))
+          Padding(
+            padding: const EdgeInsets.only(top: 5, left: 4),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 12,
+                  color: Colors.orange.shade600,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Número temporal — reemplazar con el original',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.orange.shade700,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        // ──────────────────────────────────────────────────────────────────────
         const SizedBox(height: 16),
-        CustomTextField(
-          controller: ncfCtrl,
-          label: 'NCF',
-          prefixIcon: Icons.article_outlined,
-          onChanged: (val) => formNotifier.setNcf(val),
-        ),
+        if (esInformal)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.receipt_long, color: Colors.orange),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Proveedor Informal: Se generará automáticamente un Comprobante de Compras (E41) y se retendrá el ITBIS.',
+                    style: TextStyle(fontSize: 12, color: Colors.deepOrange),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          CustomTextField(
+            controller: ncfCtrl,
+            label: 'NCF',
+            prefixIcon: Icons.article_outlined,
+            onChanged: (val) => formNotifier.setNcf(val),
+          ),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
           decoration: InputDecoration(

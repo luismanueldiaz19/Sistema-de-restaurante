@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             CatalogosSeeder::class,
             ProductosSeeder::class,
             ConfiguracionContableSeeder::class,
+            ProveedorSeeder::class,
         ]);
     }
 }

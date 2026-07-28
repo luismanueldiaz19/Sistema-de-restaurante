@@ -72,11 +72,20 @@ class ProductoTable extends ConsumerWidget {
                 "CATEGORÍA",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              size: ColumnSize.M,
+              size: ColumnSize.S,
+              fixedWidth: 110,
             ),
             const DataColumn2(
               label: Text(
                 "PRECIO",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              size: ColumnSize.S,
+              numeric: true,
+            ),
+            const DataColumn2(
+              label: Text(
+                "STOCK",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               size: ColumnSize.S,
@@ -162,6 +171,19 @@ class ProductoTable extends ConsumerWidget {
                   Text(
                     'RD\$ ${p.precioVenta?.toStringAsFixed(2)}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    p.manejaInventario == true 
+                        ? (p.stockActual?.toStringAsFixed(2) ?? '0.00') 
+                        : 'N/A',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: (p.stockActual ?? 0) <= (p.stockMinimo ?? 0) && p.manejaInventario == true
+                          ? Colors.red
+                          : Colors.black87,
+                    ),
                   ),
                 ),
                 if (isAdmin) ...[

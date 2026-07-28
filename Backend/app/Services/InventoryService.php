@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Producto;
-use App\Models\Ingrediente;
 use App\Models\MovimientoInventario;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -17,36 +16,42 @@ class InventoryService
     {
         $producto = Producto::with('recetas.ingrediente')->findOrFail($productoId);
 
-        if ($producto->tipo_producto === 'PLATO') {
+        if ($producto->tipo_producto === 'PLATO' || $producto->tipo_producto === 'COMBO') {
             foreach ($producto->recetas as $receta) {
                 $cantidadADescontar = $receta->cantidad * $cantidadVenta;
-                $this->descontarIngrediente($receta->ingrediente_id, $cantidadADescontar, "VENTA: $referencia");
+                $this->descontarProductoMateriaPrima($receta->ingrediente_producto_id, $cantidadADescontar, "VENTA: $referencia");
             }
         } else {
             // VENTA_DIRECTA
             if ($producto->maneja_inventario) {
                 $producto->decrement('stock_actual', $cantidadVenta);
-                // Aquí podrías registrar un movimiento de producto si existiera la tabla
+                MovimientoInventario::create([
+                    'producto_id' => $productoId,
+                    'tipo' => 'SALIDA',
+                    'cantidad' => $cantidadVenta,
+                    'referencia' => "VENTA: $referencia",
+                    'fecha' => now()
+                ]);
             }
         }
     }
 
     /**
-     * Descontar stock de un ingrediente y registrar movimiento
+     * Descontar stock de un ingrediente (materia prima) y registrar movimiento
      */
-    private function descontarIngrediente(int $ingredienteId, float $cantidad, string $referencia)
+    private function descontarProductoMateriaPrima(int $productoId, float $cantidad, string $referencia)
     {
-        $ingrediente = Ingrediente::findOrFail($ingredienteId);
+        $producto = Producto::findOrFail($productoId);
         
         // Validar stock (opcional, depende de si permites stock negativo)
-        // if ($ingrediente->stock < $cantidad) {
-        //     throw new Exception("Stock insuficiente para el ingrediente: {$ingrediente->nombre}");
+        // if ($producto->stock_actual < $cantidad) {
+        //     throw new Exception("Stock insuficiente para el producto: {$producto->nombre}");
         // }
 
-        $ingrediente->decrement('stock', $cantidad);
+        $producto->decrement('stock_actual', $cantidad);
 
         MovimientoInventario::create([
-            'ingrediente_id' => $ingredienteId,
+            'producto_id' => $productoId,
             'tipo' => 'SALIDA',
             'cantidad' => $cantidad,
             'referencia' => $referencia,
@@ -67,7 +72,7 @@ class InventoryService
 
         $costoTotal = 0;
         foreach ($producto->recetas as $receta) {
-            $costoTotal += $receta->cantidad * $receta->ingrediente->costo_unitario;
+            $costoTotal += $receta->cantidad * ($receta->ingrediente->ultimo_costo ?? 0);
         }
 
         return $costoTotal;

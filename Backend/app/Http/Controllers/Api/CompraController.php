@@ -8,13 +8,17 @@ use App\Models\CompraDetalle;
 use App\Models\CuentaPorPagar;
 use App\Models\PagoCompra;
 use App\Models\Producto;
+use App\Models\Proveedor;
 use App\Services\ContabilidadService;
+use App\Traits\HasIdempotency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class CompraController extends Controller
 {
+    use HasIdempotency;
+
     protected $contabilidadService;
 
     public function __construct(ContabilidadService $contabilidadService)
@@ -41,74 +45,114 @@ class CompraController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'proveedor_id' => 'required|exists:proveedores,id',
-            'numero_factura_proveedor' => 'required|string',
-            'ncf' => 'nullable|string',
-            'fecha_compra' => 'required|date',
-            'fecha_vencimiento' => 'nullable|date',
-            'tipo_compra' => 'required|in:CONTADO,CREDITO',
-            'notas' => 'nullable|string',
-            'detalles' => 'required|array|min:1',
-            'detalles.*.producto_id' => 'nullable|exists:productos,id',
-            'detalles.*.descripcion' => 'nullable|string',
-            'detalles.*.cantidad' => 'required|numeric|min:0.01',
-            'detalles.*.costo_unitario' => 'required|numeric|min:0',
-            'detalles.*.impuesto_monto' => 'required|numeric|min:0',
+        $request->validate([
+            'proveedor_id'                  => 'required|exists:proveedores,id',
+            'numero_factura_proveedor'      => 'required|string',
+            'ncf'                           => 'nullable|string',
+            'fecha_compra'                  => 'required|date',
+            'fecha_vencimiento'             => 'nullable|date',
+            'tipo_compra'                   => 'required|in:CONTADO,CREDITO',
+            'notas'                         => 'nullable|string',
+            'idempotency_key'               => 'nullable|string|max:36',
+            'detalles'                      => 'required|array|min:1',
+            'detalles.*.producto_id'        => 'nullable|exists:productos,id',
+            'detalles.*.descripcion'        => 'nullable|string',
+            'detalles.*.cantidad'           => 'required|numeric|min:0.01',
+            'detalles.*.costo_unitario'     => 'required|numeric|min:0',
+            'detalles.*.impuesto_monto'     => 'required|numeric|min:0',
         ]);
+
+        // ── IDEMPOTENCIA (tabla dedicada) ─────────────────────────────────────
+        // Verifica si el key+endpoint ya fue procesado:
+        //   • completed  → devuelve la respuesta cacheada (sin tocar la BD)
+        //   • processing → 409 Conflict (request concurrente en curso)
+        //   • failed     → permite reintento
+        //   • nuevo      → registra 'processing' y retorna null (proceder)
+        $cached = $this->checkIdempotency($request, 'compra.store');
+        if ($cached) return $cached;
+        // ─────────────────────────────────────────────────────────────────────
 
         DB::beginTransaction();
         try {
-            $subtotal = 0;
+            $subtotal  = 0;
             $impuestos = 0;
-            $total = 0;
+            $total     = 0;
 
-            foreach ($validated['detalles'] as &$d) {
-                $d_subtotal = $d['cantidad'] * $d['costo_unitario'];
+            $detalles = $request->input('detalles');
+            foreach ($detalles as &$d) {
+                $d_subtotal    = $d['cantidad'] * $d['costo_unitario'];
                 $d['subtotal'] = $d_subtotal;
-                $d['total'] = $d_subtotal + $d['impuesto_monto'];
+                $d['total']    = $d_subtotal + $d['impuesto_monto'];
 
-                $subtotal += $d['subtotal'];
+                $subtotal  += $d['subtotal'];
                 $impuestos += $d['impuesto_monto'];
-                $total += $d['total'];
+                $total     += $d['total'];
+            }
+            unset($d);
+
+            // Verificar si el proveedor es informal para generar E41 y aplicar retención
+            $proveedor = Proveedor::findOrFail($request->proveedor_id);
+            $esInformal = (bool) $proveedor->es_informal;
+            $ncfFinal = $request->ncf;
+
+            if ($esInformal) {
+                // Buscar secuencia E41
+                $sec = DB::table('ncf_secuencias')->where('tipo', '41')->lockForUpdate()->first();
+                if ($sec) {
+                    $nuevo = $sec->actual + 1;
+                    DB::table('ncf_secuencias')->where('id', $sec->id)->update(['actual' => $nuevo]);
+                    // E41 requiere 10 digitos de secuencia para completar 13 chars (E41 + 10)
+                    $ncfFinal = 'E41' . str_pad($nuevo, 10, '0', STR_PAD_LEFT);
+                }
             }
 
             // Crear Compra
             $compra = Compra::create([
-                'proveedor_id' => $validated['proveedor_id'],
-                'numero_factura_proveedor' => $validated['numero_factura_proveedor'],
-                'ncf' => $validated['ncf'] ?? null,
-                'fecha_compra' => $validated['fecha_compra'],
-                'fecha_vencimiento' => $validated['fecha_vencimiento'] ?? null,
-                'tipo_compra' => $validated['tipo_compra'],
-                'subtotal' => $subtotal,
-                'impuestos' => $impuestos,
-                'total' => $total,
-                'estado' => $validated['tipo_compra'] === 'CONTADO' ? 'PAGADA' : 'PENDIENTE',
-                'usuario_id' => auth()->id() ?? 1, // fallback to 1 if testing
-                'notas' => $validated['notas'] ?? null,
+                'proveedor_id'              => $request->proveedor_id,
+                'numero_factura_proveedor'  => $request->numero_factura_proveedor,
+                'ncf'                       => $ncfFinal,
+                'fecha_compra'              => $request->fecha_compra,
+                'fecha_vencimiento'         => $request->fecha_vencimiento,
+                'tipo_compra'               => $request->tipo_compra,
+                'subtotal'                  => $subtotal,
+                'impuestos'                 => $impuestos,
+                'total'                     => $total,
+                'estado'                    => $request->tipo_compra === 'CONTADO' ? 'PAGADA' : 'PENDIENTE',
+                'usuario_id'                => auth()->id() ?? 1,
+                'notas'                     => $request->notas,
             ]);
 
-            // Guardar Detalles y actualizar costo de productos
-            foreach ($validated['detalles'] as $d) {
+            // Guardar Detalles y actualizar stock de productos
+            foreach ($detalles as $d) {
                 CompraDetalle::create([
-                    'compra_id' => $compra->id,
-                    'producto_id' => $d['producto_id'] ?? null,
-                    'descripcion' => $d['descripcion'] ?? null,
-                    'cantidad' => $d['cantidad'],
+                    'compra_id'      => $compra->id,
+                    'producto_id'    => $d['producto_id'] ?? null,
+                    'descripcion'    => $d['descripcion'] ?? null,
+                    'cantidad'       => $d['cantidad'],
                     'costo_unitario' => $d['costo_unitario'],
-                    'subtotal' => $d['subtotal'],
+                    'subtotal'       => $d['subtotal'],
                     'impuesto_monto' => $d['impuesto_monto'],
-                    'total' => $d['total'],
+                    'total'          => $d['total'],
                 ]);
 
                 if (!empty($d['producto_id'])) {
                     $producto = Producto::find($d['producto_id']);
                     if ($producto) {
-                        // El usuario solicitó no actualizar el costo del producto en el catálogo automáticamente
-                        // $producto->update(['ultimo_costo' => $d['costo_unitario']]);
-                        
                         if ($producto->maneja_inventario) {
+                            $stockAnterior = $producto->stock_actual;
+                            $nuevoStock = $stockAnterior + $d['cantidad'];
+                            
+                            $costoAnterior = $producto->costo_promedio > 0 ? $producto->costo_promedio : $producto->ultimo_costo;
+                            $valorActual = $stockAnterior * $costoAnterior;
+                            $valorNuevo = $d['cantidad'] * $d['costo_unitario'];
+                            
+                            $nuevoCostoPromedio = ($nuevoStock > 0) ? (($valorActual + $valorNuevo) / $nuevoStock) : $d['costo_unitario'];
+
+                            $producto->update([
+                                'ultimo_costo' => $d['costo_unitario'],
+                                'costo_promedio' => round($nuevoCostoPromedio, 4)
+                            ]);
+                            
                             $producto->increment('stock_actual', $d['cantidad']);
                         }
                     }
@@ -116,7 +160,7 @@ class CompraController extends Controller
             }
 
             // Registro Contable de la Compra (Aplica a Contado y Crédito)
-            // Usa 'compra_inventario' que asume que va a inventario/gasto y genera la CxP
+            // Se inyecta 'es_informal' para que CompraInventarioStrategy retenga el ITBIS si aplica
             $asientoCompra = $this->contabilidadService->registrarAsientoAuto(
                 'compra_inventario',
                 $subtotal,
@@ -124,7 +168,8 @@ class CompraController extends Controller
                 $total,
                 "COMPRA-{$compra->id}",
                 "Compra a proveedor Fac: {$compra->numero_factura_proveedor}",
-                auth()->id() ?? 1
+                auth()->id() ?? 1,
+                ['es_informal' => $esInformal]
             );
 
             if ($asientoCompra) {
@@ -132,44 +177,47 @@ class CompraController extends Controller
             }
 
             // Manejo de Cuentas por Pagar (CxP)
-            if ($validated['tipo_compra'] === 'CREDITO') {
+            // Si es informal, al proveedor NO se le paga el ITBIS (se le retiene)
+            $montoAlProveedor = $esInformal ? $subtotal : $total;
+
+            if ($request->tipo_compra === 'CREDITO') {
                 CuentaPorPagar::create([
-                    'proveedor_id' => $compra->proveedor_id,
-                    'compra_id' => $compra->id,
-                    'monto_original' => $total,
-                    'balance_pendiente' => $total,
-                    'fecha_vencimiento' => $compra->fecha_vencimiento ?? $compra->fecha_compra,
-                    'estado' => 'PENDIENTE',
+                    'proveedor_id'     => $compra->proveedor_id,
+                    'compra_id'        => $compra->id,
+                    'monto_original'   => $montoAlProveedor,
+                    'balance_pendiente'=> $montoAlProveedor,
+                    'fecha_vencimiento'=> $compra->fecha_vencimiento ?? $compra->fecha_compra,
+                    'estado'           => 'PENDIENTE',
                 ]);
             } else {
-                // Es CONTADO, se crea y se paga inmediatamente
+                // CONTADO: crear CxP ya saldada y registrar el pago inmediatamente
                 $cxp = CuentaPorPagar::create([
-                    'proveedor_id' => $compra->proveedor_id,
-                    'compra_id' => $compra->id,
-                    'monto_original' => $total,
-                    'balance_pendiente' => 0,
-                    'fecha_vencimiento' => $compra->fecha_compra,
-                    'estado' => 'PAGADA',
+                    'proveedor_id'     => $compra->proveedor_id,
+                    'compra_id'        => $compra->id,
+                    'monto_original'   => $montoAlProveedor,
+                    'balance_pendiente'=> 0,
+                    'fecha_vencimiento'=> $compra->fecha_compra,
+                    'estado'           => 'PAGADA',
                 ]);
 
-                // Registrar Pago
+                $configCuentaEfectivo = \App\Models\ConfiguracionContable::where('clave', 'pago_compra_efectivo_haber')->value('cuenta_id') ?? 1;
+
                 $pago = PagoCompra::create([
-                    'cxp_id' => $cxp->id,
-                    'monto_pagado' => $total,
-                    'fecha_pago' => $compra->fecha_compra,
-                    'metodo_pago' => 'EFECTIVO', // Por defecto efectivo si es contado
-                    'cuenta_origen_id' => 1, // Deberia venir de la config, pondremos 1 provisoriamente
-                    'usuario_id' => auth()->id() ?? 1,
+                    'cxp_id'          => $cxp->id,
+                    'monto_pagado'    => $montoAlProveedor,
+                    'fecha_pago'      => $compra->fecha_compra,
+                    'metodo_pago'     => 'EFECTIVO',
+                    'cuenta_origen_id'=> $configCuentaEfectivo,
+                    'usuario_id'      => auth()->id() ?? 1,
                 ]);
 
-                // Asiento Contable del Pago
+                // Asiento Contable del Pago de Contado
                 $asientoPago = $this->contabilidadService->registrarAsientoAuto(
                     'pago_compra',
-                    0, 0, $total,
+                    0, 0, $montoAlProveedor,
                     "PAGO-COMPRA-{$compra->id}",
                     "Pago de contado por compra Fac: {$compra->numero_factura_proveedor}",
-                    auth()->id() ?? 1,
-                    ['pago_compra_efectivo_haber' => 1] // <- INYECCIÓN DINÁMICA DE LA CUENTA ORIGEN
+                    auth()->id() ?? 1
                 );
 
                 if ($asientoPago) {
@@ -178,10 +226,18 @@ class CompraController extends Controller
             }
 
             DB::commit();
-            return response()->json($compra->load('detalles'), 201);
+
+            // ── GUARDAR RESPUESTA EN TABLA DE IDEMPOTENCIA ───────────────────
+            // A partir de aquí cualquier reintento con el mismo key recibirá
+            // este mismo JSON sin re-ejecutar ninguna transacción contable.
+            $responseData = $compra->load(['detalles', 'cuentaPorPagar', 'asiento'])->toArray();
+            return $this->saveIdempotency($request, 'compra.store', $responseData, 201);
+            // ─────────────────────────────────────────────────────────────────
 
         } catch (Exception $e) {
             DB::rollBack();
+            // Marcar el key como fallido para permitir reintento
+            $this->failIdempotency($request, 'compra.store');
             return response()->json(['error' => 'Error al registrar la compra: ' . $e->getMessage()], 500);
         }
     }

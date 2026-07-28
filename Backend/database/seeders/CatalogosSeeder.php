@@ -13,22 +13,56 @@ class CatalogosSeeder extends Seeder
     public function run()
     {
         // Categorias
-        Categoria::create(['nombre' => 'Comida', 'descripcion' => 'Alimentos preparados', 'activo' => true]);
-        Categoria::create(['nombre' => 'Bebidas', 'descripcion' => 'Bebidas frías y calientes', 'activo' => true]);
-        Categoria::create(['nombre' => 'Postres', 'descripcion' => 'Dulces y postres', 'activo' => true]);
-        Categoria::create(['nombre' => 'Servicios', 'descripcion' => 'Servicios varios', 'activo' => true]);
+        $categorias = [
+            ['nombre' => 'Comida', 'descripcion' => 'Alimentos preparados'],
+            ['nombre' => 'Bebidas', 'descripcion' => 'Bebidas frías y calientes'],
+            ['nombre' => 'Postres', 'descripcion' => 'Dulces y postres'],
+            ['nombre' => 'Servicios', 'descripcion' => 'Servicios varios']
+        ];
+        foreach ($categorias as $c) {
+            Categoria::firstOrCreate(['nombre' => $c['nombre']], ['descripcion' => $c['descripcion'], 'activo' => true]);
+        }
 
         // Marcas
-        Marca::create(['nombre' => 'Generica', 'descripcion' => 'Marca genérica', 'activo' => true]);
-        Marca::create(['nombre' => 'Coca Cola', 'descripcion' => 'Refrescos', 'activo' => true]);
+        $marcas = [
+            ['nombre' => 'Generica', 'descripcion' => 'Marca genérica'],
+            ['nombre' => 'Coca Cola', 'descripcion' => 'Refrescos']
+        ];
+        foreach ($marcas as $m) {
+            Marca::firstOrCreate(['nombre' => $m['nombre']], ['descripcion' => $m['descripcion'], 'activo' => true]);
+        }
 
         // Unidades de Medida
-        UnidadMedida::create(['nombre' => 'Unidad', 'abreviatura' => 'UND', 'activo' => true]);
-        UnidadMedida::create(['nombre' => 'Libra', 'abreviatura' => 'LB', 'activo' => true]);
-        UnidadMedida::create(['nombre' => 'Litro', 'abreviatura' => 'L', 'activo' => true]);
+        $unidades = [
+            ['nombre' => 'Unidad', 'abreviatura' => 'UND'],
+            ['nombre' => 'Libra', 'abreviatura' => 'LB'],
+            ['nombre' => 'Litro', 'abreviatura' => 'L'],
+            ['nombre' => 'Kilogramo', 'abreviatura' => 'KG'],
+            ['nombre' => 'Gramo', 'abreviatura' => 'G'],
+            ['nombre' => 'Mililitro', 'abreviatura' => 'ML'],
+            ['nombre' => 'Onza', 'abreviatura' => 'OZ'],
+            ['nombre' => 'Galón', 'abreviatura' => 'GAL'],
+            ['nombre' => 'Botella', 'abreviatura' => 'BOT'],
+            ['nombre' => 'Porción', 'abreviatura' => 'POR'],
+            ['nombre' => 'Paquete', 'abreviatura' => 'PAQ'],
+            ['nombre' => 'Caja', 'abreviatura' => 'CAJ'],
+            ['nombre' => 'Lata', 'abreviatura' => 'LAT'],
+        ];
+
+        foreach ($unidades as $u) {
+            UnidadMedida::firstOrCreate(
+                ['abreviatura' => $u['abreviatura']],
+                ['nombre' => $u['nombre'], 'activo' => true]
+            );
+        }
 
         // Impuestos
-        Impuesto::create(['nombre' => 'ITBIS 18%', 'tasa' => 18, 'activo' => true]);
-        Impuesto::create(['nombre' => 'Exento 0%', 'tasa' => 0, 'activo' => true]);
+        $impuestos = [
+            ['nombre' => 'ITBIS 18%', 'tasa' => 18],
+            ['nombre' => 'Exento 0%', 'tasa' => 0]
+        ];
+        foreach ($impuestos as $i) {
+            Impuesto::firstOrCreate(['nombre' => $i['nombre']], ['tasa' => $i['tasa'], 'activo' => true]);
+        }
     }
 }
