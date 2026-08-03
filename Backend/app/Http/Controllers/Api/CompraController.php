@@ -142,15 +142,14 @@ class CompraController extends Controller
                             $stockAnterior = $producto->stock_actual;
                             $nuevoStock = $stockAnterior + $d['cantidad'];
                             
-                            $costoAnterior = $producto->costo_promedio > 0 ? $producto->costo_promedio : $producto->ultimo_costo;
+                            $costoAnterior = $producto->costo;
                             $valorActual = $stockAnterior * $costoAnterior;
                             $valorNuevo = $d['cantidad'] * $d['costo_unitario'];
                             
-                            $nuevoCostoPromedio = ($nuevoStock > 0) ? (($valorActual + $valorNuevo) / $nuevoStock) : $d['costo_unitario'];
+                            $nuevoCosto = ($nuevoStock > 0) ? (($valorActual + $valorNuevo) / $nuevoStock) : $d['costo_unitario'];
 
                             $producto->update([
-                                'ultimo_costo' => $d['costo_unitario'],
-                                'costo_promedio' => round($nuevoCostoPromedio, 4)
+                                'costo' => round($nuevoCosto, 4)
                             ]);
                             
                             $producto->increment('stock_actual', $d['cantidad']);

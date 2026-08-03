@@ -113,7 +113,7 @@ class FacturaController extends Controller {
             if (!empty($item['producto_id'])) {
                 $producto = \App\Models\Producto::find($item['producto_id']);
                 if ($producto) {
-                    $costoUnitario = $producto->costo_promedio > 0 ? $producto->costo_promedio : $producto->ultimo_costo;
+                    $costoUnitario = $producto->costo;
                     $costoTotalVenta += ($costoUnitario * $item['cantidad']);
                 }
             }

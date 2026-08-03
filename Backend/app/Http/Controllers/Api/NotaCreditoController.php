@@ -133,7 +133,7 @@ class NotaCreditoController extends Controller
                     $producto->stock_actual += $det['cantidad'];
                     $producto->save();
 
-                    $costoUnitario = $producto->costo_promedio > 0 ? $producto->costo_promedio : $producto->ultimo_costo;
+                    $costoUnitario = $producto->costo;
                     $costoTotal += ($costoUnitario * $det['cantidad']);
                 }
 

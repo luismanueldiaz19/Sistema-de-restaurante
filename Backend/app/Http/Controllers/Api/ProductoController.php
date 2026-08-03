@@ -32,8 +32,7 @@ class ProductoController extends Controller
             'tipo_contable'   => 'required|in:INVENTARIO,GASTO,SERVICIO,ACTIVO_FIJO',
             'precio_venta'    => 'required|numeric',
             'precio_incluye_impuesto'=> 'nullable|boolean',
-            'ultimo_costo'    => 'nullable|numeric',
-            'costo_promedio'  => 'nullable|numeric',
+            'costo'           => 'nullable|numeric',
             'maneja_inventario'=> 'nullable|boolean',
             'maneja_vencimiento'=> 'nullable|boolean',
             'stock_minimo'    => 'nullable|numeric',
@@ -94,8 +93,7 @@ class ProductoController extends Controller
             'tipo_contable'   => 'required|in:INVENTARIO,GASTO,SERVICIO,ACTIVO_FIJO',
             'precio_venta'    => 'required|numeric',
             'precio_incluye_impuesto'=> 'nullable|boolean',
-            'ultimo_costo'    => 'nullable|numeric',
-            'costo_promedio'  => 'nullable|numeric',
+            'costo'           => 'nullable|numeric',
             'maneja_inventario'=> 'nullable|boolean',
             'maneja_vencimiento'=> 'nullable|boolean',
             'stock_minimo'    => 'nullable|numeric',
@@ -181,7 +179,7 @@ class ProductoController extends Controller
             $tipo_producto = $normalizedRow['tipo_producto'] ?? $normalizedRow['tipo'] ?? null;
             $tipo_contable = $normalizedRow['tipo_contable'] ?? $normalizedRow['contable'] ?? null;
             $precio_venta = $normalizedRow['precio_venta'] ?? $normalizedRow['precio'] ?? null;
-            $ultimo_costo = $normalizedRow['ultimo_costo'] ?? $normalizedRow['costo'] ?? 0;
+            $costo = $normalizedRow['costo'] ?? 0;
             $impuesto_id = $normalizedRow['impuesto_id'] ?? $normalizedRow['itbis'] ?? null;
             $stock_actual = $normalizedRow['stock_actual'] ?? $normalizedRow['stock'] ?? 0;
             $stock_minimo = $normalizedRow['stock_minimo'] ?? 0;
@@ -208,7 +206,7 @@ class ProductoController extends Controller
                             'tipo_producto' => $tipo_producto,
                             'tipo_contable' => $tipo_contable,
                             'precio_venta' => $precio_venta,
-                            'ultimo_costo' => $ultimo_costo !== 0 ? $ultimo_costo : $producto->ultimo_costo,
+                            'costo' => $costo !== 0 ? $costo : $producto->costo,
                             'stock_actual' => $stock_actual !== 0 ? $stock_actual : $producto->stock_actual,
                             'stock_minimo' => $stock_minimo !== 0 ? $stock_minimo : $producto->stock_minimo,
                             'impuesto_id'  => !empty($impuesto_id) ? $impuesto_id : $producto->impuesto_id,
@@ -226,8 +224,7 @@ class ProductoController extends Controller
                     'tipo_producto' => $tipo_producto,
                     'tipo_contable' => $tipo_contable,
                     'precio_venta' => $precio_venta,
-                    'ultimo_costo' => $ultimo_costo,
-                    'costo_promedio' => 0,
+                    'costo' => $costo,
                     'stock_actual' => $stock_actual,
                     'stock_minimo' => $stock_minimo,
                     'impuesto_id'  => !empty($impuesto_id) ? $impuesto_id : null,

@@ -14,10 +14,8 @@ class ProductosSeeder extends Seeder
         $catComida = Categoria::where('nombre', 'Comida')->first();
         $catBebida = Categoria::where('nombre', 'Bebidas')->first();
         $catServicio = Categoria::where('nombre', 'Servicios')->first();
-
         $imp18 = Impuesto::where('tasa', 18)->first();
         $imp0 = Impuesto::where('tasa', 0)->first();
-
 
         Producto::create([
             'nombre' => 'Kola Real',

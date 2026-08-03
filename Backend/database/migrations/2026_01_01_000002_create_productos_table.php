@@ -28,7 +28,8 @@ return new class extends Migration
                 'PRODUCTO',
                 'SERVICIO',
                 'COMBO',
-                'MATERIA_PRIMA'
+                'MATERIA_PRIMA',
+                'PLATO'
             ]);
 
             $table->enum('tipo_contable', [
@@ -45,8 +46,7 @@ return new class extends Migration
 
             // PRECIOS
             $table->decimal('precio_venta', 15, 2)->default(0);
-            $table->decimal('ultimo_costo', 15, 2)->default(0);
-            $table->decimal('costo_promedio', 15, 2)->default(0);
+            $table->decimal('costo', 15, 2)->default(0);
 
             // IMPUESTOS
             $table->foreignId('impuesto_id')->nullable();

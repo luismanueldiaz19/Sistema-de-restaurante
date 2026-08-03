@@ -22,8 +22,7 @@ class Producto extends Model
         'tipo_producto',
         'tipo_contable',
         'precio_venta',
-        'ultimo_costo',
-        'costo_promedio',
+        'costo',
         'precio_incluye_impuesto',
         'maneja_inventario',
         'maneja_vencimiento',
@@ -37,8 +36,7 @@ class Producto extends Model
 
     protected $casts = [
         'precio_venta' => 'double',
-        'ultimo_costo' => 'double',
-        'costo_promedio' => 'double',
+        'costo' => 'double',
         'precio_incluye_impuesto' => 'boolean',
         'maneja_inventario' => 'boolean',
         'maneja_vencimiento' => 'boolean',

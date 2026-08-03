@@ -12,8 +12,7 @@ class InventoryService
     /**
      * Procesar el descuento de inventario para una venta
      */
-    public function procesarVenta(int $productoId, float $cantidadVenta, string $referencia = '')
-    {
+    public function procesarVenta(int $productoId, float $cantidadVenta, string $referencia = '') {
         $producto = Producto::with('recetas.ingrediente')->findOrFail($productoId);
 
         if ($producto->tipo_producto === 'PLATO' || $producto->tipo_producto === 'COMBO') {
@@ -39,17 +38,12 @@ class InventoryService
     /**
      * Descontar stock de un ingrediente (materia prima) y registrar movimiento
      */
-    private function descontarProductoMateriaPrima(int $productoId, float $cantidad, string $referencia)
-    {
+    private function descontarProductoMateriaPrima(int $productoId, float $cantidad, string $referencia) {
+
         $producto = Producto::findOrFail($productoId);
-        
-        // Validar stock (opcional, depende de si permites stock negativo)
-        // if ($producto->stock_actual < $cantidad) {
-        //     throw new Exception("Stock insuficiente para el producto: {$producto->nombre}");
-        // }
 
         $producto->decrement('stock_actual', $cantidad);
-
+        
         MovimientoInventario::create([
             'producto_id' => $productoId,
             'tipo' => 'SALIDA',
@@ -61,7 +55,7 @@ class InventoryService
 
     /**
      * Calcular costo de un producto basado en su receta
-     */
+     */                                                 
     public function calcularCostoProducto(int $productoId)
     {
         $producto = Producto::with('recetas.ingrediente')->findOrFail($productoId);
@@ -71,8 +65,9 @@ class InventoryService
         }
 
         $costoTotal = 0;
+
         foreach ($producto->recetas as $receta) {
-            $costoTotal += $receta->cantidad * ($receta->ingrediente->ultimo_costo ?? 0);
+            $costoTotal += $receta->cantidad * ($receta->ingrediente->costo ?? 0);
         }
 
         return $costoTotal;
