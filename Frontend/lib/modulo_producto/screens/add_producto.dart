@@ -32,18 +32,12 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
   int? categoriaId;
   int? marcaId;
-  int? unidadMedidaId;
   int? impuestoId;
 
   String tipoProducto = 'PRODUCTO';
   String tipoContable = 'INVENTARIO';
   bool manejaInventario = true;
   bool activo = true;
-
-  int? impuestoVentaId;
-  int? impuestoCompraId;
-  bool precioIncluyeImpuesto = false;
-  bool manejaVencimiento = false;
 
   bool get isEdit => widget.producto != null;
 
@@ -55,7 +49,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       if (token != null) {
         ref.read(categoriasProvider.notifier).fetchAll(token);
         ref.read(marcasProvider.notifier).fetchAll(token);
-        ref.read(unidadesProvider.notifier).fetchAll(token);
         ref.read(impuestosProvider.notifier).fetchAll(token);
       }
     });
@@ -66,7 +59,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       codigoCtrl.text = p.codigo ?? '';
       descCtrl.text = p.descripcion ?? '';
       precioCtrl.text = p.precioVenta?.toString() ?? '0';
-      costoCtrl.text = p.ultimoCosto?.toString() ?? '0';
+      costoCtrl.text = p.costo?.toString() ?? '0';
       stockMinimoCtrl.text = p.stockMinimo?.toString() ?? '0';
 
       cuentaIngresosCtrl.text = p.cuentaIngresoId?.toString() ?? '';
@@ -75,18 +68,12 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
       categoriaId = p.categoriaId;
       marcaId = p.marcaId;
-      unidadMedidaId = p.unidadMedidaId;
       impuestoId = p.impuestoId;
 
       tipoProducto = p.tipoProducto ?? 'PRODUCTO';
       tipoContable = p.tipoContable ?? 'INVENTARIO';
       manejaInventario = p.manejaInventario ?? true;
       activo = p.activo ?? true;
-
-      impuestoVentaId = p.impuestoVentaId;
-      impuestoCompraId = p.impuestoCompraId;
-      precioIncluyeImpuesto = p.precioIncluyeImpuesto ?? false;
-      manejaVencimiento = p.manejaVencimiento ?? false;
     }
   }
 
@@ -203,7 +190,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
     final categorias = ref.watch(categoriasProvider).items;
     final marcas = ref.watch(marcasProvider).items;
-    final unidades = ref.watch(unidadesProvider).items;
     final impuestos = ref.watch(impuestosProvider).items;
 
     return Dialog(
@@ -366,22 +352,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                       ),
                     ),
                     const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Unidad de Medida',
-                        value: unidadMedidaId,
-                        items: unidades
-                            .map(
-                              (e) => DropdownMenuItem(
-                                value: e.id,
-                                child: Text("${e.nombre} (${e.abreviatura})"),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => unidadMedidaId = val as int?),
-                      ),
-                    ),
                   ],
                 ),
 
@@ -450,64 +420,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '¿Precio incluye ITBIS?',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Switch(
-                            value: precioIncluyeImpuesto,
-                            onChanged: (v) =>
-                                setState(() => precioIncluyeImpuesto = v),
-                            activeColor: AppColors.primary,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Impuesto Compra',
-                        value: impuestoCompraId,
-                        items: impuestos
-                            .map(
-                              (e) => DropdownMenuItem(
-                                value: e.id,
-                                child: Text("${e.nombre} (${e.tasa}%)"),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => impuestoCompraId = val as int?),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Impuesto Venta',
-                        value: impuestoVentaId,
-                        items: impuestos
-                            .map(
-                              (e) => DropdownMenuItem(
-                                value: e.id,
-                                child: Text("${e.nombre} (${e.tasa}%)"),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (val) =>
-                            setState(() => impuestoVentaId = val as int?),
-                      ),
-                    ),
-                  ],
-                ),
 
                 const SizedBox(height: 24),
                 const Text(
@@ -537,26 +449,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                             value: manejaInventario,
                             onChanged: (v) =>
                                 setState(() => manejaInventario = v),
-                            activeColor: AppColors.primary,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Maneja Venc.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Switch(
-                            value: manejaVencimiento,
-                            onChanged: (v) =>
-                                setState(() => manejaVencimiento = v),
                             activeColor: AppColors.primary,
                           ),
                         ],
@@ -666,17 +558,12 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       "descripcion": descCtrl.text.trim(),
       "categoria_id": categoriaId,
       "marca_id": marcaId,
-      "unidad_medida_id": unidadMedidaId,
       "impuesto_id": impuestoId,
-      "impuesto_venta_id": impuestoVentaId,
-      "impuesto_compra_id": impuestoCompraId,
-      "precio_incluye_impuesto": precioIncluyeImpuesto,
       "tipo_producto": tipoProducto,
       "tipo_contable": tipoContable,
       "precio_venta": double.tryParse(precioCtrl.text) ?? 0,
-      "ultimo_costo": double.tryParse(costoCtrl.text) ?? 0,
+      "costo": double.tryParse(costoCtrl.text) ?? 0,
       "maneja_inventario": manejaInventario,
-      "maneja_vencimiento": manejaVencimiento,
       "stock_minimo": double.tryParse(stockMinimoCtrl.text) ?? 0,
       "activo": activo,
     };

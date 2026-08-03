@@ -33,13 +33,13 @@ class _AddProductoCompraDialogState extends State<AddProductoCompraDialog> {
     super.initState();
     cantCtrl = TextEditingController(text: '1');
     costoCtrl = TextEditingController(
-      text: (widget.producto.ultimoCosto ?? 0).toString(),
+      text: (widget.producto.costo ?? 0).toString(),
     );
     totalCtrl = TextEditingController(
-      text: (widget.producto.ultimoCosto ?? 0).toString(),
+      text: (widget.producto.costo ?? 0).toString(),
     );
     impCtrl = TextEditingController(
-      text: ((widget.producto.ultimoCosto ?? 0) * 0.18).toStringAsFixed(2),
+      text: ((widget.producto.costo ?? 0) * 0.18).toStringAsFixed(2),
     );
   }
 
@@ -83,9 +83,7 @@ class _AddProductoCompraDialogState extends State<AddProductoCompraDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final cant = double.tryParse(cantCtrl.text) ?? 0.0;
-    final costoConItbis = double.tryParse(costoCtrl.text) ?? 0.0;
-    final total = cant * costoConItbis;
+    final total = double.tryParse(totalCtrl.text) ?? 0.0;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -113,7 +111,7 @@ class _AddProductoCompraDialogState extends State<AddProductoCompraDialog> {
                   const Icon(Icons.history, color: Colors.orange, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Costo Anterior (Ref): ${formatCurrency(widget.producto.ultimoCosto ?? 0)}',
+                    'Costo Anterior (Ref): ${formatCurrency(widget.producto.costo ?? 0)}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.orange.shade800,
@@ -127,7 +125,9 @@ class _AddProductoCompraDialogState extends State<AddProductoCompraDialog> {
               controller: cantCtrl,
               label: 'Cantidad a Comprar',
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
               onChanged: (v) => setState(() => _updateCalc(fromTotal: false)),
             ),
             const SizedBox(height: 16),
@@ -135,7 +135,9 @@ class _AddProductoCompraDialogState extends State<AddProductoCompraDialog> {
               controller: totalCtrl,
               label: 'Total Pagado por esta línea',
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
               onChanged: (v) => setState(() => _updateCalc(fromTotal: true)),
             ),
             const SizedBox(height: 16),
@@ -174,7 +176,9 @@ class _AddProductoCompraDialogState extends State<AddProductoCompraDialog> {
               controller: impCtrl,
               label: 'Monto Impuesto (Total)',
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
               onChanged: (v) => setState(() {}),
             ),
             const SizedBox(height: 16),
@@ -215,23 +219,23 @@ class _AddProductoCompraDialogState extends State<AddProductoCompraDialog> {
             if (cantCtrl.text.isEmpty || costoCtrl.text.isEmpty) return;
 
             final cantIngresada = double.parse(cantCtrl.text);
-            final costoIngresado = double.parse(costoCtrl.text);
+            final totalIngresado = double.parse(totalCtrl.text);
             final impuestoManual = double.tryParse(impCtrl.text) ?? 0.0;
 
-            double costoBaseReal = costoIngresado;
+            double costoBaseReal = 0.0;
             if (cantIngresada > 0) {
-              costoBaseReal =
-                  (costoIngresado * cantIngresada - impuestoManual) /
-                  cantIngresada;
+              costoBaseReal = (totalIngresado - impuestoManual) / cantIngresada;
             }
 
-            widget.onAdd(NuevaCompraDetalleItem(
-              productoId: widget.producto.id ?? 0,
-              productoNombre: widget.producto.nombre ?? 'Desconocido',
-              cantidad: cantIngresada,
-              costoUnitario: costoBaseReal,
-              impuestoMonto: impuestoManual,
-            ));
+            widget.onAdd(
+              NuevaCompraDetalleItem(
+                productoId: widget.producto.id ?? 0,
+                productoNombre: widget.producto.nombre ?? 'Desconocido',
+                cantidad: cantIngresada,
+                costoUnitario: costoBaseReal,
+                impuestoMonto: impuestoManual,
+              ),
+            );
 
             Navigator.pop(context);
           },

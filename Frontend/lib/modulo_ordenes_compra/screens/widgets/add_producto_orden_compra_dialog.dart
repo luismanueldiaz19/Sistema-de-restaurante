@@ -34,10 +34,10 @@ class _AddProductoOrdenCompraDialogState
     super.initState();
     cantCtrl = TextEditingController(text: '1');
     costoCtrl = TextEditingController(
-      text: (widget.producto.ultimoCosto ?? 0).toString(),
+      text: (widget.producto.costo ?? 0).toString(),
     );
     totalCtrl = TextEditingController(
-      text: (widget.producto.ultimoCosto ?? 0).toString(),
+      text: (widget.producto.costo ?? 0).toString(),
     );
 
     isExento = _verificarSiEsExento();
@@ -49,7 +49,7 @@ class _AddProductoOrdenCompraDialogState
               ? (widget.producto.impuesto!.tasa / 100)
               : 0.18);
     impCtrl = TextEditingController(
-      text: ((widget.producto.ultimoCosto ?? 0) * taxRate).toStringAsFixed(2),
+      text: ((widget.producto.costo ?? 0) * taxRate).toStringAsFixed(2),
     );
   }
 
@@ -107,9 +107,7 @@ class _AddProductoOrdenCompraDialogState
 
   @override
   Widget build(BuildContext context) {
-    final cant = double.tryParse(cantCtrl.text) ?? 0.0;
-    final costoConItbis = double.tryParse(costoCtrl.text) ?? 0.0;
-    final total = cant * costoConItbis;
+    final total = double.tryParse(totalCtrl.text) ?? 0.0;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -138,7 +136,7 @@ class _AddProductoOrdenCompraDialogState
                   const Icon(Icons.history, color: Colors.orange, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Costo Anterior (Ref): ${formatCurrency(widget.producto.ultimoCosto ?? 0)}',
+                    'Costo Anterior (Ref): ${formatCurrency(widget.producto.costo ?? 0)}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.orange.shade800,
@@ -231,9 +229,8 @@ class _AddProductoOrdenCompraDialogState
             if (cantCtrl.text.isEmpty || costoCtrl.text.isEmpty) return;
 
             final cantIngresada = double.parse(cantCtrl.text);
-            final costoIngresado = double.parse(
-              costoCtrl.text,
-            ); // Esto ya incluye ITBIS en el total calculado
+            final totalIngresado = double.parse(totalCtrl.text);
+            
             final taxRate =
                 widget.producto.impuesto?.tasa != null &&
                     widget.producto.impuesto!.tasa > 0
@@ -241,11 +238,16 @@ class _AddProductoOrdenCompraDialogState
                 : 18.0;
             final itbisPercent = isExento ? 0.0 : taxRate;
 
+            double costoUnitarioPreciso = 0.0;
+            if (cantIngresada > 0) {
+              costoUnitarioPreciso = totalIngresado / cantIngresada;
+            }
+
             widget.onAdd(
               FacturaItem(
                 id: widget.producto.id.toString(),
                 descripcion: widget.producto.nombre ?? 'Sin nombre',
-                precio: costoIngresado, // FacturaItem usa precio con ITBIS
+                precio: costoUnitarioPreciso, // Usar valor con todos los decimales para evitar error de redondeo
                 cantidad: cantIngresada,
                 itbisPorcentaje: itbisPercent,
               ),

@@ -151,7 +151,7 @@ class _CompraCatalogoProductosState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Costo Ref: ${formatCurrency(prod.ultimoCosto ?? 0)}',
+                    'Costo Ref: ${formatCurrency(prod.costo ?? 0)}',
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w900,

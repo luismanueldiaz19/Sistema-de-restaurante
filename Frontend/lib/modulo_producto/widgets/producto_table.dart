@@ -175,12 +175,14 @@ class ProductoTable extends ConsumerWidget {
                 ),
                 DataCell(
                   Text(
-                    p.manejaInventario == true 
-                        ? (p.stockActual?.toStringAsFixed(2) ?? '0.00') 
+                    p.manejaInventario == true
+                        ? (p.stockActual?.toStringAsFixed(2) ?? '0.00')
                         : 'N/A',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: (p.stockActual ?? 0) <= (p.stockMinimo ?? 0) && p.manejaInventario == true
+                      color:
+                          (p.stockActual ?? 0) <= (p.stockMinimo ?? 0) &&
+                              p.manejaInventario == true
                           ? Colors.red
                           : Colors.black87,
                     ),
@@ -189,7 +191,7 @@ class ProductoTable extends ConsumerWidget {
                 if (isAdmin) ...[
                   DataCell(
                     Text(
-                      'RD\$ ${p.ultimoCosto?.toStringAsFixed(2)}',
+                      'RD\$ ${p.costo?.toStringAsFixed(2)}',
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                   ),

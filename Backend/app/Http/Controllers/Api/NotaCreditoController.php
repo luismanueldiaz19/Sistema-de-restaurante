@@ -8,6 +8,7 @@ use App\Models\Factura;
 use App\Models\NotaCredito;
 use App\Models\NotaCreditoDetalle;
 use App\Models\Producto;
+use App\Models\MovimientoInventario;
 use App\Services\ContabilidadService;
 use Illuminate\Support\Facades\DB;
 use App\Traits\HasIdempotency;
@@ -132,6 +133,14 @@ class NotaCreditoController extends Controller
                 if ($producto && $producto->tipo_producto != 'SERVICIO') {
                     $producto->stock_actual += $det['cantidad'];
                     $producto->save();
+
+                    MovimientoInventario::create([
+                        'producto_id' => $producto->id,
+                        'tipo' => 'ENTRADA',
+                        'cantidad' => $det['cantidad'],
+                        'referencia' => "NOTA DE CREDITO: " . $ncf,
+                        'fecha' => now()
+                    ]);
 
                     $costoUnitario = $producto->costo;
                     $costoTotal += ($costoUnitario * $det['cantidad']);

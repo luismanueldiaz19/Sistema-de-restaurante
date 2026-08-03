@@ -15,7 +15,7 @@ class RecetaController extends Controller
      */
     public function index()
     {
-        $productos = Producto::with(['recetas.ingrediente.unidadMedida'])
+        $productos = Producto::with(['recetas.ingrediente'])
             ->whereIn('tipo_producto', ['COMBO', 'PRODUCTO'])
             ->get();
 
@@ -30,7 +30,7 @@ class RecetaController extends Controller
      */
     public function show($id)
     {
-        $producto = Producto::with(['recetas.ingrediente.unidadMedida'])->findOrFail($id);
+        $producto = Producto::with(['recetas.ingrediente'])->findOrFail($id);
 
         return response()->json([
             'message' => 'Receta del producto',
@@ -82,7 +82,7 @@ class RecetaController extends Controller
 
             return response()->json([
                 'message' => 'Receta actualizada correctamente.',
-                'data' => $producto->load('recetas.ingrediente.unidadMedida')
+                'data' => $producto->load('recetas.ingrediente')
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();

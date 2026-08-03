@@ -365,7 +365,7 @@ class _ConfigurarRecetaDialogState
                                   context: context,
                                   builder: (context) => BuscadorDialog<Producto>(
                                     items: _materiaPrima,
-                                    itemLabel: (p) => "${p.nombre} (${p.unidadMedida?.abreviatura ?? 'UND'})",
+                                    itemLabel: (p) => "${p.nombre}",
                                     onSelected: (p) {
                                       setState(() {
                                         _recetaLines[i] = Receta(
@@ -400,7 +400,7 @@ class _ConfigurarRecetaDialogState
                                                   (p) => p.id == line.ingredienteProductoId,
                                                   orElse: () => Producto(nombre: 'Desconocido'),
                                                 );
-                                                return "${p.nombre} (${p.unidadMedida?.abreviatura ?? 'UND'})";
+                                                return "${p.nombre}";
                                               }(),
                                         style: const TextStyle(fontSize: 14),
                                         overflow: TextOverflow.ellipsis,
