@@ -203,22 +203,36 @@ class CarritoLista extends StatelessWidget {
                         onUpdateCantidad(item.id, item.cantidad - 1);
                       }
                     }),
-                    Container(
-                      constraints: const BoxConstraints(minWidth: 40),
-                      child: Text(
-                        item.cantidad.toInt().toString(),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          color: AppColors.secondary,
+                    InkWell(
+                      onTap: () =>
+                          _mostrarDialogoEdicionCantidad(context, item),
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 40),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          item.cantidad.toString().replaceAll(
+                            RegExp(r'\.0$'),
+                            '',
+                          ),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            color: AppColors.secondary,
+                            decoration: TextDecoration.underline,
+                            decorationStyle: TextDecorationStyle.dashed,
+                          ),
                         ),
                       ),
                     ),
-                    _buildQtyBtn(
-                      Icons.add,
-                      () => onUpdateCantidad(item.id, item.cantidad + 1),
-                    ),
+                    _buildQtyBtn(Icons.add, () {
+                      if (item.cantidad < 20000) {
+                        onUpdateCantidad(item.id, item.cantidad + 1);
+                      }
+                    }),
                   ],
                 ),
               ),
@@ -308,6 +322,60 @@ class CarritoLista extends StatelessWidget {
                 if (newPrecio != null && newPrecio >= 0) {
                   onUpdatePrecio!(item.id, newPrecio);
                   Navigator.pop(context);
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoEdicionCantidad(BuildContext context, FacturaItem item) {
+    final TextEditingController _qtyController = TextEditingController(
+      text: item.cantidad.toString().replaceAll(RegExp(r'\.0$'), ''),
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Ingresar Cantidad'),
+          content: TextField(
+            controller: _qtyController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: const InputDecoration(labelText: 'Cantidad'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                final double? newQty = double.tryParse(_qtyController.text);
+                if (newQty != null && newQty > 0 && newQty <= 20000) {
+                  onUpdateCantidad(item.id, newQty);
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'La cantidad debe ser mayor a 0 y máximo 20,000.',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                 }
               },
               child: const Text('Guardar'),

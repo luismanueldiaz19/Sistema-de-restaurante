@@ -8,9 +8,16 @@ use Illuminate\Http\Request;
 
 class MarcaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(['success' => true, 'data' => Marca::all()]);
+        $items = Marca::all();
+        if ($request->has('search') && $request->search != '') {
+            $search = $this->normalizarTexto($request->search);
+            $items = $items->filter(function ($item) use ($search) {
+                return str_contains($this->normalizarTexto($item->nombre), $search);
+            })->values();
+        }
+        return response()->json(['success' => true, 'data' => $items]);
     }
 
     public function store(Request $request)

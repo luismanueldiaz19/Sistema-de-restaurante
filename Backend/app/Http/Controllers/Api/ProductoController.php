@@ -12,7 +12,7 @@ class ProductoController extends Controller
 {
     public function index()
     {
-        $productos = Producto::with(['categoria', 'marca', 'impuesto'])->latest()->get();
+        $productos = Producto::with(['categoria', 'marca', 'unidadMedida', 'impuesto'])->latest()->get();
         return response()->json($productos);
     }
 
@@ -51,7 +51,7 @@ class ProductoController extends Controller
 
         try {
             $producto = Producto::create($request->all());
-            $producto->load(['categoria', 'marca', 'impuesto']);
+            $producto->load(['categoria', 'marca', 'unidadMedida', 'impuesto']);
             return response()->json([
                 'message' => 'Producto creado correctamente',
                 'data' => $producto
@@ -66,7 +66,7 @@ class ProductoController extends Controller
 
     public function show(string $id)
     {
-        $producto = Producto::with(['categoria', 'marca', 'impuesto'])->find($id);
+        $producto = Producto::with(['categoria', 'marca', 'unidadMedida', 'impuesto'])->find($id);
         if (!$producto) {
             return response()->json(['message' => 'Producto no encontrado'], 404);
         }
@@ -112,7 +112,7 @@ class ProductoController extends Controller
 
         try {
             $producto->update($request->all());
-            $producto->load(['categoria', 'marca', 'impuesto']);
+            $producto->load(['categoria', 'marca', 'unidadMedida', 'impuesto']);
             return response()->json([
                 'message' => 'Producto actualizado correctamente',
                 'data' => $producto

@@ -4,6 +4,7 @@ import 'package:sistema_restaurante/utils/normalize.dart';
 import 'categoria_model.dart';
 import 'marca_model.dart';
 import 'impuesto_model.dart';
+import 'unidad_medida_model.dart';
 import 'receta.dart';
 
 List<Producto> productoFromJson(String str) =>
@@ -20,10 +21,12 @@ class Producto {
 
   final int? categoriaId;
   final int? marcaId;
+  final int? unidadMedidaId;
   final int? impuestoId;
 
   final CategoriaModel? categoria;
   final MarcaModel? marca;
+  final UnidadMedidaModel? unidadMedida;
   final ImpuestoModel? impuesto;
 
   final String? tipoProducto;
@@ -56,9 +59,11 @@ class Producto {
     this.descripcion,
     this.categoriaId,
     this.marcaId,
+    this.unidadMedidaId,
     this.impuestoId,
     this.categoria,
     this.marca,
+    this.unidadMedida,
     this.impuesto,
     this.tipoProducto,
     this.tipoContable,
@@ -86,6 +91,7 @@ class Producto {
         codigo ?? '',
         categoria?.nombre ?? '',
         marca?.nombre ?? '',
+        unidadMedida?.abreviatura ?? '',
         impuesto?.nombre ?? '',
       ].join(" "),
     );
@@ -98,11 +104,13 @@ class Producto {
     descripcion: json["descripcion"],
     categoriaId: json["categoria_id"],
     marcaId: json["marca_id"],
+    unidadMedidaId: json["unidad_medida_id"],
     impuestoId: json["impuesto_id"],
     categoria: json["categoria"] != null
         ? CategoriaModel.fromJson(json["categoria"])
         : null,
     marca: json["marca"] != null ? MarcaModel.fromJson(json["marca"]) : null,
+    unidadMedida: json["unidad_medida"] != null ? UnidadMedidaModel.fromJson(json["unidad_medida"]) : null,
     impuesto: json["impuesto"] != null
         ? ImpuestoModel.fromJson(json["impuesto"])
         : null,
@@ -138,6 +146,7 @@ class Producto {
     "descripcion": descripcion,
     "categoria_id": categoriaId,
     "marca_id": marcaId,
+    "unidad_medida_id": unidadMedidaId,
     "impuesto_id": impuestoId,
     "tipo_producto": tipoProducto,
     "tipo_contable": tipoContable,

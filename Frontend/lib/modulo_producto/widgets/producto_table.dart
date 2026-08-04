@@ -68,6 +68,10 @@ class ProductoTable extends ConsumerWidget {
               size: ColumnSize.L,
             ),
             const DataColumn2(
+              label: Text("UND", style: TextStyle(fontWeight: FontWeight.bold)),
+              size: ColumnSize.L,
+            ),
+            const DataColumn2(
               label: Text(
                 "CATEGORÍA",
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -125,8 +129,9 @@ class ProductoTable extends ConsumerWidget {
 
             return DataRow2(
               color: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.hovered))
+                if (states.contains(WidgetState.hovered)) {
                   return AppColors.primary.withValues(alpha: 0.04);
+                }
                 return index.isEven ? Colors.white : Colors.grey.shade50;
               }),
               cells: [
@@ -140,6 +145,7 @@ class ProductoTable extends ConsumerWidget {
                     ),
                   ),
                 ),
+
                 DataCell(
                   Row(
                     children: [
@@ -166,6 +172,7 @@ class ProductoTable extends ConsumerWidget {
                     ],
                   ),
                 ),
+                DataCell(Text(p.unidadMedida?.nombre ?? '--')),
                 DataCell(_buildCategoryBadge(p.categoria?.nombre)),
                 DataCell(
                   Text(

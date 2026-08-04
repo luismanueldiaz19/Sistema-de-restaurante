@@ -8,13 +8,19 @@ use Illuminate\Http\Request;
 
 class CategoriaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(['success' => true, 'data' => Categoria::all()]);
+        $items = Categoria::all();
+        if ($request->has('search') && $request->search != '') {
+            $search = $this->normalizarTexto($request->search);
+            $items = $items->filter(function ($item) use ($search) {
+                return str_contains($this->normalizarTexto($item->nombre), $search);
+            })->values();
+        }
+        return response()->json(['success' => true, 'data' => $items]);
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $Categoria = Categoria::create($request->all());
         return response()->json(['success' => true, 'data' => $Categoria], 201);
     }

@@ -97,7 +97,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.05),
+              color: Colors.green.withOpacity(0.05),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
@@ -107,7 +107,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
               children: [
                 const Icon(
                   Icons.receipt_long,
-                  color: AppColors.primary,
+                  color: Colors.green,
                   size: 28,
                 ),
                 const SizedBox(width: 12),
@@ -250,10 +250,10 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                     ),
                     Text(
                       formatCurrency(double.tryParse(factura?['total']?.toString() ?? '0') ?? 0),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 18,
-                        color: AppColors.primary,
+                        color: Colors.green.shade700,
                       ),
                     ),
                   ],
@@ -290,9 +290,9 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                     horizontal: 16,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: Colors.green.shade50,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange.shade200),
+                    border: Border.all(color: Colors.green.shade200),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -300,7 +300,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       const Text(
                         'BALANCE PENDIENTE',
                         style: TextStyle(
-                          color: Colors.orange,
+                          color: Colors.green,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -308,7 +308,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       Text(
                         formatCurrency(cxc.balancePendiente),
                         style: TextStyle(
-                          color: Colors.orange.shade900,
+                          color: Colors.green.shade800,
                           fontWeight: FontWeight.w900,
                           fontSize: 20,
                         ),
@@ -378,7 +378,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: Colors.green.shade700,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

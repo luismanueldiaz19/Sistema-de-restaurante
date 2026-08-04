@@ -12,6 +12,7 @@ import 'package:sistema_restaurante/facturacion/screens/historial_ventas_screen.
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_productos.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_recetas.dart';
+import 'package:sistema_restaurante/modulo_producto/screens/screen_catalogo_base.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_movimientos_inventario.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/nueva_compra_screen.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/compras_list_screen.dart';
@@ -160,7 +161,29 @@ class MenuBuilder {
                 ),
               ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
-              SidebarSubItem(title: 'Categorías', onTap: () {}),
+              SidebarSubItem(
+                title: 'Categorías',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScreenCatalogoBase(titulo: 'Categorías', endpoint: 'categorias')),
+                ),
+              ),
+            if (auth.hasPermission('ver_inventario') || isAdmin)
+              SidebarSubItem(
+                title: 'Marcas',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScreenCatalogoBase(titulo: 'Marcas', endpoint: 'marcas')),
+                ),
+              ),
+            if (auth.hasPermission('ver_inventario') || isAdmin)
+              SidebarSubItem(
+                title: 'Unid. Medida',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScreenCatalogoBase(titulo: 'Unidades de Medida', endpoint: 'unidades-medida')),
+                ),
+              ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
               SidebarSubItem(title: 'Kardex', onTap: () {}),
             if (auth.hasPermission('ver_inventario') || isAdmin)

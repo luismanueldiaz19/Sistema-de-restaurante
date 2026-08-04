@@ -43,6 +43,14 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
+        $this->renderable(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'User is not logged in.'
+                ], 403);
+            }
+        });
+
         $this->reportable(function (Throwable $e) {
             //
         });

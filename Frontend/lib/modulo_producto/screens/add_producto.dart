@@ -32,6 +32,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
   int? categoriaId;
   int? marcaId;
+  int? unidadMedidaId;
   int? impuestoId;
 
   String tipoProducto = 'PRODUCTO';
@@ -49,6 +50,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       if (token != null) {
         ref.read(categoriasProvider.notifier).fetchAll(token);
         ref.read(marcasProvider.notifier).fetchAll(token);
+        ref.read(unidadesProvider.notifier).fetchAll(token);
         ref.read(impuestosProvider.notifier).fetchAll(token);
       }
     });
@@ -68,6 +70,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
       categoriaId = p.categoriaId;
       marcaId = p.marcaId;
+      unidadMedidaId = p.unidadMedidaId;
       impuestoId = p.impuestoId;
 
       tipoProducto = p.tipoProducto ?? 'PRODUCTO';
@@ -190,6 +193,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
     final categorias = ref.watch(categoriasProvider).items;
     final marcas = ref.watch(marcasProvider).items;
+    final unidades = ref.watch(unidadesProvider).items;
     final impuestos = ref.watch(impuestosProvider).items;
 
     return Dialog(
@@ -352,6 +356,22 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                       ),
                     ),
                     const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildDropdown(
+                        label: 'Unidad de Medida',
+                        value: unidadMedidaId,
+                        items: unidades
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text(e.abreviatura ?? e.nombre),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => unidadMedidaId = val as int?),
+                      ),
+                    ),
                   ],
                 ),
 
@@ -558,6 +578,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       "descripcion": descCtrl.text.trim(),
       "categoria_id": categoriaId,
       "marca_id": marcaId,
+      "unidad_medida_id": unidadMedidaId,
       "impuesto_id": impuestoId,
       "tipo_producto": tipoProducto,
       "tipo_contable": tipoContable,

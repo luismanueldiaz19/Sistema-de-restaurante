@@ -31,11 +31,19 @@ class CompraDetallePanel extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.shopping_bag_outlined, size: 80, color: Colors.grey.shade300),
+              Icon(
+                Icons.shopping_bag_outlined,
+                size: 80,
+                color: Colors.grey.shade300,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Selecciona una compra',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -57,7 +65,9 @@ class CompraDetallePanel extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.05),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
               border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
             ),
             child: Row(
@@ -68,25 +78,40 @@ class CompraDetallePanel extends StatelessWidget {
                   children: [
                     Text(
                       'Detalles de Compra',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Factura #${compra!.numeroFacturaProveedor}',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.secondary),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.secondary,
+                      ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: compra!.estado == 'PAGADA' ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                    color: compra!.estado == 'PAGADA'
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     compra!.estado,
                     style: TextStyle(
-                      color: compra!.estado == 'PAGADA' ? Colors.green : Colors.orange,
+                      color: compra!.estado == 'PAGADA'
+                          ? Colors.green
+                          : Colors.orange,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -101,46 +126,51 @@ class CompraDetallePanel extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: _buildInfoDato('Proveedor', compra!.proveedor?.nombre ?? 'Desconocido', Icons.business),
-                ),
-                Expanded(
                   child: _buildInfoDato(
-                    'Tipo', 
-                    compra!.tipoCompra, 
-                    Icons.credit_card
+                    'Proveedor',
+                    compra!.proveedor?.nombre ?? 'Desconocido',
+                    Icons.business,
                   ),
                 ),
                 Expanded(
                   child: _buildInfoDato(
-                    'Fecha', 
-                    compra!.fechaCompra.toString().split(' ')[0], 
-                    Icons.calendar_today_outlined
+                    'Tipo',
+                    compra!.tipoCompra,
+                    Icons.credit_card,
+                  ),
+                ),
+                Expanded(
+                  child: _buildInfoDato(
+                    'Fecha',
+                    compra!.fechaCompra.toString().split(' ')[0],
+                    Icons.calendar_today_outlined,
                   ),
                 ),
               ],
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
             child: Row(
               children: [
                 Expanded(
                   child: _buildInfoDato(
-                    'Comprobante (NCF)', 
-                    compra!.ncf?.isNotEmpty == true ? compra!.ncf! : 'N/A', 
-                    Icons.receipt_long
+                    'Comprobante (NCF)',
+                    compra!.ncf?.isNotEmpty == true ? compra!.ncf! : 'N/A',
+                    Icons.receipt_long,
                   ),
                 ),
                 Expanded(
                   child: _buildInfoDato(
-                    'Registrado por', 
-                    compra!.usuario?.name ?? 'Desconocido', 
-                    Icons.person_outline
+                    'Registrado por',
+                    compra!.usuario?.name ?? 'Desconocido',
+                    Icons.person_outline,
                   ),
                 ),
                 Expanded(
-                  child: const SizedBox(), // Espacio en blanco para balancear las 3 columnas
+                  child:
+                      const SizedBox(), // Espacio en blanco para balancear las 3 columnas
                 ),
               ],
             ),
@@ -155,7 +185,11 @@ class CompraDetallePanel extends StatelessWidget {
               children: [
                 const Text(
                   'Artículos comprados',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.secondary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: AppColors.secondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 if (compra!.detalles.isNotEmpty)
@@ -163,9 +197,12 @@ class CompraDetallePanel extends StatelessWidget {
                 if (compra!.detalles.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Text('No hay artículos', style: TextStyle(color: Colors.grey.shade500)),
+                    child: Text(
+                      'No hay artículos',
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
                   ),
-                  
+
                 const SizedBox(height: 24),
                 if (compra!.notas != null && compra!.notas!.isNotEmpty)
                   Container(
@@ -178,15 +215,28 @@ class CompraDetallePanel extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.notes, color: Colors.orange.shade700, size: 20),
+                        Icon(
+                          Icons.notes,
+                          color: Colors.orange.shade700,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Notas', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade800)),
+                              Text(
+                                'Notas',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange.shade800,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(compra!.notas!, style: TextStyle(color: Colors.orange.shade900)),
+                              Text(
+                                compra!.notas!,
+                                style: TextStyle(color: Colors.orange.shade900),
+                              ),
                             ],
                           ),
                         ),
@@ -202,7 +252,9 @@ class CompraDetallePanel extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.grey.shade50,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(24),
+              ),
               border: Border(top: BorderSide(color: Colors.grey.shade200)),
             ),
             child: Column(
@@ -210,10 +262,20 @@ class CompraDetallePanel extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('TOTAL DE COMPRA', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                    const Text(
+                      'TOTAL DE COMPRA',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
+                    ),
                     Text(
                       formatCurrency(compra!.total),
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.primary),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 24,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -255,9 +317,20 @@ class CompraDetallePanel extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+              Text(
+                label,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+              ),
               const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
         ),
@@ -281,7 +354,10 @@ class CompraDetallePanel extends StatelessWidget {
             child: Center(
               child: Text(
                 '${item.cantidad.toInt()}x',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ),
@@ -290,10 +366,13 @@ class CompraDetallePanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.producto?.nombre ?? item.descripcion ?? 'Desconocido', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  item.producto?.nombre ?? item.descripcion ?? 'Desconocido',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  'RD\$ ${formatCurrency((item.costoUnitario * item.cantidad + item.impuestoMonto) / (item.cantidad > 0 ? item.cantidad : 1))} (Con ITBIS)',
+                  '${formatCurrency((item.costoUnitario * item.cantidad + item.impuestoMonto) / (item.cantidad > 0 ? item.cantidad : 1))} (Con ITBIS)',
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                 ),
               ],

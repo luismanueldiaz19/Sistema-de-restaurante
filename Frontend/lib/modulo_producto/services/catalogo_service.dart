@@ -7,9 +7,14 @@ class CatalogoService {
 
   CatalogoService(this.endpoint);
 
-  Future<List<dynamic>> getAll(String token) async {
+  Future<List<dynamic>> getAll(String token, {String? search}) async {
+    String url = '$hostName/api/$endpoint';
+
+    if (search != null && search.isNotEmpty) {
+      url += '?search=$search';
+    }
     final response = await http.get(
-      Uri.parse('$hostName/api/$endpoint'),
+      Uri.parse(url),
       headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
     );
     if (response.statusCode == 200) {

@@ -15,6 +15,7 @@ class Producto extends Model
         'descripcion',
         'categoria_id',
         'marca_id',
+        'unidad_medida_id',
         'impuesto_id',
         'tipo_producto',
         'tipo_contable',
@@ -52,6 +53,11 @@ class Producto extends Model
     public function impuesto()
     {
         return $this->belongsTo(Impuesto::class);
+    }
+
+    public function unidadMedida()
+    {
+        return $this->belongsTo(UnidadMedida::class);
     }
 
     public function recetas()

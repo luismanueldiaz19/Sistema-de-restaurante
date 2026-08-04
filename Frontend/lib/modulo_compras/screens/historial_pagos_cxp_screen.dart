@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../palletes/app_colors.dart';
+import '../../utils/helpers.dart';
 import '../providers/cxp_provider.dart';
 
 class HistorialPagosCxpScreen extends ConsumerStatefulWidget {
@@ -14,8 +14,6 @@ class HistorialPagosCxpScreen extends ConsumerStatefulWidget {
 
 class _HistorialPagosCxpScreenState
     extends ConsumerState<HistorialPagosCxpScreen> {
-  final formatC = NumberFormat.currency(symbol: '\$');
-
   @override
   void initState() {
     super.initState();
@@ -112,38 +110,127 @@ class _HistorialPagosCxpScreenState
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: state.historialPagos.length,
-        separatorBuilder: (_, __) => const Divider(),
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final p = state.historialPagos[index];
 
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              child: const Icon(Icons.payment, color: AppColors.primary),
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade100),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            title: Text(
-              'Abono Fac: ${p.numeroFactura}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              'Proveedor: ${p.proveedorNombre}\nFecha: ${p.fechaPago} | ${p.metodoPago} (${p.bancoNombre})',
-            ),
-            isThreeLine: true,
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  formatC.format(p.montoPagado),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.green,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.payment, color: AppColors.primary),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Abono Fac: ${p.numeroFactura}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        p.proveedorNombre,
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 12,
+                            color: Colors.grey.shade500,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            p.fechaPago,
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.credit_card,
+                            size: 12,
+                            color: Colors.grey.shade500,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${p.metodoPago} ${p.bancoNombre.isNotEmpty ? '(${p.bancoNombre})' : ''}',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  'Ref: ${p.referencia}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formatCurrency(p.montoPagado),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Ref: ${p.referencia.isEmpty ? 'N/A' : p.referencia}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
