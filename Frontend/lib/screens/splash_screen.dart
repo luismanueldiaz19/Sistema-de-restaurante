@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../palletes/app_colors.dart';
 import '../providers/auth_provider.dart';
+import '../utils/constants.dart';
 import '../widgets/custom_loading.dart';
 import 'home_page.dart';
 import 'login_page.dart';
@@ -91,7 +92,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         children: [
           // 1. Background Image
           Positioned.fill(
-            child: Image.asset('assets/background.png', fit: BoxFit.cover),
+            child: Image.asset(backgroundCafeteria, fit: BoxFit.cover),
           ),
           // 2. Overlay
           Positioned.fill(

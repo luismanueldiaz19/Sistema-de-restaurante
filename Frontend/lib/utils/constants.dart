@@ -30,6 +30,10 @@ const double kwidth = 250;
 
 String firmaLu = 'assets/logo_lwader.png';
 
+String backgroundCafeteria = 'assets/background_cafeteria.png';
+String backgroundLibreria = 'assets/background_libreria.png';
+String backgroundFoodFast = "assets/background.png";
+
 String developerFirma = 'Lwader-Soft';
 
 String textConfirmacion = '👉🏼Esta seguro realizar el pedido ? 👈🏼';
