@@ -78,7 +78,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
-                      Icons.restaurant_menu,
+                      Icons.home_outlined,
                       color: Colors.white,
                       size: 24,
                     ),
@@ -166,7 +166,11 @@ class _CustomSidebarState extends State<CustomSidebar> {
                 ),
                 IconButton(
                   tooltip: 'Salir de la sección',
-                  icon: const Icon(Icons.logout, color: Colors.white54, size: 20),
+                  icon: const Icon(
+                    Icons.logout,
+                    color: Colors.white54,
+                    size: 20,
+                  ),
                   onPressed: widget.onLogout,
                 ),
               ],
@@ -177,7 +181,12 @@ class _CustomSidebarState extends State<CustomSidebar> {
     );
   }
 
-  Widget _buildMainItem(int index, SidebarItem item, bool isSelected, bool isExpanded) {
+  Widget _buildMainItem(
+    int index,
+    SidebarItem item,
+    bool isSelected,
+    bool isExpanded,
+  ) {
     return InkWell(
       onTap: () {
         if (item.subItems != null) {
@@ -194,11 +203,16 @@ class _CustomSidebarState extends State<CustomSidebar> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : Colors.transparent,
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          border: isSelected 
-            ? Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 1)
-            : null,
+          border: isSelected
+              ? Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.5),
+                  width: 1,
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -220,7 +234,9 @@ class _CustomSidebarState extends State<CustomSidebar> {
             ),
             if (item.subItems != null)
               Icon(
-                isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                isExpanded
+                    ? Icons.keyboard_arrow_down
+                    : Icons.keyboard_arrow_right,
                 color: Colors.white30,
                 size: 18,
               ),
@@ -239,10 +255,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
         width: double.infinity,
         child: Text(
           sub.title,
-          style: const TextStyle(
-            color: Colors.white54,
-            fontSize: 13,
-          ),
+          style: const TextStyle(color: Colors.white54, fontSize: 13),
         ),
       ),
     );

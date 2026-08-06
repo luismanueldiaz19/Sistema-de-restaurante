@@ -57,24 +57,24 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  # flutter_launcher_icons: "^0.13.1"
+  icons_launcher: any
   flutter_lints: ^6.0.0
   riverpod_generator: ^4.0.0+1
   build_runner: ^2.15.0
   custom_lint: ^0.8.1
   riverpod_lint: ^3.1.0
 
-# flutter_launcher_icons:
-#   android: true
-#   ios: false
-#   image_path: "assets/icon/app_icon.png"
-#   web:
-#     generate: true
-#     image_path: "assets/icon/app_icon.png"
-#   windows:
-#     generate: true
-#     image_path: "assets/icon/app_icon.png"
-#     icon_size: 48
+icons_launcher:
+  image_path: "assets/icon/app_icon_1.png"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: false
+    web:
+      enable: true
+    windows:
+      enable: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

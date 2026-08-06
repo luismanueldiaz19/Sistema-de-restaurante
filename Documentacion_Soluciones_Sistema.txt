@@ -1,0 +1,111 @@
+PROPUESTA DE VALOR Y SOLUCIONES DEL SISTEMA DE GESTIÓN EMPRESARIAL (ERP)
+--------------------------------------------------------------------------------
+Este documento detalla todas las capacidades, soluciones y niveles de cumplimiento 
+normativo que ofrece nuestro Sistema, diseñado para optimizar y automatizar 
+las operaciones de su negocio. Se detalla a continuación todo el alcance basado en 
+la arquitectura integral de módulos.
+
+1. PANEL DE CONTROL (DASHBOARD) Y PERFIL
+================================================================================
+• Dashboard Inteligente: Visualización en tiempo real del estado general de la empresa, métricas clave y accesos rápidos para la toma de decisiones.
+• Mi Perfil: Gestión individual de la cuenta del usuario para mayor seguridad y personalización.
+
+2. MÓDULO DE VENTAS Y FACTURACIÓN
+================================================================================
+Solución integral para el ciclo completo de ventas, desde la prospección hasta la facturación final.
+• Cotizaciones: Creación (Nueva Cotización) y seguimiento (Historial de Cotizaciones) ágil para prospectos y clientes. Ideal para cotizar servicios o productos sin afectar el inventario.
+• Pedidos: Control de órdenes y comandas antes de realizar la facturación definitiva.
+• Facturación (Nueva Venta y Facturas): Punto de venta rápido y eficiente para procesar
+ transacciones diarias con consulta del historial (Historial de Ventas).
+• Gestión de Pagos y Devoluciones: Manejo de Recibos de Pago y emisión de Notas de Crédito
+ en caso de devoluciones o correcciones (Historial de Notas de Crédito).
+• Gestión de Documentos: Control centralizado para consultar, imprimir y enviar 
+documentos fiscales.
+• Clientes: Base de datos tipo CRM (Customer Relationship Management) 
+para administración de la cartera de clientes, su historial de crédito y fidelización.
+
+3. MÓDULO DE INVENTARIO Y ALMACÉN
+================================================================================
+Control exacto de los recursos para evitar pérdidas, mermas y optimizar compras.
+• Catálogo Completo: Gestión centralizada de Productos, Categorías, Marcas y Unidades de Medida.
+• Control de Existencias: Kardex detallado para rastrear el flujo (entradas, salidas, saldos) de cada artículo.
+• Operaciones de Almacén: Ajustes de Inventario por averías o conteos físicos, y Transferencias de mercancía.
+• Producción y Recetas: Especialmente útil para restaurantes y manufactura ligera;
+ permite crear recetas para descontar los ingredientes exactos (materia prima) del inventario por cada plato o producto terminado vendido.
+
+4. MÓDULO DE COMPRAS Y PROVEEDORES
+================================================================================
+Optimización del abastecimiento y control riguroso de las deudas adquiridas.
+• Gestión de Compras: Creación de Órdenes de Compra pre-aprobadas y registro de facturas
+ de proveedores (Nueva Compra, Historial de Compras) que alimentan el inventario automáticamente.
+• Proveedores: Base de datos para gestionar contactos y condiciones comerciales.
+• Cuentas por Pagar (CxP): Control estricto de deudas con proveedores y registro de abonos (Pagos Realizados) para mantener un flujo de caja saludable y programar desembolsos.
+
+5. MÓDULO DE FINANZAS Y CAJA
+================================================================================
+Transparencia total en el flujo de dinero de la empresa.
+• Control de Caja: Apertura de Caja, Cierre de Caja estructurado y registro de todos 
+los Movimientos de Caja (Historial de Caja) para prevenir descuadres y robos.
+• Bancos: Conciliación y manejo de cuentas bancarias corporativas.
+• Cuentas por Cobrar (CxC): Seguimiento de clientes con crédito, cobros pendientes y estados de cuenta.
+• Gastos: Registro de gastos menores y operativos para reflejar la rentabilidad real 
+de la empresa día a día.
+
+6. MÓDULO DE CONTABILIDAD
+================================================================================
+Automatización contable integrada con las operaciones de todo el negocio.
+• Configuración Contable: Catálogo de cuentas contables adaptable a la estructura 
+de la empresa.
+• Registros: Libro Diario General y Libro Mayor General automatizados; las ventas, 
+compras y cobros generan los asientos de manera transparente.
+• Estados Financieros: Generación automática en tiempo real del Balance General y 
+Estado de Resultados para conocer la salud y rentabilidad del negocio.
+
+7. MÓDULO DE RECURSOS HUMANOS (RRHH) Y NÓMINA
+================================================================================
+Administración eficiente del personal, minimizando el esfuerzo en el cálculo salarial.
+• Dashboard Nómina: Resumen visual del gasto en capital humano.
+• Empleados: Expedientes completos y gestión del talento.
+• Generar Nómina: Cálculo automático de salarios, horas extras, descuentos de ley y beneficios.
+• Control de Personal: Gestión de Vacaciones y Asistencia del personal.
+
+8. CUMPLIMIENTO FISCAL (DGII) - REPÚBLICA DOMINICANA
+================================================================================
+El sistema está 100% adaptado a las normativas de la Dirección General de 
+Impuestos Internos (DGII), asegurando cumplimiento fiscal total.
+• Comprobantes Fiscales: Manejo automático de secuencias de NCF físicos.
+• Facturación Electrónica (e-CF): Preparado para la emisión de Comprobantes 
+Fiscales Electrónicos, alineándose con las últimas exigencias tecnológicas y fiscales.
+• Reportes Tributarios Automáticos: Generación en formato TXT listos para 
+cargar en la oficina virtual de los formatos de envío:
+  - Reporte 606: Compras de Bienes y Servicios.
+  - Reporte 607: Ventas de Bienes y Servicios.
+  - Reporte 608: Comprobantes Anulados.
+  - Reporte 609: Pagos al Exterior.
+• Reportes DGII: Consolidación de todas las obligaciones tributarias en un solo lugar.
+
+9. MÓDULO DE REPORTES (BUSINESS INTELLIGENCE)
+================================================================================
+Inteligencia de negocios (BI) para toma de decisiones estratégicas basadas en datos.
+• Reportes detallados por módulo: Ventas, Compras, Inventario, Finanzas, RRHH y Contabilidad.
+
+10. ADMINISTRACIÓN Y SEGURIDAD
+================================================================================
+Control total sobre quién ve qué en el sistema y auditoría de operaciones.
+• Usuarios, Roles y Permisos: Creación de perfiles restrictivos 
+(ej. el Cajero no puede anular facturas sin permiso, el Vendedor no ve reportes financieros).
+• Configuración: Adaptación general del sistema a la empresa.
+• Auditoría: Log de registro inalterable de cada acción en el sistema 
+(quién, cuándo y qué acción realizó) para total trazabilidad y control anti-fraude.
+
+--------------------------------------------------------------------------------
+RESUMEN DE LA SOLUCIÓN
+Este sistema trasciende de ser un simple Punto de Venta (POS) a 
+convertirse en un ERP (Enterprise Resource Planning) completo de clase mundial. 
+Al integrar todas las áreas operativas (Ventas, Inventario, Compras, Finanzas, Contabilidad, Nómina) 
+en un único núcleo centralizado, elimina la duplicidad de trabajo. 
+
+Además, aporta una solución definitiva al cumplimiento fiscal dominicano, 
+automatizando los reportes (606, 607, 608) y modernizando el negocio mediante 
+la integración de la Facturación Electrónica (e-CF), garantizando orden operativo, 
+escalabilidad y la máxima rentabilidad.

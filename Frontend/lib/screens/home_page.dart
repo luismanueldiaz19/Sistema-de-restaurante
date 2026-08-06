@@ -12,7 +12,6 @@ import 'package:sistema_restaurante/modulo_compras/screens/cxp_list_screen.dart'
 import 'package:sistema_restaurante/modulo_cxc/screens/cxc_list_screen.dart';
 import 'package:sistema_restaurante/widgets/custom_confirm_dialog.dart';
 import 'package:sistema_restaurante/widgets/custom_sidebar.dart';
-import '../facturacion/screens/gestion_documentos_screen.dart';
 import '../facturacion/screens/historial_ventas_screen.dart';
 import '../modulo_cliente/providers/cliente_admin_provider.dart';
 import '../modulo_caja/providers/caja_provider.dart';
