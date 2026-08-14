@@ -1,6 +1,7 @@
 // import 'package:factu_me/model/usuario.dart';
 import 'package:flutter/material.dart';
-// import 'package:sistema_restaurante/model/user.dart';
+import '../model/company.dart';
+export '../model/company.dart'; // re-exportar para código que importe constants.dart
 
 // import '../model/empresa_local.dart';
 
@@ -109,3 +110,13 @@ String getClientePorPrioridad(String prioridad) {
       return 'Normal'; // En caso de que no coincida con ninguna prioridad
   }
 }
+
+// ──────────────────────────────────────────────────
+// DATOS DE LA EMPRESA → ver lib/model/company.dart
+// Usa Company.current para acceder a nombre, RNC, dirección, teléfono, etc.
+// ──────────────────────────────────────────────────
+
+// Aliases de compatibilidad (evitan cambiar código existente)
+String get empresaNombre => Company.current.nombre;
+String get empresaDireccion => Company.current.direccionCompleta;
+String get empresaRNC => Company.current.rnc;

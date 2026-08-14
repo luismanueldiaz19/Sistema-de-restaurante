@@ -57,7 +57,7 @@ class FacturacionService {
         payload,
         token: token,
       );
-
+      print("DEBUG FACTURA RESPUESTA: ${jsonDecode(response.body)}");
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -89,9 +89,9 @@ class FacturacionService {
 
       if (response.statusCode == 200) {
         return {
-          "success": true, 
+          "success": true,
           "data": data['data'],
-          "resumen": data['resumen']
+          "resumen": data['resumen'],
         };
       } else {
         return {
@@ -152,10 +152,7 @@ class FacturacionService {
   ) async {
     final response = await _api.post(
       '$_baseUrl/facturas/$facturaId/nota-credito',
-      {
-        'detalles': detalles,
-        'motivo': motivo,
-      },
+      {'detalles': detalles, 'motivo': motivo},
       token: token,
     );
 
@@ -178,22 +175,27 @@ class FacturacionService {
             "?" + filters.entries.map((e) => "${e.key}=${e.value}").join("&");
       }
 
-      final response = await _api.get("$_baseUrl/notas-credito$query", token: token);
+      final response = await _api.get(
+        "$_baseUrl/notas-credito$query",
+        token: token,
+      );
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         return {
-          "success": true, 
+          "success": true,
           "data": data['data'],
-          "resumen": data['resumen']
+          "resumen": data['resumen'],
         };
       } else {
-        print("Error del servidor (${response.statusCode}): ${data['message']}");
+        print(
+          "Error del servidor (${response.statusCode}): ${data['message']}",
+        );
         return {
           "success": false,
-          "message": response.statusCode == 500 
-            ? "Ocurrió un error interno en el servidor." 
-            : (data['message'] ?? "Error al obtener notas de crédito"),
+          "message": response.statusCode == 500
+              ? "Ocurrió un error interno en el servidor."
+              : (data['message'] ?? "Error al obtener notas de crédito"),
         };
       }
     } catch (e) {

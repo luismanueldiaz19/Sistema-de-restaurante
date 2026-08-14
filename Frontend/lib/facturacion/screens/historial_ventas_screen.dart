@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import '../print/factura_ticket.dart';
-import '../print/factura_esc_pos.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
 import '../../utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../providers/facturacion_historial_provider.dart';
 import '../../model/factura.dart';
-import 'nota_credito_dialog.dart';
 
 class HistorialVentasScreen extends ConsumerStatefulWidget {
   const HistorialVentasScreen({super.key});

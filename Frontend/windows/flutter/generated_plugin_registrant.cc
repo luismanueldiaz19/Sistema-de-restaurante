@@ -6,12 +6,15 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <charset_converter/charset_converter_plugin.h>
+#include <flutter_thermal_printer/flutter_thermal_printer_plugin_c_api.h>
+#include <universal_ble/universal_ble_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  CharsetConverterPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("CharsetConverterPlugin"));
+  FlutterThermalPrinterPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterThermalPrinterPluginCApi"));
+  UniversalBlePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("UniversalBlePluginCApi"));
   UrlLauncherWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
 }

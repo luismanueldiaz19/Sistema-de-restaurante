@@ -6,10 +6,12 @@ import '../../modulo_cliente/providers/cliente_admin_provider.dart';
 import '../../modulo_producto/models/producto.dart';
 import '../../modulo_producto/providers/producto_provider.dart';
 import '../../utils/helpers.dart';
+import '../../model/company.dart';
 import '../../providers/auth_provider.dart';
 import '../models/factura_item.dart';
 import '../providers/facturacion_provider.dart';
 import '../services/facturacion_service.dart';
+import '../services/printer_service.dart';
 import '../widgets/panel_configuracion.dart';
 import '../widgets/carrito_lista.dart';
 import '../widgets/pago_dialog.dart';
@@ -31,6 +33,7 @@ class CrearFacturaPage extends ConsumerStatefulWidget {
 class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   final ComprobanteRepository _comprobanteRepo = ComprobanteRepository();
   final FacturacionService _facturaService = FacturacionService();
+  final ThermalPrinterService _printer = ThermalPrinterService.instance;
   List<Comprobante> _comprobantes = [];
   String _searchQuery = "";
 
@@ -52,7 +55,13 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     final results = await _comprobanteRepo.getComprabante(auth.token!);
     final validSalesNcf = results.where((c) {
       // 31: Crédito Fiscal, 32: Consumo, 44: Régimen Especial, 45: Gubernamental, 46: Exportaciones
-      return ['31', '32', '44', '45', '46'].contains(c.tipo.replaceAll(RegExp(r'[^0-9]'), ''));
+      return [
+        '31',
+        '32',
+        '44',
+        '45',
+        '46',
+      ].contains(c.tipo.replaceAll(RegExp(r'[^0-9]'), ''));
     }).toList();
     setState(() => _comprobantes = validSalesNcf);
 
@@ -147,11 +156,65 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     );
 
     if (result['success'] && mounted) {
-      showToast(context, 'Factura creada con éxito', bgColor: Colors.green);
-      // En lugar de recargar todo, solo reseteamos localmente
+      // showToast(context, 'Factura creada con éxito', bgColor: Colors.green);
+      // 🖨️ Imprimir ticket en impresora térmica USB (no bloquea el flujo)
+      _imprimirTicket(state, result['data'], pagoInfo);
+      // Resetear para la siguiente venta
       _resetParaSiguienteVenta();
     } else if (mounted) {
       showToast(context, result['message'], bgColor: Colors.red);
+    }
+  }
+
+  /// Imprime el ticket de la factura recién creada.
+  /// Se ejecuta de forma asíncrona sin bloquear la UI.
+  Future<void> _imprimirTicket(
+    FacturacionState state,
+    Map<String, dynamic>? facturaData,
+    Map<String, dynamic>? pagoInfo,
+  ) async {
+    // Construir número de factura desde la respuesta del servidor
+    final ncf =
+        facturaData?['ncf'] ??
+        facturaData?['numero_comprobante'] ??
+        facturaData?['id']?.toString() ??
+        'S/N';
+
+    final resultado = await _printer.imprimirFactura(
+      nombreNegocio: Company.current.nombre,
+      direccion: Company.current.direccionCompleta,
+      rncOCedula: Company.current.rnc,
+      numeroFactura: ncf.toString(),
+      fecha: DateTime.now(),
+      items: state.carrito
+          .map(
+            (item) => ItemFactura(
+              descripcion: item.descripcion,
+              cantidad: item.cantidad,
+              precioUnitario: item.precio,
+            ),
+          )
+          .toList(),
+      subtotal: state.totales.subtotal,
+      impuesto: state.totales.itbis,
+      descuento: state.totales.descuento,
+      total: state.totales.total,
+      cliente: state.clienteSeleccionado?.nombre,
+      rncCliente: state.clienteSeleccionado?.rncCedula,
+      nota: state.nota.isNotEmpty ? state.nota : null,
+      tipoPago: state.tipoFactura == 'contado' ? 'CONTADO' : 'CREDITO',
+      metodoPago: pagoInfo?['metodo_pago']?.toString().toUpperCase(),
+      montoRecibido: pagoInfo?['monto_recibido'],
+      devuelta: pagoInfo?['devuelta'],
+    );
+
+    if (!resultado.exito && mounted) {
+      // Aviso no bloqueante — la factura ya se guardó en el servidor
+      showToast(
+        context,
+        '🖨️ ${resultado.mensaje}',
+        bgColor: Colors.orange.shade700,
+      );
     }
   }
 
@@ -199,6 +262,37 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
         ),
         actions: [
           const SizedBox(width: 12),
+          // 🖨️ Botón de prueba de impresora
+          _buildCircleButton(
+            icon: Icons.print_outlined,
+            color: Colors.teal,
+            tooltip: 'Probar Impresora',
+            onTap: () async {
+              final resultado = await _printer.imprimirPrueba();
+
+              print(resultado.mensaje);
+              print(resultado.exito);
+              // print(resultado.isConnectionError);
+              // print(resultado.isCutError);
+              // print(resultado.isDataError);
+              // print(resultado.isDriverError);
+              // print(resultado.isError);
+              // print(resultado.isPaperError);
+              // print(resultado.isSoftwareError);
+              // print(resultado.isThermalError);
+
+              if (mounted) {
+                showToast(
+                  context,
+                  resultado.mensaje,
+                  bgColor: resultado.exito
+                      ? Colors.teal
+                      : Colors.orange.shade700,
+                );
+              }
+            },
+          ),
+          const SizedBox(width: 8),
           _buildCircleButton(
             icon: Icons.delete_sweep_outlined,
             color: Colors.redAccent,
