@@ -132,6 +132,31 @@ class ThermalPrinterService {
   }
 
   // ─────────────────────────────────────────────
+  // IMPRIMIR RAW BYTES (PARA OTROS SERVICIOS)
+  // ─────────────────────────────────────────────
+  Future<ResultadoImpresora> printBytes(List<int> bytes, {Printer? printer}) async {
+    try {
+      Printer? target = printer ?? _printerConectado;
+
+      if (target == null) {
+        final conexion = await conectarAutomaticamente();
+        if (!conexion.exito) {
+          return ResultadoImpresora(
+            exito: false,
+            mensaje: 'Sin impresora conectada. ${conexion.mensaje}',
+          );
+        }
+        target = _printerConectado!;
+      }
+
+      await _plugin.printData(target, bytes, longData: true);
+      return const ResultadoImpresora(exito: true, mensaje: 'Impreso correctamente');
+    } catch (e) {
+      return ResultadoImpresora(exito: false, mensaje: 'Error al enviar bytes a impresora: $e');
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // IMPRIMIR FACTURA
   // ─────────────────────────────────────────────
   Future<ResultadoImpresora> imprimirFactura({
@@ -139,6 +164,7 @@ class ThermalPrinterService {
     required String direccion,
     required String rncOCedula,
     required String numeroFactura,
+    String? ncf,
     required DateTime fecha,
     required List<ItemFactura> items,
     required double subtotal,
@@ -218,10 +244,13 @@ class ThermalPrinterService {
         styles: const PosStyles(align: PosAlign.left),
       );
 
-      bytes += generator.text(
-        'e-NCF $numeroFactura',
-        styles: const PosStyles(align: PosAlign.left, bold: true),
-      );
+      if (ncf != null && ncf.isNotEmpty && ncf != 'S/N') {
+        bytes += generator.text(
+          'e-NCF $ncf',
+          styles: const PosStyles(align: PosAlign.left, bold: true),
+        );
+      }
+      
       bytes += generator.text(
         'Factura No. : $numeroFactura',
         styles: const PosStyles(align: PosAlign.left),
@@ -335,7 +364,7 @@ class ThermalPrinterService {
       // ── FIRMA ELECTRÓNICA / QR ─────────
       bytes += generator.emptyLines(1);
       String firmaSimulada =
-          'https://dgii.gov.do/ecf/consultar?ncf=$numeroFactura&rnc=$rncOCedula';
+          'https://dgii.gov.do/ecf/consultar?ncf=${ncf ?? numeroFactura}&rnc=$rncOCedula';
       bytes += generator.qrcode(firmaSimulada);
 
       bytes += generator.text(

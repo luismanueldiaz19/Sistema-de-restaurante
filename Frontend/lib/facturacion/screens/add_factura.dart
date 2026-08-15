@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../models/factura_item.dart';
 import '../providers/facturacion_provider.dart';
 import '../services/facturacion_service.dart';
+import '../../pedidos/services/pedido_service.dart';
 import '../services/printer_service.dart';
 import '../widgets/panel_configuracion.dart';
 import '../widgets/carrito_lista.dart';
@@ -33,7 +34,9 @@ class CrearFacturaPage extends ConsumerStatefulWidget {
 class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   final ComprobanteRepository _comprobanteRepo = ComprobanteRepository();
   final FacturacionService _facturaService = FacturacionService();
+  final PedidoService _pedidoService = PedidoService();
   final ThermalPrinterService _printer = ThermalPrinterService.instance;
+  final TextEditingController _searchController = TextEditingController();
   List<Comprobante> _comprobantes = [];
   String _searchQuery = "";
 
@@ -41,6 +44,55 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   void initState() {
     super.initState();
     _initData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleBarcodeScan(
+    String codigo,
+    FacturacionNotifier factNotifier,
+  ) async {
+    if (codigo.trim().isEmpty) return;
+
+    if (codigo.trim().length >= 10 &&
+        RegExp(r'^\d+$').hasMatch(codigo.trim())) {
+      try {
+        final pedido = await _pedidoService.getPedidoByCodigo(codigo.trim());
+        if (pedido != null) {
+          factNotifier.limpiarCarrito();
+          for (var detalle in pedido.detalles) {
+            factNotifier.agregarProducto(
+              FacturaItem(
+                id: detalle.productoId.toString(),
+                descripcion: detalle.nombreProducto,
+                precio: detalle.precioUnitario,
+                cantidad: detalle.cantidad,
+              ),
+            );
+          }
+          if (mounted) {
+            showToast(
+              context,
+              'Pedido #${pedido.secuenciaDiaria} cargado',
+              bgColor: Colors.green,
+            );
+            setState(() {
+              _searchQuery = '';
+              _searchController.clear();
+            });
+          }
+          return;
+        }
+      } catch (e) {
+        if (mounted) {
+          showToast(context, 'No se encontró pedido', bgColor: Colors.orange);
+        }
+      }
+    }
   }
 
   Future<void> _initData() async {
@@ -174,17 +226,13 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     Map<String, dynamic>? pagoInfo,
   ) async {
     // Construir número de factura desde la respuesta del servidor
-    final ncf =
-        facturaData?['ncf'] ??
-        facturaData?['numero_comprobante'] ??
-        facturaData?['id']?.toString() ??
-        'S/N';
 
     final resultado = await _printer.imprimirFactura(
       nombreNegocio: Company.current.nombre,
       direccion: Company.current.direccionCompleta,
       rncOCedula: Company.current.rnc,
-      numeroFactura: ncf.toString(),
+      numeroFactura: facturaData?['factura_id']?.toString() ?? 'S/N',
+      ncf: facturaData?['ncf']?.toString(),
       fecha: DateTime.now(),
       items: state.carrito
           .map(
@@ -551,11 +599,14 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: TextField(
+                    controller: _searchController,
                     onChanged: (v) => setState(() => _searchQuery = v),
+                    onSubmitted: (v) => _handleBarcodeScan(v, factNotifier),
                     decoration: const InputDecoration(
-                      hintText: 'Buscar producto por nombre o código...',
+                      hintText:
+                          'Buscar producto o escanear ticket de pedido...',
                       border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.grey),
+                      icon: Icon(Icons.qr_code_scanner, color: Colors.grey),
                     ),
                   ),
                 ),

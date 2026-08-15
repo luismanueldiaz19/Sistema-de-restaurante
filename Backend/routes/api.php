@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\DgiiController;
 use App\Http\Controllers\Api\ReporteContableController;
 use App\Http\Controllers\Api\AjusteInventarioController;
 use App\Http\Controllers\Api\NotaCreditoController;
+use App\Http\Controllers\Api\PedidoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,6 +39,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf']);
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+
+// Webhook para Chatbot (Sin Auth de usuario)
+Route::post('/pedidos/bot', [PedidoController::class, 'storeWebhook']);
+Route::get('/pedidos/bot/productos', [ProductoController::class, 'index']);
 
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
@@ -110,6 +115,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
       Route::get('/ncf-secuencias/{id}', [NcfSecuenciaController::class, 'show'])
         ->middleware('permission:crear_facturas');
+
+    // ================= PEDIDOS =================
+    Route::post('/pedidos', [PedidoController::class, 'store']);
+    Route::get('/pedidos', [PedidoController::class, 'index']);
+    Route::get('/pedidos/codigo/{codigo}', [PedidoController::class, 'getByCodigo']);
+    Route::put('/pedidos/{id}/estado', [PedidoController::class, 'updateStatus']);
 
     // ================= ASIGNACIÓN DE MESAS Y CUENTAS =================
     Route::post('/cajas/{cajaId}/asignar-mesa', [CajaController::class, 'asignarMesa']);

@@ -9,6 +9,9 @@ import 'package:sistema_restaurante/widgets/custom_sidebar.dart';
 import 'package:sistema_restaurante/screens/profile_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/add_factura.dart';
 import 'package:sistema_restaurante/facturacion/screens/historial_ventas_screen.dart';
+import 'package:sistema_restaurante/pedidos/screens/pedidos_screen.dart';
+import 'package:sistema_restaurante/pedidos/screens/add_pedido.dart';
+import 'package:sistema_restaurante/pedidos/providers/pedidos_provider.dart';
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_productos.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_recetas.dart';
@@ -97,7 +100,25 @@ class MenuBuilder {
                   ),
                 ),
               ),
-            SidebarSubItem(title: 'Pedidos', onTap: () {}),
+            SidebarSubItem(
+              title: 'Pedidos',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PedidosScreen()),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Nuevo Pedido',
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CrearPedidoPage()),
+                );
+                if (result == true) {
+                  ref.read(pedidosProvider).fetchPedidos();
+                }
+              },
+            ),
             if (auth.hasPermission('crear_facturas') || isAdmin)
               SidebarSubItem(
                 title: 'Nueva Venta',
@@ -121,14 +142,18 @@ class MenuBuilder {
               title: 'Gestión de Documentos',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const GestionDocumentosScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const GestionDocumentosScreen(),
+                ),
               ),
             ),
             SidebarSubItem(
               title: 'Notas de Crédito',
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const HistorialNotasCreditoScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const HistorialNotasCreditoScreen(),
+                ),
               ),
             ),
             if (auth.hasPermission('ver_clientes') || isAdmin)
@@ -165,7 +190,12 @@ class MenuBuilder {
                 title: 'Categorías',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ScreenCatalogoBase(titulo: 'Categorías', endpoint: 'categorias')),
+                  MaterialPageRoute(
+                    builder: (_) => const ScreenCatalogoBase(
+                      titulo: 'Categorías',
+                      endpoint: 'categorias',
+                    ),
+                  ),
                 ),
               ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
@@ -173,7 +203,12 @@ class MenuBuilder {
                 title: 'Marcas',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ScreenCatalogoBase(titulo: 'Marcas', endpoint: 'marcas')),
+                  MaterialPageRoute(
+                    builder: (_) => const ScreenCatalogoBase(
+                      titulo: 'Marcas',
+                      endpoint: 'marcas',
+                    ),
+                  ),
                 ),
               ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
@@ -181,7 +216,12 @@ class MenuBuilder {
                 title: 'Unid. Medida',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ScreenCatalogoBase(titulo: 'Unidades de Medida', endpoint: 'unidades-medida')),
+                  MaterialPageRoute(
+                    builder: (_) => const ScreenCatalogoBase(
+                      titulo: 'Unidades de Medida',
+                      endpoint: 'unidades-medida',
+                    ),
+                  ),
                 ),
               ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
@@ -191,7 +231,9 @@ class MenuBuilder {
                 title: 'Ajustes de Inventario',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ScreenMovimientosInventario()),
+                  MaterialPageRoute(
+                    builder: (_) => const ScreenMovimientosInventario(),
+                  ),
                 ),
               ),
             if (auth.hasPermission('ver_inventario') || isAdmin)

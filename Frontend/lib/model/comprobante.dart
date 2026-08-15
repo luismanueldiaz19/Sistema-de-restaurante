@@ -45,4 +45,13 @@ class Comprobante {
     "nombre": nombre,
     "prefijo": prefijo,
   };
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Comprobante && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

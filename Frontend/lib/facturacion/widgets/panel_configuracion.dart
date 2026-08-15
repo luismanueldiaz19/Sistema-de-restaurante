@@ -3,7 +3,7 @@ import '../../palletes/app_colors.dart';
 import '../../../modulo_cliente/models/cliente.dart';
 import '../../../model/comprobante.dart';
 
-class PanelConfiguracion extends StatelessWidget {
+class PanelConfiguracion extends StatefulWidget {
   final Cliente? cliente;
   final Comprobante? comprobante;
   final List<Comprobante> comprobantes;
@@ -30,6 +30,33 @@ class PanelConfiguracion extends StatelessWidget {
     required this.onCambiarDias,
     required this.onCambiarNota,
   });
+
+  @override
+  State<PanelConfiguracion> createState() => _PanelConfiguracionState();
+}
+
+class _PanelConfiguracionState extends State<PanelConfiguracion> {
+  late TextEditingController _notaController;
+
+  @override
+  void initState() {
+    super.initState();
+    _notaController = TextEditingController(text: widget.nota);
+  }
+
+  @override
+  void didUpdateWidget(PanelConfiguracion oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.nota.isEmpty && oldWidget.nota.isNotEmpty) {
+      _notaController.clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    _notaController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +104,7 @@ class PanelConfiguracion extends StatelessWidget {
           const _Label(text: 'CLIENTE'),
           const SizedBox(height: 8),
           InkWell(
-            onTap: onSelectCliente,
+            onTap: widget.onSelectCliente,
             borderRadius: BorderRadius.circular(20),
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -88,29 +115,42 @@ class PanelConfiguracion extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.person_outline, color: AppColors.primary, size: 22),
+                  const Icon(
+                    Icons.person_outline,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          cliente?.nombre ?? 'Seleccionar Cliente',
+                          widget.cliente?.nombre ?? 'Seleccionar Cliente',
                           style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 14,
-                            color: cliente == null ? Colors.grey : AppColors.secondary,
+                            color: widget.cliente == null
+                                ? Colors.grey
+                                : AppColors.secondary,
                           ),
                         ),
-                        if (cliente != null)
+                        if (widget.cliente != null)
                           Text(
-                            cliente!.rncCedula ?? 'Sin identificación',
-                            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                            widget.cliente!.rncCedula ?? 'Sin identificación',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_right, color: Colors.grey, size: 20),
+                  const Icon(
+                    Icons.keyboard_arrow_right,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
                 ],
               ),
             ),
@@ -125,21 +165,22 @@ class PanelConfiguracion extends StatelessWidget {
             children: [
               _buildTipoOption(
                 label: 'Contado',
-                isSelected: tipoFactura == 'contado',
-                onTap: () => onCambiarTipo('contado'),
+                isSelected: widget.tipoFactura == 'contado',
+                onTap: () => widget.onCambiarTipo('contado'),
               ),
-              if (cliente != null && (cliente?.diasCredito ?? 0) > 0) ...[
+              if (widget.cliente != null &&
+                  (widget.cliente?.diasCredito ?? 0) > 0) ...[
                 const SizedBox(width: 12),
                 _buildTipoOption(
                   label: 'Crédito',
-                  isSelected: tipoFactura == 'credito',
-                  onTap: () => onCambiarTipo('credito'),
+                  isSelected: widget.tipoFactura == 'credito',
+                  onTap: () => widget.onCambiarTipo('credito'),
                 ),
               ],
             ],
           ),
 
-          if (tipoFactura == 'credito') ...[
+          if (widget.tipoFactura == 'credito') ...[
             const SizedBox(height: 24),
             const _Label(text: 'DÍAS DE CRÉDITO'),
             const SizedBox(height: 8),
@@ -151,14 +192,14 @@ class PanelConfiguracion extends StatelessWidget {
                 border: Border.all(color: Colors.grey.shade100),
               ),
               child: TextFormField(
-                key: ValueKey(cliente?.id),
-                initialValue: diasCredito.toString(),
+                key: ValueKey(widget.cliente?.id),
+                initialValue: widget.diasCredito.toString(),
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   hintText: 'Ej. 30',
                   border: InputBorder.none,
                 ),
-                onChanged: (v) => onCambiarDias(int.tryParse(v) ?? 0),
+                onChanged: (v) => widget.onCambiarDias(int.tryParse(v) ?? 0),
               ),
             ),
           ],
@@ -176,14 +217,14 @@ class PanelConfiguracion extends StatelessWidget {
               border: Border.all(color: Colors.grey.shade100),
             ),
             child: TextFormField(
-              initialValue: nota,
+              controller: _notaController,
               maxLines: 3,
               style: const TextStyle(fontSize: 13),
               decoration: const InputDecoration(
                 hintText: 'Ej. Dirección de entrega, indicaciones...',
                 border: InputBorder.none,
               ),
-              onChanged: onCambiarNota,
+              onChanged: widget.onCambiarNota,
             ),
           ),
 
@@ -201,7 +242,7 @@ class PanelConfiguracion extends StatelessWidget {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButtonFormField<Comprobante>(
-                value: comprobante,
+                initialValue: widget.comprobante,
                 isExpanded: true,
                 decoration: const InputDecoration(border: InputBorder.none),
                 icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
@@ -209,7 +250,7 @@ class PanelConfiguracion extends StatelessWidget {
                   'Seleccionar...',
                   style: TextStyle(fontSize: 14),
                 ),
-                items: comprobantes.map((c) {
+                items: widget.comprobantes.map((c) {
                   return DropdownMenuItem(
                     value: c,
                     child: Text(
@@ -221,7 +262,7 @@ class PanelConfiguracion extends StatelessWidget {
                     ),
                   );
                 }).toList(),
-                onChanged: onSelectComprobante,
+                onChanged: widget.onSelectComprobante,
               ),
             ),
           ),
