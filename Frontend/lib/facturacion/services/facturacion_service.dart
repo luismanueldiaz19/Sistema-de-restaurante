@@ -40,6 +40,7 @@ class FacturacionService {
                 "descripcion": item.descripcion,
                 "cantidad": item.cantidad,
                 "precio": item.precio,
+                "itbis_porcentaje": item.itbisPorcentaje,
                 "itbis": item.montoItbis,
                 "descuento_porcentaje": item.descuentoPorcentaje,
                 "descuento": item.montoDescuento,
@@ -50,14 +51,11 @@ class FacturacionService {
             .toList(),
       };
 
-      print("DEBUG PAYLOAD: ${jsonEncode(payload)}");
-
       final response = await _api.post(
         "$_baseUrl/facturas",
         payload,
         token: token,
       );
-      print("DEBUG FACTURA RESPUESTA: ${jsonDecode(response.body)}");
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {

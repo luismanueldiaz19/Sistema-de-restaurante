@@ -318,17 +318,6 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
             onTap: () async {
               final resultado = await _printer.imprimirPrueba();
 
-              print(resultado.mensaje);
-              print(resultado.exito);
-              // print(resultado.isConnectionError);
-              // print(resultado.isCutError);
-              // print(resultado.isDataError);
-              // print(resultado.isDriverError);
-              // print(resultado.isError);
-              // print(resultado.isPaperError);
-              // print(resultado.isSoftwareError);
-              // print(resultado.isThermalError);
-
               if (mounted) {
                 showToast(
                   context,
@@ -350,217 +339,99 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
           const SizedBox(width: 16),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final bool isTablet = constraints.maxWidth < 1100;
-
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 📋 PANEL IZQUIERDO: CONFIGURACIÓN (Solo en Desktop)
-              if (!isTablet)
-                SizedBox(
-                  width: 320,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: PanelConfiguracion(
-                      cliente: factState.clienteSeleccionado,
-                      comprobante: factState.comprobanteSeleccionado,
-                      comprobantes: _comprobantes,
-                      tipoFactura: factState.tipoFactura,
-                      diasCredito: factState.diasCredito,
-                      nota: factState.nota,
-                      onSelectCliente: () async {
-                        final cliente = await showDialog<Cliente>(
-                          context: context,
-                          builder: (ctx) => BuscadorClienteDialog(
-                            clientes: clienteState.clientes,
-                          ),
-                        );
-                        if (cliente != null) {
-                          factNotifier.seleccionarCliente(cliente);
-                        }
-                      },
-                      onSelectComprobante: (c) =>
-                          factNotifier.seleccionarComprobante(c!),
-                      onCambiarTipo: factNotifier.cambiarTipoFactura,
-                      onCambiarDias: factNotifier.cambiarDiasCredito,
-                      onCambiarNota: factNotifier.cambiarNota,
-                    ),
-                  ),
-                ),
-
-              // 🍕 PANEL CENTRAL: CATÁLOGO (Adaptable)
-              Expanded(
-                child: Column(
-                  children: [
-                    if (isTablet)
-                      _buildCompactConfigHeader(
-                        factState,
-                        factNotifier,
-                        clienteState,
-                      ),
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(32),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: _buildProductCatalog(prodState, factNotifier),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // 🛒 PANEL DERECHO: CARRITO Y TOTALES
-              SizedBox(
-                width: isTablet ? 340 : 400,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 16, 24, 24),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: CarritoLista(
-                            items: factState.carrito,
-                            onUpdateCantidad: factNotifier.actualizarCantidad,
-                            onRemove: factNotifier.removerProducto,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      PanelTotales(
-                        totales: factState.totales,
-                        isLoading: factState.isLoading,
-                        onProcesar: _procesarVenta,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildCompactConfigHeader(
-    FacturacionState factState,
-    FacturacionNotifier factNotifier,
-    dynamic clienteState,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: Row(
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: _buildCompactSelector(
-              icon: Icons.person_outline,
-              label:
-                  factState.clienteSeleccionado?.nombre ??
-                  'Seleccionar Cliente',
-              onTap: () async {
-                final cliente = await showDialog<Cliente>(
-                  context: context,
-                  builder: (ctx) =>
-                      BuscadorClienteDialog(clientes: clienteState.clientes),
-                );
-                if (cliente != null) factNotifier.seleccionarCliente(cliente);
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildCompactSelector(
-              icon: Icons.payments_outlined,
-              label: factState.tipoFactura == 'contado' ? 'Contado' : 'Crédito',
-              onTap: () {
-                final cliente = factState.clienteSeleccionado;
-                if (cliente != null && (cliente.diasCredito ?? 0) > 0) {
-                  final nuevoTipo = factState.tipoFactura == 'contado'
-                      ? 'credito'
-                      : 'contado';
-                  factNotifier.cambiarTipoFactura(nuevoTipo);
-                } else {
-                  showToast(
-                    context,
-                    'Este cliente no tiene crédito habilitado',
-                    bgColor: Colors.orange,
+          // 📋 PANEL IZQUIERDO: CONFIGURACIÓN
+          SizedBox(
+            width: 320,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: PanelConfiguracion(
+                cliente: factState.clienteSeleccionado,
+                comprobante: factState.comprobanteSeleccionado,
+                comprobantes: _comprobantes,
+                tipoFactura: factState.tipoFactura,
+                diasCredito: factState.diasCredito,
+                nota: factState.nota,
+                onSelectCliente: () async {
+                  final cliente = await showDialog<Cliente>(
+                    context: context,
+                    builder: (ctx) =>
+                        BuscadorClienteDialog(clientes: clienteState.clientes),
                   );
-                }
-              },
+                  if (cliente != null) {
+                    factNotifier.seleccionarCliente(cliente);
+                  }
+                },
+                onSelectComprobante: (c) =>
+                    factNotifier.seleccionarComprobante(c!),
+                onCambiarTipo: factNotifier.cambiarTipoFactura,
+                onCambiarDias: factNotifier.cambiarDiasCredito,
+                onCambiarNota: factNotifier.cambiarNota,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
+
+          // 🍕 PANEL CENTRAL: CATÁLOGO
           Expanded(
-            child: _buildCompactSelector(
-              icon: Icons.receipt_long_outlined,
-              label: factState.comprobanteSeleccionado?.nombre ?? 'Comprobante',
-              onTap: () {
-                // TODO: Implement quick select for comprobante on tablet
-              },
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(0, 24, 24, 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: _buildProductCatalog(prodState, factNotifier),
+            ),
+          ),
+
+          // 🛒 PANEL DERECHO: CARRITO Y TOTALES
+          SizedBox(
+            width: 380,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 24, 24, 24),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: CarritoLista(
+                        items: factState.carrito,
+                        onUpdateCantidad: factNotifier.actualizarCantidad,
+                        onRemove: factNotifier.removerProducto,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  PanelTotales(
+                    totales: factState.totales,
+                    isLoading: factState.isLoading,
+                    carrito: factState.carrito,
+                    onProcesar: _procesarVenta,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCompactSelector({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-            const Icon(Icons.keyboard_arrow_down, size: 18, color: Colors.grey),
-          ],
-        ),
       ),
     );
   }
@@ -651,6 +522,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
             id: prod.id.toString(),
             descripcion: prod.nombre ?? 'Sin nombre',
             precio: prod.precioVenta ?? 0,
+            itbisPorcentaje: prod.impuesto?.tasa ?? 0.0,
           ),
         );
       },

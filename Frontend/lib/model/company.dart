@@ -38,13 +38,13 @@ class Company {
   // INSTANCIA ACTIVA DEL NEGOCIO  ← edita aquí
   // ──────────────────────────────────────────────────
   static const Company current = Company(
-    nombre: 'Menuxa Restaurante',
+    nombre: 'Menuxa',
     slogan: 'Todo tu restaurante en un solo lugar',
     rnc: '402-2412952-4',
     direccion: 'Direccion del Restaurante',
     ciudad: 'Santiago de los Caballeros',
     pais: 'Rep. Dom',
-    telefono: '809-000-0000',
+    telefono: '809-769-9580',
     telefono2: null,
     correo: 'info@menuxa.com',
     sitioWeb: 'www.menuxa.com',

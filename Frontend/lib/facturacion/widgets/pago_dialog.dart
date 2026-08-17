@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
+import '../models/metodo_pago.dart';
+import '../providers/metodo_pago_provider.dart';
 
-class PagoDialog extends StatefulWidget {
+class PagoDialog extends ConsumerStatefulWidget {
   final double total;
 
   const PagoDialog({super.key, required this.total});
 
   @override
-  State<PagoDialog> createState() => _PagoDialogState();
+  ConsumerState<PagoDialog> createState() => _PagoDialogState();
 }
 
-class _PagoDialogState extends State<PagoDialog> {
+class _PagoDialogState extends ConsumerState<PagoDialog> {
   final TextEditingController _montoController = TextEditingController();
-  String _metodoPago = 'efectivo';
+  MetodoPago? _metodoPagoSeleccionado;
   double _montoRecibido = 0;
 
   @override
@@ -20,6 +23,17 @@ class _PagoDialogState extends State<PagoDialog> {
     super.initState();
     _montoController.text = widget.total.toStringAsFixed(2);
     _montoRecibido = widget.total;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(metodoPagoProvider).fetchMetodosActivos().then((_) {
+        final prov = ref.read(metodoPagoProvider);
+        if (prov.metodos.isNotEmpty) {
+          setState(() {
+            _metodoPagoSeleccionado = prov.metodos.first;
+          });
+        }
+      });
+    });
   }
 
   double get _devuelta =>
@@ -27,12 +41,14 @@ class _PagoDialogState extends State<PagoDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final metodoProv = ref.watch(metodoPagoProvider);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: Container(
-        width: 450,
+        width: 500,
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -114,27 +130,27 @@ class _PagoDialogState extends State<PagoDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  _buildMetodoBtn(
-                    'efectivo',
-                    Icons.payments_rounded,
-                    'Efectivo',
-                  ),
-                  const SizedBox(width: 12),
-                  _buildMetodoBtn(
-                    'tarjeta',
-                    Icons.credit_card_rounded,
-                    'Tarjeta',
-                  ),
-                  const SizedBox(width: 12),
-                  _buildMetodoBtn(
-                    'transferencia',
-                    Icons.account_balance_rounded,
-                    'Transf.',
-                  ),
-                ],
-              ),
+              
+              if (metodoProv.isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (metodoProv.metodos.isEmpty)
+                const Text('No hay métodos de pago configurados', style: TextStyle(color: Colors.red))
+              else
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: metodoProv.metodos.map((metodo) {
+                    IconData icon = Icons.payments_rounded;
+                    if (metodo.tipo == 'tarjeta') icon = Icons.credit_card_rounded;
+                    if (metodo.tipo == 'transferencia') icon = Icons.account_balance_rounded;
+
+                    return SizedBox(
+                      width: 140,
+                      child: _buildMetodoBtn(metodo, icon, metodo.nombre),
+                    );
+                  }).toList(),
+                ),
+
               const SizedBox(height: 32),
 
               const Text(
@@ -176,7 +192,7 @@ class _PagoDialogState extends State<PagoDialog> {
                 },
               ),
 
-              if (_metodoPago == 'efectivo') ...[
+              if (_metodoPagoSeleccionado?.tipo == 'efectivo') ...[
                 const SizedBox(height: 32),
                 Container(
                   padding: const EdgeInsets.all(20),
@@ -221,14 +237,15 @@ class _PagoDialogState extends State<PagoDialog> {
                 height: 60,
                 child: ElevatedButton(
                   onPressed:
-                      _montoRecibido < widget.total && _metodoPago == 'efectivo'
+                      (_montoRecibido < widget.total && _metodoPagoSeleccionado?.tipo == 'efectivo') || _metodoPagoSeleccionado == null
                       ? null
                       : () {
                           Navigator.pop(context, {
                             'monto_pagado': widget.total,
                             'monto_recibido': _montoRecibido,
                             'devuelta': _devuelta,
-                            'metodo_pago': _metodoPago,
+                            'metodo_pago': _metodoPagoSeleccionado?.tipo,
+                            'metodo_pago_id': _metodoPagoSeleccionado?.id,
                           });
                         },
                   style: ElevatedButton.styleFrom(
@@ -256,39 +273,38 @@ class _PagoDialogState extends State<PagoDialog> {
     );
   }
 
-  Widget _buildMetodoBtn(String id, IconData icon, String label) {
-    bool isSelected = _metodoPago == id;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _metodoPago = id),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.light,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? AppColors.primary : Colors.grey.shade100,
+  Widget _buildMetodoBtn(MetodoPago metodo, IconData icon, String label) {
+    bool isSelected = _metodoPagoSeleccionado?.id == metodo.id;
+    return InkWell(
+      onTap: () => setState(() => _metodoPagoSeleccionado = metodo),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.light,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.grey.shade100,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.grey,
+              size: 24,
             ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.white : Colors.grey,
-                size: 24,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.grey.shade700,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey.shade700,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

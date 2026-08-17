@@ -17,6 +17,7 @@ class CustomTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final int maxLines;
   final bool enabled;
+  final bool readOnly;
 
   const CustomTextField({
     super.key,
@@ -34,6 +35,7 @@ class CustomTextField extends StatelessWidget {
     this.inputFormatters,
     this.maxLines = 1,
     this.enabled = true,
+    this.readOnly = false,
   });
 
   @override
@@ -62,6 +64,7 @@ class CustomTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           maxLines: maxLines,
           enabled: enabled,
+          readOnly: readOnly,
           style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
             hintText: hintText,

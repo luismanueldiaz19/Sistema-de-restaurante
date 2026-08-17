@@ -139,9 +139,13 @@ class FacturaController extends Controller {
             }
         }
 
+        $customConfigs = [];
+
         // 💳 REGISTRAR PAGO (Si viene en la petición)
         if ($request->has('pago') && !is_null($request->pago)) {
             $pagoData = $request->pago;
+            $metodoPagoId = $pagoData['metodo_pago_id'] ?? null;
+
             DB::table('pagos')->insert([
                 'factura_id' => $factura,
                 'user_id' => auth()->id(),
@@ -150,11 +154,19 @@ class FacturaController extends Controller {
                 'monto_recibido' => $pagoData['monto_recibido'],
                 'devuelta' => $pagoData['devuelta'] ?? 0,
                 'metodo_pago' => $pagoData['metodo_pago'] ?? 'efectivo',
+                'metodo_pago_id' => $metodoPagoId,
                 'referencia_pago' => $pagoData['referencia_pago'] ?? null,
                 'fecha_pago' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            if ($metodoPagoId) {
+                $metodo = \App\Models\MetodoPago::find($metodoPagoId);
+                if ($metodo && $metodo->catalogo_cuenta_id) {
+                    $customConfigs['venta_efectivo_debe'] = $metodo->catalogo_cuenta_id;
+                }
+            }
 
             // Si el pago cubre el total, marcar factura como pagada
             if ($pagoData['monto_pagado'] >= $total - 0.01) { // Pequeño margen por redondeo
@@ -189,7 +201,7 @@ class FacturaController extends Controller {
             $ncf,
             $glosa,
             auth()->id(),
-            [],
+            $customConfigs,
             round($costoTotalVenta, 2)
         );
 
@@ -419,10 +431,14 @@ private function calcularLinea($item)
     $cantidad = $item['cantidad'];
     $precio = $item['precio']; // ya incluye ITBIS
 
+    // Extraer el porcentaje de ITBIS y convertirlo a decimal
+    $itbis_porcentaje = isset($item['itbis_porcentaje']) ? $item['itbis_porcentaje'] : 18;
+    $tasaDecimal = ($itbis_porcentaje <= 1 && $itbis_porcentaje > 0) ? $itbis_porcentaje : ($itbis_porcentaje / 100);
+
     $linea = $cantidad * $precio;
 
     // 🔥 separar base
-    $base = $linea / 1.18;
+    $base = $linea / (1 + $tasaDecimal);
 
     // 🎯 DESCUENTO
     $descuento = $item['descuento'] ?? 0;
@@ -442,7 +458,7 @@ private function calcularLinea($item)
 
     // 🔥 cálculo final
     $baseConDescuento = $base - $descuento;
-    $itbis = $baseConDescuento * 0.18;
+    $itbis = $baseConDescuento * $tasaDecimal;
     $total = $baseConDescuento + $itbis;
 
     return [

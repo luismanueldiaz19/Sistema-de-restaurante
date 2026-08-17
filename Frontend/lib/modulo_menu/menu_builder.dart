@@ -22,9 +22,12 @@ import 'package:sistema_restaurante/modulo_compras/screens/compras_list_screen.d
 import 'package:sistema_restaurante/modulo_compras/screens/proveedores_screen.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/cxp_list_screen.dart';
 import '../modulo_compras/screens/historial_pagos_cxp_screen.dart';
+import '../modulo_finanzas/screens/bancos_dashboard_screen.dart';
 import '../modulo_contabilidad/screens/mayor_general_screen.dart';
 import '../modulo_contabilidad/screens/balance_general_screen.dart';
 import '../modulo_contabilidad/screens/estado_resultados_screen.dart';
+import '../modulo_contabilidad/screens/catalogo_cuentas_screen.dart';
+import '../facturacion/screens/metodos_pago_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/historial_caja_screen.dart';
 import 'package:sistema_restaurante/screens/libro_diario_screen.dart';
 import 'package:sistema_restaurante/screens/configuracion_contable_screen.dart';
@@ -348,7 +351,17 @@ class MenuBuilder {
                 ),
               ),
             ],
-            SidebarSubItem(title: 'Bancos', onTap: () {}),
+            SidebarSubItem(
+              title: 'Bancos',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BancosDashboardScreen(),
+                  ),
+                );
+              },
+            ),
             if (auth.hasPermission('ver_cxc') || isAdmin || isContador)
               SidebarSubItem(title: 'Cuentas por Cobrar', onTap: () {}),
             if (auth.hasPermission('ver_gastos') || isAdmin || isContador)
@@ -362,6 +375,15 @@ class MenuBuilder {
           title: 'Contabilidad',
           icon: Icons.account_balance_rounded,
           subItems: [
+            SidebarSubItem(
+              title: 'Catálogo de Cuentas',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CatalogoCuentasScreen(),
+                ),
+              ),
+            ),
             SidebarSubItem(
               title: 'Configuración Contable',
               onTap: () => Navigator.push(
@@ -498,6 +520,13 @@ class MenuBuilder {
           subItems: [
             SidebarSubItem(title: 'Usuarios', onTap: () {}),
             SidebarSubItem(title: 'Roles', onTap: () {}),
+            SidebarSubItem(
+              title: 'Métodos de Pago',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MetodosPagoScreen()),
+              ),
+            ),
             SidebarSubItem(title: 'Permisos', onTap: () {}),
             SidebarSubItem(title: 'Configuración', onTap: () {}),
             SidebarSubItem(title: 'Auditoría', onTap: () {}),

@@ -12,7 +12,7 @@ class PedidosProvider with ChangeNotifier {
   bool _isLoading = false;
   String _error = '';
   DateTime _currentDate = DateTime.now();
-  Timer? _timer;
+  // Timer? _timer;
 
   List<Pedido> get pedidos => _pedidos;
   bool get isLoading => _isLoading;
@@ -22,14 +22,14 @@ class PedidosProvider with ChangeNotifier {
   void initPolling() {
     fetchPedidos();
     // Poll every 15 seconds
-    _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      fetchPedidos(silent: true);
-    });
+    // _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
+    fetchPedidos(silent: true);
+    // });
   }
 
   void stopPolling() {
-    _timer?.cancel();
-    _timer = null;
+    // _timer?.cancel();
+    // _timer = null;
   }
 
   void changeDate(DateTime date) {

@@ -4,6 +4,7 @@ import 'package:sistema_restaurante/modulo_cliente/models/cliente.dart';
 import 'package:sistema_restaurante/facturacion/models/factura_item.dart';
 import 'package:sistema_restaurante/services/api_services.dart';
 import 'package:sistema_restaurante/utils/constants.dart';
+import 'package:sistema_restaurante/model/company.dart';
 
 class CotizacionService {
   final ApiService _api = ApiService();
@@ -17,9 +18,14 @@ class CotizacionService {
     int diasValidez = 15,
   }) async {
     try {
+      final company = Company.current;
       final payload = {
         "cliente_id": cliente.id,
         "nota": nota,
+        "company_name": company.nombre,
+        "company_rnc": company.rnc ?? '',
+        "company_address": company.direccionCompleta,
+        "company_phone": company.telefono ?? '',
         "fecha_emision": DateTime.now().toIso8601String(),
         "fecha_vencimiento": DateTime.now()
             .add(Duration(days: diasValidez))
@@ -31,6 +37,7 @@ class CotizacionService {
                 "descripcion": item.descripcion,
                 "cantidad": item.cantidad,
                 "precio": item.precio,
+                "itbis_porcentaje": item.itbisPorcentaje,
                 "descuento_porcentaje": item.descuentoPorcentaje,
                 "descuento": item.montoDescuento,
               },

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../palletes/app_colors.dart';
-import '../../utils/helpers.dart'; // 🔥 Importar helpers
+import '../../utils/helpers.dart';
 import '../models/factura_item.dart';
 
 class PanelTotales extends StatelessWidget {
@@ -10,6 +10,7 @@ class PanelTotales extends StatelessWidget {
   final bool esCotizacion;
   final bool esOrdenCompra;
   final bool esPedido;
+  final List<FacturaItem>? carrito;
 
   const PanelTotales({
     super.key,
@@ -19,7 +20,24 @@ class PanelTotales extends StatelessWidget {
     this.esCotizacion = false,
     this.esOrdenCompra = false,
     this.esPedido = false,
+    this.carrito,
   });
+
+  /// Genera la etiqueta ITBIS dinámica según las tasas del carrito.
+  /// Si todos los items tienen la misma tasa → "ITBIS (18%)"
+  /// Si hay tasas mixtas (ej: 0% y 18%) → "ITBIS"
+  /// Si todo es 0% → "ITBIS (Exento)"
+  String get _itbisLabel {
+    if (carrito == null || carrito!.isEmpty) return 'ITBIS (18%)';
+    final tasas = carrito!.map((i) => i.itbisPorcentaje).toSet();
+    if (tasas.length == 1) {
+      final tasa = tasas.first;
+      return tasa == 0
+          ? 'ITBIS (Exento)'
+          : 'ITBIS (${tasa.toStringAsFixed(0)}%)';
+    }
+    return 'ITBIS';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +65,7 @@ class PanelTotales extends StatelessWidget {
             isNegative: true,
           ),
           const SizedBox(height: 12),
-          _buildRow('ITBIS (18%)', formatCurrency(totales.itbis)),
+          _buildRow(_itbisLabel, formatCurrency(totales.itbis)),
           const Divider(height: 32, color: Colors.white24, thickness: 1),
           _buildRow(
             'TOTAL A PAGAR',
@@ -74,8 +92,10 @@ class PanelTotales extends StatelessWidget {
                       esPedido
                           ? 'PROCESAR PEDIDO'
                           : (esOrdenCompra
-                              ? 'PROCESAR ORDEN'
-                              : (esCotizacion ? 'PROCESAR COTIZACION' : 'PROCESAR FACTURA')),
+                                ? 'PROCESAR ORDEN'
+                                : (esCotizacion
+                                      ? 'PROCESAR COTIZACION'
+                                      : 'PROCESAR FACTURA')),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,

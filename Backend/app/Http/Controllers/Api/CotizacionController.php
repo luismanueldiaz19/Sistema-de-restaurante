@@ -92,10 +92,21 @@ class CotizacionController extends Controller
 
             DB::commit();
 
+            $token = \Illuminate\Support\Str::random(40);
+            \Illuminate\Support\Facades\Cache::put("cotizacion_pdf_{$cotizacion_id}_{$token}", [
+                'company_name' => $request->company_name,
+                'company_rnc' => $request->company_rnc,
+                'company_address' => $request->company_address,
+                'company_phone' => $request->company_phone,
+            ], now()->addHours(24));
+
+            $pdf_url = "/api/cotizaciones/{$cotizacion_id}/pdf?token={$token}";
+
             return response()->json([
                 'message' => 'Cotización creada correctamente',
                 'status' => 201,
-                'cotizacion_id' => $cotizacion_id
+                'cotizacion_id' => $cotizacion_id,
+                'pdf_url' => $pdf_url
             ], 201);
 
         } catch (\Exception $e) {
@@ -138,6 +149,19 @@ class CotizacionController extends Controller
 
         $cotizaciones = $query->paginate($request->per_page ?? 15);
 
+        $cotizaciones->getCollection()->transform(function ($cotizacion) use ($request) {
+            $token = \Illuminate\Support\Str::random(40);
+            \Illuminate\Support\Facades\Cache::put("cotizacion_pdf_{$cotizacion->id}_{$token}", [
+                'company_name' => $request->company_name,
+                'company_rnc' => $request->company_rnc,
+                'company_address' => $request->company_address,
+                'company_phone' => $request->company_phone,
+            ], now()->addHours(24));
+
+            $cotizacion->pdf_url = "/api/cotizaciones/{$cotizacion->id}/pdf?token={$token}";
+            return $cotizacion;
+        });
+
         return response()->json([
             'status' => true,
             'data'   => $cotizaciones,
@@ -145,7 +169,7 @@ class CotizacionController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
             $cotizacion = Cotizacion::with([
@@ -160,6 +184,16 @@ class CotizacionController extends Controller
                     'status' => 404
                 ], 404);
             }
+
+            $token = \Illuminate\Support\Str::random(40);
+            \Illuminate\Support\Facades\Cache::put("cotizacion_pdf_{$cotizacion->id}_{$token}", [
+                'company_name' => $request->company_name,
+                'company_rnc' => $request->company_rnc,
+                'company_address' => $request->company_address,
+                'company_phone' => $request->company_phone,
+            ], now()->addHours(24));
+
+            $cotizacion->pdf_url = "/api/cotizaciones/{$cotizacion->id}/pdf?token={$token}";
 
             return response()->json([
                 'message' => 'Cotización encontrada',
@@ -196,12 +230,30 @@ class CotizacionController extends Controller
         ]);
     }
 
-    public function pdf($id)
+    public function pdf(Request $request, $id)
     {
+        $token = $request->query('token');
+        if (!$token) {
+            abort(403, 'Acceso denegado: Token de seguridad no proporcionado.');
+        }
+
+        $companyData = \Illuminate\Support\Facades\Cache::get("cotizacion_pdf_{$id}_{$token}");
+        
+        if (!$companyData) {
+            abort(403, 'Acceso denegado: El enlace ha expirado o es inválido.');
+        }
+
         $cotizacion = Cotizacion::with(['cliente', 'detalles', 'user'])->findOrFail($id);
 
+        $company = [
+            'nombre' => $companyData['company_name'] ?? 'Tu Restaurante Favorito',
+            'rnc' => $companyData['company_rnc'] ?? '123456789',
+            'direccion' => $companyData['company_address'] ?? 'Santo Domingo, República Dominicana',
+            'telefono' => $companyData['company_phone'] ?? '(809) 555-5555',
+        ];
+
         // Se usa view para renderizar el blade y luego generar el pdf.
-        $pdf = Pdf::loadView('pdf.cotizacion', compact('cotizacion'));
+        $pdf = Pdf::loadView('pdf.cotizacion', compact('cotizacion', 'company'));
 
         return $pdf->stream('cotizacion_'.$cotizacion->id.'.pdf');
     }
@@ -209,12 +261,14 @@ class CotizacionController extends Controller
     private function calcularLinea($item)
     {
         $cantidad = $item['cantidad'];
-        $precio = $item['precio']; // precio base con o sin itbis dependiendo de como venga configurado, usualmente igual que factura.
+        $precio = $item['precio'];
+        $itbisPct = isset($item['itbis_porcentaje']) ? (float) $item['itbis_porcentaje'] : 18.0;
+        $divisor = 1 + ($itbisPct / 100); // 1.18 si 18%, 1.0 si 0%
 
         $linea = $cantidad * $precio;
 
-        // Suponiendo lógica similar a factura
-        $base = $linea / 1.18;
+        // Extraemos la base imponible del precio (que ya incluye ITBIS)
+        $base = $divisor > 1 ? $linea / $divisor : $linea;
 
         $descuento = $item['descuento'] ?? 0;
         if (!empty($item['descuento_porcentaje'])) {
@@ -222,7 +276,7 @@ class CotizacionController extends Controller
         }
 
         $baseConDescuento = $base - $descuento;
-        $itbis = $baseConDescuento * 0.18;
+        $itbis = $baseConDescuento * ($itbisPct / 100);
         $total = $baseConDescuento + $itbis;
 
         return [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sistema_restaurante/modulo_producto/providers/producto_state.dart';
+import 'package:sistema_restaurante/utils/normalize.dart';
 import '../../modulo_cliente/models/cliente.dart';
 import '../../modulo_cliente/providers/cliente_admin_provider.dart';
 import '../../modulo_producto/models/producto.dart';
@@ -8,6 +9,9 @@ import '../../modulo_producto/providers/producto_provider.dart';
 import '../../utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../../facturacion/models/factura_item.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/text_field_multi_line.dart';
+import '../../widgets/quick_nota_dialog.dart';
 import '../providers/cotizacion_form_provider.dart';
 import '../../facturacion/widgets/carrito_lista.dart';
 import '../../facturacion/widgets/panel_totales.dart';
@@ -63,13 +67,11 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
     if (result['success'] && mounted) {
       showToast(context, 'Cotización creada con éxito', bgColor: Colors.green);
 
-      final cotizacionId = result['data']['cotizacion_id'];
-      if (cotizacionId != null) {
-        final urlWithToken = Uri.parse(
-          "$hostName/api/cotizaciones/$cotizacionId/pdf",
-        );
-        if (await canLaunchUrl(urlWithToken)) {
-          await launchUrl(urlWithToken, mode: LaunchMode.externalApplication);
+      final pdfUrlPath = result['data']['pdf_url'];
+      if (pdfUrlPath != null) {
+        final urlToLaunch = Uri.parse("$hostName$pdfUrlPath");
+        if (await canLaunchUrl(urlToLaunch)) {
+          await launchUrl(urlToLaunch, mode: LaunchMode.externalApplication);
         }
       }
 
@@ -177,6 +179,7 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
                         isLoading: formState.isLoading,
                         onProcesar: _procesarCotizacion,
                         esCotizacion: true,
+                        carrito: formState.carrito,
                       ),
                     ],
                   ),
@@ -257,31 +260,7 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
               icon: Icons.note_alt_outlined,
               label: state.nota.isEmpty ? 'Añadir Nota' : state.nota,
               onTap: () async {
-                String val = state.nota;
-                final result = await showDialog<String>(
-                  context: context,
-                  builder: (ctx) {
-                    return AlertDialog(
-                      title: const Text('Nota de Cotización'),
-                      content: TextField(
-                        onChanged: (v) => val = v,
-                        decoration: const InputDecoration(
-                          hintText: 'Comentarios adicionales...',
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, null),
-                          child: const Text('Cancelar'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, val),
-                          child: const Text('Guardar'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                final result = await showQuickNotaDialog(context, state.nota);
                 if (result != null) {
                   notifier.cambiarNota(result);
                 }
@@ -341,8 +320,11 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
     }
 
     final filteredProducts = prodState.productos.where((p) {
-      final name = p.nombre?.toLowerCase() ?? "";
-      return name.contains(_searchQuery.toLowerCase());
+      final name = TextNormalizer.normalizar(p.nombre?.toLowerCase() ?? "");
+
+      return name.contains(
+        TextNormalizer.normalizar(_searchQuery.toLowerCase()),
+      );
     }).toList();
 
     return Column(
@@ -352,20 +334,12 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.light,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TextField(
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    decoration: const InputDecoration(
-                      hintText: 'Buscar producto...',
-                      border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.grey),
-                    ),
-                  ),
+                child: CustomTextField(
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  hintText: 'Buscar producto...',
+                  prefixIcon: Icons.search,
+                  // suffixIcon: Icons.search,
+                  label: 'Buscar producto...',
                 ),
               ),
             ],
@@ -401,6 +375,7 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
             id: prod.id.toString(),
             descripcion: prod.nombre ?? 'Sin nombre',
             precio: prod.precioVenta ?? 0,
+            itbisPorcentaje: prod.impuesto?.tasa ?? 0,
           ),
         );
       },

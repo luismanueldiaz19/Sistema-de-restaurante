@@ -59,8 +59,8 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
       backgroundColor: Colors.grey.shade50,
       body: Center(
         child: Container(
-          width: 450,
-          padding: const EdgeInsets.all(40),
+          width: 380,
+          padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(30),
@@ -78,14 +78,14 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
             children: [
               const Icon(
                 Icons.account_balance_wallet_rounded,
-                size: 80,
+                size: 60,
                 color: AppColors.primary,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               const Text(
                 'APERTURA DE CAJA',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: AppColors.azulOscuro,
                 ),
@@ -94,9 +94,9 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
               const Text(
                 'Inicia tu jornada laboral registrando el monto base.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               if (_loadingData)
                 const CircularProgressIndicator()
@@ -114,7 +114,7 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
                   onChanged: (val) => setState(() => _cajaSeleccionada = val),
                   icon: Icons.storefront_rounded,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
                 // Selector de Turno
                 _buildDropdown<Turno>(
@@ -129,7 +129,7 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
                   onChanged: (val) => setState(() => _turnoSeleccionado = val),
                   icon: Icons.access_time_rounded,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
                 // Monto Inicial
                 textFieldWidgetUI(
@@ -140,11 +140,11 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
                   prefixIcon: Icons.account_balance_wallet_rounded,
                   width: double.infinity,
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 28),
 
                 SizedBox(
                   width: double.infinity,
-                  height: 55,
+                  height: 48,
                   child: ElevatedButton(
                     onPressed: cajaState.isLoading ? null : _confirmarApertura,
                     style: ElevatedButton.styleFrom(
@@ -166,7 +166,7 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text(
@@ -202,6 +202,11 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
         filled: true,
         fillColor: Colors.grey.shade50,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+        isDense: true,
       ),
     );
   }

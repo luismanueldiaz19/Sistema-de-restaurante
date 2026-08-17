@@ -15,10 +15,12 @@ class HistorialCotizacionesScreen extends ConsumerStatefulWidget {
   const HistorialCotizacionesScreen({super.key});
 
   @override
-  ConsumerState<HistorialCotizacionesScreen> createState() => _HistorialCotizacionesScreenState();
+  ConsumerState<HistorialCotizacionesScreen> createState() =>
+      _HistorialCotizacionesScreenState();
 }
 
-class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacionesScreen> {
+class _HistorialCotizacionesScreenState
+    extends ConsumerState<HistorialCotizacionesScreen> {
   Cotizacion? _selectedCotizacion;
   bool _isDetailLoading = false;
   String _selectedDateFilter = 'Todos'; // Estado para el chip seleccionado
@@ -29,13 +31,17 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = ref.read(authProvider);
-      ref.read(cotizacionHistorialProvider.notifier).fetchHistorial(auth.token!);
+      ref
+          .read(cotizacionHistorialProvider.notifier)
+          .fetchHistorial(auth.token!);
     });
   }
 
   Future<void> _cambiarEstado(String id, String estado) async {
     final auth = ref.read(authProvider);
-    final success = await ref.read(cotizacionHistorialProvider.notifier).updateEstado(auth.token!, id, estado);
+    final success = await ref
+        .read(cotizacionHistorialProvider.notifier)
+        .updateEstado(auth.token!, id, estado);
     if (success && mounted) {
       showToast(context, 'Estado actualizado a $estado', bgColor: Colors.green);
       if (_selectedCotizacion?.id.toString() == id) {
@@ -46,12 +52,21 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
     }
   }
 
-  Future<void> _verPdf(String id) async {
-    final urlWithToken = Uri.parse("$hostName/api/cotizaciones/$id/pdf");
-    if (await canLaunchUrl(urlWithToken)) {
-      await launchUrl(urlWithToken, mode: LaunchMode.externalApplication);
+  Future<void> _verPdf(Cotizacion cotizacion) async {
+    final pdfUrlPath = cotizacion.pdfUrl;
+    if (pdfUrlPath == null || pdfUrlPath.isEmpty) {
+      if (mounted) {
+        showToast(context, 'URL del PDF no disponible', bgColor: Colors.orange);
+      }
+      return;
+    }
+    final urlToLaunch = Uri.parse('$hostName$pdfUrlPath');
+    if (await canLaunchUrl(urlToLaunch)) {
+      await launchUrl(urlToLaunch, mode: LaunchMode.externalApplication);
     } else {
-      if (mounted) showToast(context, 'No se pudo abrir el PDF');
+      if (mounted) {
+        showToast(context, 'No se pudo abrir el PDF', bgColor: Colors.red);
+      }
     }
   }
 
@@ -72,7 +87,11 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
       setState(() {
         _isDetailLoading = false;
       });
-      showToast(context, result['message'] ?? 'Error al cargar detalles', bgColor: Colors.red);
+      showToast(
+        context,
+        result['message'] ?? 'Error al cargar detalles',
+        bgColor: Colors.red,
+      );
     }
   }
 
@@ -85,7 +104,10 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
       appBar: AppBar(
         title: const Text(
           'Historial de Cotizaciones',
-          style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w900),
+          style: TextStyle(
+            color: AppColors.secondary,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -94,12 +116,14 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
             icon: const Icon(Icons.refresh, color: AppColors.primary),
             onPressed: () {
               final auth = ref.read(authProvider);
-              ref.read(cotizacionHistorialProvider.notifier).fetchHistorial(auth.token!);
+              ref
+                  .read(cotizacionHistorialProvider.notifier)
+                  .fetchHistorial(auth.token!);
               setState(() {
                 _selectedCotizacion = null;
               });
             },
-          )
+          ),
         ],
       ),
       body: LayoutBuilder(
@@ -107,62 +131,76 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
           final isTablet = constraints.maxWidth > 800;
 
           return state.isLoading
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
               : state.error != null
-                  ? Center(child: Text(state.error!))
-                  : Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // IZQUIERDA: LISTA Y RESUMEN
-                          Expanded(
-                            flex: isTablet ? 4 : 1,
-                            child: Column(
-                              children: [
-                                _buildDateFilters(),
-                                const SizedBox(height: 16),
-                                _buildResumenTarjetas(state),
-                                const SizedBox(height: 24),
-                                Expanded(
-                                  child: state.historial.isEmpty
-                                      ? const Center(child: Text('No hay cotizaciones'))
-                                      : ListView.separated(
-                                          itemCount: state.historial.length,
-                                          separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                          itemBuilder: (context, index) {
-                                            final cotizacion = state.historial[index];
-                                            final isSelected = _selectedCotizacion?.id == cotizacion.id;
-
-                                            return CotizacionListItem(
-                                              cotizacion: cotizacion,
-                                              isSelected: isSelected,
-                                              onTap: () => _loadCotizacionDetalle(cotizacion.id.toString()),
-                                              onPdfTap: () => _verPdf(cotizacion.id.toString()),
-                                              onEstadoChange: (val) => _cambiarEstado(cotizacion.id.toString(), val),
-                                            );
-                                          },
-                                        ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          if (isTablet) const SizedBox(width: 24),
-
-                          // DERECHA: DETALLES (PANEL)
-                          if (isTablet)
+              ? Center(child: Text(state.error!))
+              : Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // IZQUIERDA: LISTA Y RESUMEN
+                      Expanded(
+                        flex: isTablet ? 4 : 1,
+                        child: Column(
+                          children: [
+                            _buildDateFilters(),
+                            const SizedBox(height: 16),
+                            _buildResumenTarjetas(state),
+                            const SizedBox(height: 24),
                             Expanded(
-                              flex: 5,
-                              child: CotizacionDetallePanel(
-                                cotizacion: _selectedCotizacion,
-                                isLoading: _isDetailLoading,
-                                onPdfTap: () => _verPdf(_selectedCotizacion!.id.toString()),
-                              ),
+                              child: state.historial.isEmpty
+                                  ? const Center(
+                                      child: Text('No hay cotizaciones'),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: state.historial.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final cotizacion =
+                                            state.historial[index];
+                                        final isSelected =
+                                            _selectedCotizacion?.id ==
+                                            cotizacion.id;
+
+                                        return CotizacionListItem(
+                                          cotizacion: cotizacion,
+                                          isSelected: isSelected,
+                                          onTap: () => _loadCotizacionDetalle(
+                                            cotizacion.id.toString(),
+                                          ),
+                                          onPdfTap: () => _verPdf(cotizacion),
+                                          onEstadoChange: (val) =>
+                                              _cambiarEstado(
+                                                cotizacion.id.toString(),
+                                                val,
+                                              ),
+                                        );
+                                      },
+                                    ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
-                    );
+
+                      if (isTablet) const SizedBox(width: 24),
+
+                      // DERECHA: DETALLES (PANEL)
+                      if (isTablet)
+                        Expanded(
+                          flex: 5,
+                          child: CotizacionDetallePanel(
+                            cotizacion: _selectedCotizacion,
+                            isLoading: _isDetailLoading,
+                            onPdfTap: () => _verPdf(_selectedCotizacion!),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
         },
       ),
     );
@@ -194,24 +232,39 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
                     color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.monetization_on, color: AppColors.primary, size: 28),
+                  child: const Icon(
+                    Icons.monetization_on,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Total Cotizado Aprobado', style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Total Cotizado Aprobado',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       formatCurrency(totales['total'] ?? 0),
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.secondary),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.secondary,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }
@@ -223,7 +276,7 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
       'Últimos 7 días',
       'Este mes',
       'Mes pasado',
-      'Este año'
+      'Este año',
     ];
 
     return SizedBox(
@@ -247,7 +300,9 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
             side: BorderSide(
               color: isSelected ? AppColors.primary : Colors.grey.shade300,
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             onSelected: (selected) {
               if (selected) {
                 _applyDateFilter(label);
@@ -290,7 +345,11 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
         break;
       case 'Mes pasado':
         final firstDayOfLastMonth = DateTime(now.year, now.month - 1, 1);
-        final lastDayOfLastMonth = DateTime(now.year, now.month, 0); // Day 0 is last day of previous month
+        final lastDayOfLastMonth = DateTime(
+          now.year,
+          now.month,
+          0,
+        ); // Day 0 is last day of previous month
         newFilters = {
           'fecha_desde': firstDayOfLastMonth.toIso8601String().split('T')[0],
           'fecha_hasta': lastDayOfLastMonth.toIso8601String().split('T')[0],
@@ -311,12 +370,14 @@ class _HistorialCotizacionesScreenState extends ConsumerState<HistorialCotizacio
 
     if (filterLabel == 'Todos') {
       // Limpiamos totalmente o solo las fechas?
-      // Es mejor actualizar solo pasando nulos o recargando con fetchHistorial y filtros vacíos, 
+      // Es mejor actualizar solo pasando nulos o recargando con fetchHistorial y filtros vacíos,
       // pero nuestro updateFilters hace merge. Usaremos un replace.
       ref.read(cotizacionHistorialProvider.notifier).clearFilters(auth.token!);
     } else {
       // Actualizamos los filtros de fecha y sobreescribimos los anteriores.
-      ref.read(cotizacionHistorialProvider.notifier).updateFilters(auth.token!, newFilters, replace: true);
+      ref
+          .read(cotizacionHistorialProvider.notifier)
+          .updateFilters(auth.token!, newFilters, replace: true);
     }
   }
 }

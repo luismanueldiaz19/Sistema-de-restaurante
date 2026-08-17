@@ -24,9 +24,64 @@ class ConfiguracionContableService {
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       final List<dynamic> data = decoded['data'] as List<dynamic>;
-      return data.map((json) => CatalogoCuentaModel.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map(
+            (json) =>
+                CatalogoCuentaModel.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
     } else {
       throw Exception('Error al obtener catálogo de cuentas');
+    }
+  }
+
+  Future<CatalogoCuentaModel> createCatalogoCuenta({
+    required String token,
+    required Map<String, dynamic> data,
+  }) async {
+    final url = '$_baseUrl/catalogo-cuentas';
+    final response = await _api.post(url, data, token: token);
+
+    if (response.statusCode == 201) {
+      final decoded = jsonDecode(response.body);
+      return CatalogoCuentaModel.fromJson(
+        decoded['data'] as Map<String, dynamic>,
+      );
+    } else {
+      final decoded = jsonDecode(response.body);
+      throw Exception(decoded['message'] ?? 'Error al crear cuenta');
+    }
+  }
+
+  Future<CatalogoCuentaModel> updateCatalogoCuenta({
+    required String token,
+    required int id,
+    required Map<String, dynamic> data,
+  }) async {
+    final url = '$_baseUrl/catalogo-cuentas/$id';
+    final response = await _api.put(url, data, token: token);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return CatalogoCuentaModel.fromJson(
+        decoded['data'] as Map<String, dynamic>,
+      );
+    } else {
+      final decoded = jsonDecode(response.body);
+      throw Exception(decoded['message'] ?? 'Error al actualizar cuenta');
+    }
+  }
+
+  Future<void> deleteCatalogoCuenta({
+    required String token,
+    required int id,
+  }) async {
+    final url = '$_baseUrl/catalogo-cuentas/$id';
+    final response = await _api.delete(url, token: token);
+
+    if (response.statusCode != 200) {
+      final decoded = jsonDecode(response.body);
+      throw Exception(decoded['message'] ?? 'Error al eliminar cuenta');
     }
   }
 
@@ -40,7 +95,13 @@ class ConfiguracionContableService {
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       final List<dynamic> data = decoded['data'] as List<dynamic>;
-      return data.map((json) => ConfiguracionContableModel.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map(
+            (json) => ConfiguracionContableModel.fromJson(
+              json as Map<String, dynamic>,
+            ),
+          )
+          .toList();
     } else {
       throw Exception('Error al obtener configuraciones contables');
     }
@@ -53,18 +114,18 @@ class ConfiguracionContableService {
     required int? cuentaId,
   }) async {
     final url = '$_baseUrl/configuracion-contable/$id';
-    final response = await _api.put(
-      url,
-      {'cuenta_id': cuentaId},
-      token: token,
-    );
+    final response = await _api.put(url, {'cuenta_id': cuentaId}, token: token);
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-      return ConfiguracionContableModel.fromJson(decoded['data'] as Map<String, dynamic>);
+      return ConfiguracionContableModel.fromJson(
+        decoded['data'] as Map<String, dynamic>,
+      );
     } else {
       final decoded = jsonDecode(response.body);
-      throw Exception(decoded['message'] ?? 'Error al actualizar configuración contable');
+      throw Exception(
+        decoded['message'] ?? 'Error al actualizar configuración contable',
+      );
     }
   }
 
@@ -74,19 +135,23 @@ class ConfiguracionContableService {
     required List<Map<String, dynamic>> configs,
   }) async {
     final url = '$_baseUrl/configuracion-contable/bulk';
-    final response = await _api.post(
-      url,
-      {'configs': configs},
-      token: token,
-    );
+    final response = await _api.post(url, {'configs': configs}, token: token);
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       final List<dynamic> data = decoded['data'] as List<dynamic>;
-      return data.map((json) => ConfiguracionContableModel.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map(
+            (json) => ConfiguracionContableModel.fromJson(
+              json as Map<String, dynamic>,
+            ),
+          )
+          .toList();
     } else {
       final decoded = jsonDecode(response.body);
-      throw Exception(decoded['message'] ?? 'Error al guardar configuraciones contables');
+      throw Exception(
+        decoded['message'] ?? 'Error al guardar configuraciones contables',
+      );
     }
   }
 
@@ -109,7 +174,7 @@ class ConfiguracionContableService {
       params.add('buscar=${Uri.encodeComponent(buscar)}');
     }
     if (params.isNotEmpty) {
-      url += '?' + params.join('&');
+      url += '?${params.join('&')}';
     }
 
     final response = await _api.get(url, token: token);
@@ -117,7 +182,12 @@ class ConfiguracionContableService {
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       final List<dynamic> data = decoded['data']['data'] as List<dynamic>;
-      return data.map((json) => AsientoContableModel.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map(
+            (json) =>
+                AsientoContableModel.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
     } else {
       final decoded = jsonDecode(response.body);
       final msg = decoded['message'] ?? 'Error desconocido';

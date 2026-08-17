@@ -15,6 +15,7 @@ class Pago extends Model
         'monto_recibido',
         'devuelta',
         'metodo_pago',
+        'metodo_pago_id',
         'referencia_pago',
         'fecha_pago',
     ];
@@ -22,5 +23,10 @@ class Pago extends Model
     public function factura()
     {
         return $this->belongsTo(Factura::class);
+    }
+
+    public function metodoPagoObj()
+    {
+        return $this->belongsTo(MetodoPago::class, 'metodo_pago_id');
     }
 }

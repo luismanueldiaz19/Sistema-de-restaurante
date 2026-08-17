@@ -39,7 +39,7 @@ class CatalogoCuentasSeeder extends Seeder
 
         CatalogoCuenta::create([
             'codigo' => '1.1.01.01',
-            'nombre' => 'CAJA GENERAL',
+            'nombre' => 'CAJA',
             'tipo'   => 'Activo',
             'nivel'  => 4,
             'padre_id' => $efectivo->id,
@@ -48,7 +48,7 @@ class CatalogoCuentasSeeder extends Seeder
 
         CatalogoCuenta::create([
             'codigo' => '1.1.01.02',
-            'nombre' => 'CAJA CHICA RESTAURANTE',
+            'nombre' => 'CAJA CHICA',
             'tipo'   => 'Activo',
             'nivel'  => 4,
             'padre_id' => $efectivo->id,
@@ -57,7 +57,7 @@ class CatalogoCuentasSeeder extends Seeder
 
         CatalogoCuenta::create([
             'codigo' => '1.1.01.03',
-            'nombre' => 'BANCO OPERATIVO',
+            'nombre' => 'BANCOS',
             'tipo'   => 'Activo',
             'nivel'  => 4,
             'padre_id' => $efectivo->id,
@@ -167,7 +167,7 @@ class CatalogoCuentasSeeder extends Seeder
 
         $ventas = CatalogoCuenta::create([
             'codigo' => '4.1',
-            'nombre' => 'VENTAS OPERATIVAS',
+            'nombre' => 'VENTAS',
             'tipo'   => 'Ingresos',
             'nivel'  => 2,
             'padre_id' => $ingresos->id,
@@ -213,7 +213,7 @@ class CatalogoCuentasSeeder extends Seeder
         // --- 6. GASTOS ---
         $gastos = CatalogoCuenta::create([
             'codigo' => '6',
-            'nombre' => 'GASTOS OPERATIVOS',
+            'nombre' => 'GASTOS',
             'tipo'   => 'Gastos',
             'nivel'  => 1,
             'permite_movimiento' => false

@@ -19,6 +19,7 @@ class Cotizacion {
   final Cliente? cliente;
   final List<CotizacionDetalle>? detalles;
   final User? user;
+  final String? pdfUrl;
 
   Cotizacion({
     this.id,
@@ -37,6 +38,7 @@ class Cotizacion {
     this.cliente,
     this.detalles,
     this.user,
+    this.pdfUrl,
   });
 
   factory Cotizacion.fromJson(Map<String, dynamic> json) => Cotizacion(
@@ -58,6 +60,7 @@ class Cotizacion {
         ? List<CotizacionDetalle>.from(json["detalles"].map((x) => CotizacionDetalle.fromJson(x)))
         : [],
     user: json["user"] != null ? User.fromJson(json["user"]) : null,
+    pdfUrl: json["pdf_url"],
   );
 
   Map<String, dynamic> toJson() => {

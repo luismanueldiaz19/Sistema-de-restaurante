@@ -19,6 +19,17 @@ use App\Http\Controllers\Api\ReporteContableController;
 use App\Http\Controllers\Api\AjusteInventarioController;
 use App\Http\Controllers\Api\NotaCreditoController;
 use App\Http\Controllers\Api\PedidoController;
+use App\Http\Controllers\Api\RecetaController;
+use App\Http\Controllers\Api\CatalogoCuentaController;
+use App\Http\Controllers\Api\ConfiguracionContableController;
+use App\Http\Controllers\Api\AsientoContableController;
+use App\Http\Controllers\Api\CategoriaController;
+use App\Http\Controllers\Api\MarcaController;
+use App\Http\Controllers\Api\UnidadMedidaController;
+use App\Http\Controllers\Api\ImpuestoController;
+use App\Http\Controllers\Api\BankController;
+use App\Http\Controllers\Api\BankAccountController;
+use App\Http\Controllers\Api\BankTransactionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,6 +48,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf']);
+Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf']);
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
@@ -166,11 +178,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('permission:eliminar_productos');
 
     // ================= INGREDIENTES (Eliminados, unificados en Productos) =================
-    Route::get('/recetas', [\App\Http\Controllers\Api\RecetaController::class, 'index'])
+    Route::get('/recetas', [RecetaController::class, 'index'])
         ->middleware('permission:gestionar_recetas');
-    Route::get('/recetas/{id}', [\App\Http\Controllers\Api\RecetaController::class, 'show'])
+    Route::get('/recetas/{id}', [RecetaController::class, 'show'])
         ->middleware('permission:gestionar_recetas');
-    Route::put('/recetas/{id}', [\App\Http\Controllers\Api\RecetaController::class, 'update'])
+    Route::put('/recetas/{id}', [RecetaController::class, 'update'])
         ->middleware('permission:gestionar_recetas');
 
     // ================= NÓMINA =================
@@ -200,17 +212,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('permission:ver_nomina');
 
     // ================= CONTABILIDAD =================
-    Route::get('/catalogo-cuentas', [\App\Http\Controllers\Api\CatalogoCuentaController::class, 'index']);
-    Route::get('/configuracion-contable', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'index']);
-    Route::put('/configuracion-contable/{id}', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'update']);
-    Route::post('/configuracion-contable/bulk', [\App\Http\Controllers\Api\ConfiguracionContableController::class, 'bulkUpdate']);
-    Route::get('/asientos', [\App\Http\Controllers\Api\AsientoContableController::class, 'index']);
+    Route::apiResource('catalogo-cuentas', CatalogoCuentaController::class);
+    Route::get('/configuracion-contable', [ConfiguracionContableController::class, 'index']);
+    Route::put('/configuracion-contable/{id}', [ConfiguracionContableController::class, 'update']);
+    Route::post('/configuracion-contable/bulk', [ConfiguracionContableController::class, 'bulkUpdate']);
+    Route::get('/asientos', [AsientoContableController::class, 'index']);
+
+    // ================= METODOS DE PAGO =================
+    Route::get('/metodos-pagos/activos', [\App\Http\Controllers\Api\MetodoPagoController::class, 'activos']);
+    Route::apiResource('metodos-pagos', \App\Http\Controllers\Api\MetodoPagoController::class);
 
     // ================= CATÁLOGOS PRODUCTOS =================
-    Route::apiResource('categorias', \App\Http\Controllers\Api\CategoriaController::class)->middleware('permission:ver_inventario');
-    Route::apiResource('marcas', \App\Http\Controllers\Api\MarcaController::class)->middleware('permission:ver_inventario');
-    Route::apiResource('unidades-medida', \App\Http\Controllers\Api\UnidadMedidaController::class)->middleware('permission:ver_inventario');
-    Route::apiResource('impuestos', \App\Http\Controllers\Api\ImpuestoController::class)->middleware('permission:ver_inventario');
+    Route::apiResource('categorias', CategoriaController::class)->middleware('permission:ver_inventario');
+    Route::apiResource('marcas', MarcaController::class)->middleware('permission:ver_inventario');
+    Route::apiResource('unidades-medida', UnidadMedidaController::class)->middleware('permission:ver_inventario');
+    Route::apiResource('impuestos', ImpuestoController::class)->middleware('permission:ver_inventario');
 
     // ================= DGII / IMPUESTOS =================
     Route::get('/dgii/balance', [DgiiController::class, 'getBalance']);
@@ -222,28 +238,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dgii/exportar-607', [DgiiController::class, 'exportar607']);
 
     // ================= COTIZACIONES =================
-    Route::apiResource('cotizaciones', \App\Http\Controllers\Api\CotizacionController::class);
-    Route::patch('cotizaciones/{id}/estado', [\App\Http\Controllers\Api\CotizacionController::class, 'updateStatus']);
-    Route::get('cotizaciones/{id}/pdf', [\App\Http\Controllers\Api\CotizacionController::class, 'pdf']);
+    Route::apiResource('cotizaciones', CotizacionController::class);
+    Route::patch('cotizaciones/{id}/estado', [CotizacionController::class, 'updateStatus']);
 
     // ================= ORDENES DE COMPRA =================
-    Route::apiResource('ordenes-compras', \App\Http\Controllers\Api\OrdenCompraController::class);
-    Route::patch('ordenes-compras/{id}/estado', [\App\Http\Controllers\Api\OrdenCompraController::class, 'updateStatus']);
-    Route::get('ordenes-compras/{id}/pdf', [\App\Http\Controllers\Api\OrdenCompraController::class, 'generatePdf']);
+    Route::apiResource('ordenes-compras', OrdenCompraController::class);
+    Route::patch('ordenes-compras/{id}/estado', [OrdenCompraController::class, 'updateStatus']);
+    Route::get('ordenes-compras/{id}/pdf', [OrdenCompraController::class, 'generatePdf']);
+
+    // ================= FINANZAS / BANCOS =================
+    Route::apiResource('bancos', BankController::class);
+    Route::apiResource('cuentas-bancarias', BankAccountController::class);
+    Route::post('transacciones-bancarias/conciliar', [BankTransactionController::class, 'reconcile']);
+    Route::apiResource('transacciones-bancarias', BankTransactionController::class)->only(['index', 'store']);
 
 });
-
-// // Route::post('/facturas', [FacturaController::class, 'store'])
-// //     ->middleware('permission:crear_facturas');
-
-// Route::post('/facturas', [FacturaController::class, 'store'])
-//     ->middleware(['auth:sanctum', 'permission:crear_facturas']);
-
-// Route::get('/facturas', [FacturaController::class, 'index'])
-//     ->middleware(['auth:sanctum', 'permission:ver_facturas']);
-
-// Route::post('/facturas/{id}/pagar', [FacturaController::class, 'pagar'])
-//     ->middleware(['auth:sanctum', 'permission:editar_facturas']);
-
-// Route::get('/facturas/{id}', [FacturaController::class, 'show'])
-//     ->middleware(['auth:sanctum', 'permission:ver_facturas']);
