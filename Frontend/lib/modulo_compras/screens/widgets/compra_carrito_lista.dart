@@ -68,10 +68,11 @@ class CompraCarritoLista extends ConsumerWidget {
           ),
         ),
         const Divider(height: 1, color: Colors.black12),
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: detalles.length,
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          itemCount: detalles.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (ctx, i) {
               final d = detalles[i];
@@ -91,7 +92,7 @@ class CompraCarritoLista extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            d.productoNombre,
+                            d.productoNombre ?? d.descripcionGasto ?? 'Gasto sin descripción',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -143,7 +144,6 @@ class CompraCarritoLista extends ConsumerWidget {
               );
             },
           ),
-        ),
       ],
     );
   }

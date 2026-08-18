@@ -8,15 +8,19 @@ const _uuid = Uuid();
 // ─────────────────────────────────────────────────────────────────────────────
 
 class NuevaCompraDetalleItem {
-  final int productoId;
-  final String productoNombre;
+  final int? productoId;
+  final String? productoNombre;
+  final int? cuentaContableId;
+  final String? descripcionGasto;
   final double cantidad;
   final double costoUnitario;
   final double impuestoMonto;
 
   NuevaCompraDetalleItem({
-    required this.productoId,
-    required this.productoNombre,
+    this.productoId,
+    this.productoNombre,
+    this.cuentaContableId,
+    this.descripcionGasto,
     required this.cantidad,
     required this.costoUnitario,
     required this.impuestoMonto,
@@ -34,6 +38,8 @@ class NuevaCompraDetalleItem {
     return {
       'producto_id': productoId,
       'producto_nombre': productoNombre,
+      'cuenta_contable_id': cuentaContableId,
+      'descripcion': descripcionGasto ?? productoNombre,
       'cantidad': cantidad,
       'costo_unitario': costoUnitario,
       'impuesto_monto': impuestoMonto,

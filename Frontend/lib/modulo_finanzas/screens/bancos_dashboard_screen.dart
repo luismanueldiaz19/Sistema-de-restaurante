@@ -84,6 +84,12 @@ class _BancosDashboardScreenState extends ConsumerState<BancosDashboardScreen> {
                               ),
                             );
                           },
+                          onEdit: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => BankAccountDialog(account: cuenta),
+                            );
+                          },
                         );
                       },
                     ),

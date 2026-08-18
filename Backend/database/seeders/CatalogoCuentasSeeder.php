@@ -74,6 +74,15 @@ class CatalogoCuentasSeeder extends Seeder
             'permite_movimiento' => true
         ]);
 
+        CatalogoCuenta::create([
+            'codigo' => '1.1.04',
+            'nombre' => 'CUENTAS POR COBRAR EMPLEADOS',
+            'tipo'   => 'Activo',
+            'nivel'  => 3,
+            'padre_id' => $corrientes->id,
+            'permite_movimiento' => true
+        ]);
+
         // Inventarios
         $inventarios = CatalogoCuenta::create([
             'codigo' => '1.1.05',
@@ -147,6 +156,15 @@ class CatalogoCuentasSeeder extends Seeder
             'permite_movimiento' => true
         ]);
 
+        CatalogoCuenta::create([
+            'codigo' => '2.1.04',
+            'nombre' => 'PRESTAMOS BANCARIOS POR PAGAR',
+            'tipo'   => 'Pasivo',
+            'nivel'  => 3,
+            'padre_id' => $pasCorrientes->id,
+            'permite_movimiento' => true
+        ]);
+
         // --- 3. CAPITAL ---
         $capital = CatalogoCuenta::create([
             'codigo' => '3',
@@ -210,6 +228,42 @@ class CatalogoCuentasSeeder extends Seeder
             'permite_movimiento' => true
         ]);
 
+        CatalogoCuenta::create([
+            'codigo' => '5.2',
+            'nombre' => 'COSTO DE BEBIDAS',
+            'tipo'   => 'Costos',
+            'nivel'  => 2,
+            'padre_id' => $costos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '5.3',
+            'nombre' => 'COSTO DE EMPAQUES Y DESECHABLES',
+            'tipo'   => 'Costos',
+            'nivel'  => 2,
+            'padre_id' => $costos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '5.4',
+            'nombre' => 'MERMAS Y DESPERDICIOS',
+            'tipo'   => 'Costos',
+            'nivel'  => 2,
+            'padre_id' => $costos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '5.5',
+            'nombre' => 'OTROS COSTOS DIRECTOS',
+            'tipo'   => 'Costos',
+            'nivel'  => 2,
+            'padre_id' => $costos->id,
+            'permite_movimiento' => true
+        ]);
+
         // --- 6. GASTOS ---
         $gastos = CatalogoCuenta::create([
             'codigo' => '6',
@@ -222,6 +276,96 @@ class CatalogoCuentasSeeder extends Seeder
         CatalogoCuenta::create([
             'codigo' => '6.1',
             'nombre' => 'NOMINA Y SALARIOS',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.2',
+            'nombre' => 'ENERGIA ELECTRICA',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.3',
+            'nombre' => 'PAGO DE AGUA',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.4',
+            'nombre' => 'BOTE DE BASURA',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.5',
+            'nombre' => 'ALQUILER DE LOCAL',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.6',
+            'nombre' => 'MANTENIMIENTO DE EQUIPOS',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.7',
+            'nombre' => 'PUBLICIDAD Y MARKETING',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.8',
+            'nombre' => 'GASTOS DE LIMPIEZA Y SUMINISTROS',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.9',
+            'nombre' => 'TELEFONO E INTERNET',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.10',
+            'nombre' => 'OTROS GASTOS',
+            'tipo'   => 'Gastos',
+            'nivel'  => 2,
+            'padre_id' => $gastos->id,
+            'permite_movimiento' => true
+        ]);
+
+        CatalogoCuenta::create([
+            'codigo' => '6.11',
+            'nombre' => 'GASTOS FINANCIEROS (INTERESES)',
             'tipo'   => 'Gastos',
             'nivel'  => 2,
             'padre_id' => $gastos->id,

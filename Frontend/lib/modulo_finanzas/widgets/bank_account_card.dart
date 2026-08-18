@@ -6,11 +6,13 @@ import '../../palletes/app_colors.dart';
 class BankAccountCard extends StatefulWidget {
   final BankAccountModel account;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
 
   const BankAccountCard({
     super.key,
     required this.account,
     required this.onTap,
+    this.onEdit,
   });
 
   @override
@@ -56,13 +58,22 @@ class _BankAccountCardState extends State<BankAccountCard> {
               children: [
                 // Fila superior: Icono y Chip de estado
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Icon(
                       Icons.account_balance,
                       color: AppColors.primary,
                       size: 32,
                     ),
+                    const Spacer(),
+                    if (widget.onEdit != null)
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        color: Colors.grey.shade600,
+                        onPressed: widget.onEdit,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(

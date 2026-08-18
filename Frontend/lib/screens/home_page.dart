@@ -1,6 +1,8 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:sistema_restaurante/facturacion/screens/add_factura.dart';
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_productos.dart';
@@ -9,7 +11,9 @@ import 'package:sistema_restaurante/modulo_cotizaciones/screens/historial_cotiza
 import 'package:sistema_restaurante/modulo_ordenes_compra/screens/crear_orden_compra_screen.dart';
 import 'package:sistema_restaurante/modulo_ordenes_compra/screens/historial_ordenes_compra_screen.dart';
 import 'package:sistema_restaurante/modulo_compras/screens/cxp_list_screen.dart';
+import 'package:sistema_restaurante/modulo_compras/screens/registrar_gasto_screen.dart';
 import 'package:sistema_restaurante/modulo_cxc/screens/cxc_list_screen.dart';
+import 'package:sistema_restaurante/pedidos/screens/pedidos_screen.dart';
 import 'package:sistema_restaurante/widgets/custom_confirm_dialog.dart';
 import 'package:sistema_restaurante/widgets/custom_sidebar.dart';
 import '../facturacion/screens/historial_ventas_screen.dart';
@@ -209,39 +213,109 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             ),
           ),
           const Spacer(),
-          // User Info & Actions
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.notifications_none,
-                  size: 20,
-                  color: Colors.grey,
-                ),
-                const SizedBox(width: 15),
-                Text(
-                  auth.user?.name ?? 'Usuario',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const CircleAvatar(
-                  radius: 14,
-                  backgroundColor: AppColors.primary,
-                  child: Icon(Icons.person, size: 16, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
+          _buildUserInfo(auth),
         ],
       ),
+    );
+  }
+
+  Widget _buildUserInfo(AuthState auth) {
+    final user = auth.user;
+    final String initial = user?.name?.isNotEmpty == true
+        ? user!.name![0].toUpperCase()
+        : 'U';
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Horario
+        StreamBuilder(
+          stream: Stream.periodic(const Duration(seconds: 1)),
+          builder: (context, snapshot) {
+            final now = DateTime.now();
+            final months = [
+              'Ene',
+              'Feb',
+              'Mar',
+              'Abr',
+              'May',
+              'Jun',
+              'Jul',
+              'Ago',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dic',
+            ];
+            final dateStr = '${now.day} ${months[now.month - 1]} ${now.year}';
+            final timeStr = DateFormat('hh:mm a').format(now);
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  dateStr,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  timeStr,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.azulOscuro,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(width: 16),
+        Container(width: 1, height: 30, color: Colors.grey.shade300),
+        const SizedBox(width: 16),
+        // Usuario
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              user?.name ?? 'Usuario',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.azulOscuro,
+              ),
+            ),
+            Text(
+              auth.roles.isNotEmpty
+                  ? auth.roles.first.toUpperCase()
+                  : 'ROL NO DEFINIDO',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey.shade500,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 12),
+        // Imagen (Inicial del nombre)
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+          child: Text(
+            initial,
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -288,6 +362,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const HistorialVentasScreen(),
+                          ),
+                        );
+                        break;
+                      case 'pedidos':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PedidosScreen(),
                           ),
                         );
                         break;
@@ -353,6 +435,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const CxcListScreen(),
+                          ),
+                        );
+                        break;
+                      case 'registrar_gasto':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RegistrarGastoScreen(),
                           ),
                         );
                         break;
@@ -544,181 +634,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentBreakdownCard({
-    required String efectivo,
-    required String tarjeta,
-    required String cheque,
-    required String otros,
-    required double width,
-  }) {
-    return FadeInRight(
-      child: Container(
-        width: width,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(color: Colors.grey.shade100),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.account_balance_wallet_outlined,
-                  size: 16,
-                  color: Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Desglose por Métodos',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildBreakdownItem(
-                    'Efectivo',
-                    efectivo,
-                    Colors.green,
-                  ),
-                ),
-                const VerticalDivider(),
-                Expanded(
-                  child: _buildBreakdownItem('Tarjeta', tarjeta, Colors.blue),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Divider(height: 1, thickness: 0.5),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildBreakdownItem('Cheque', cheque, Colors.orange),
-                ),
-                const VerticalDivider(),
-                Expanded(
-                  child: _buildBreakdownItem('Otros', otros, Colors.purple),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBreakdownItem(String label, String amount, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey.shade500,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'RD\$ $amount',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.azulOscuro,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _infoCard(
-    String title,
-    String value, {
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withValues(alpha: 0.1), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              Icon(icon, color: color, size: 24),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.secondary,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade500,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

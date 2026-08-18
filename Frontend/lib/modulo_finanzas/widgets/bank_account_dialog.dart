@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../model/banco_models.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/bank_provider.dart';
+import '../../providers/configuracion_contable_provider.dart';
 import '../../palletes/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 
 class BankAccountDialog extends ConsumerStatefulWidget {
-  const BankAccountDialog({super.key});
+  final BankAccountModel? account;
+  const BankAccountDialog({super.key, this.account});
 
   @override
   ConsumerState<BankAccountDialog> createState() => _BankAccountDialogState();
@@ -17,17 +20,44 @@ class BankAccountDialog extends ConsumerStatefulWidget {
 class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
   final _formKey = GlobalKey<FormState>();
   int? _selectedBankId;
+  int? _selectedAccountingAccountId;
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _accountNumberCtrl = TextEditingController();
-  final TextEditingController _currencyCtrl = TextEditingController(text: 'DOP');
-  final TextEditingController _initialBalanceCtrl = TextEditingController(text: '0');
+  final TextEditingController _currencyCtrl = TextEditingController(
+    text: 'DOP',
+  );
+  final TextEditingController _initialBalanceCtrl = TextEditingController(
+    text: '0',
+  );
 
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final token = ref.read(authProvider).token;
+      if (token != null) {
+        ref.read(configuracionContableProvider.notifier).loadAllData(token);
+      }
+    });
+
+    if (widget.account != null) {
+      _selectedBankId = widget.account!.bankId;
+      _nameCtrl.text = widget.account!.name;
+      _accountNumberCtrl.text = widget.account!.accountNumber;
+      _currencyCtrl.text = widget.account!.currency;
+      _initialBalanceCtrl.text = widget.account!.currentBalance.toString();
+      _selectedAccountingAccountId = widget.account!.accountingAccountId;
+    }
+  }
 
   void _guardar() async {
     if (!_formKey.currentState!.validate() || _selectedBankId == null) {
       if (_selectedBankId == null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccione un banco')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Seleccione un banco')));
       }
       return;
     }
@@ -43,15 +73,24 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
       'account_number': _accountNumberCtrl.text,
       'currency': _currencyCtrl.text,
       'current_balance': double.tryParse(_initialBalanceCtrl.text) ?? 0,
+      'accounting_account_id': _selectedAccountingAccountId,
       'is_active': true,
     };
 
     try {
-      await ref.read(bankProvider.notifier).createAccount(token, data);
+      if (widget.account == null) {
+        await ref.read(bankProvider.notifier).createAccount(token, data);
+      } else {
+        await ref
+            .read(bankProvider.notifier)
+            .updateAccount(token, widget.account!.id, data);
+      }
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -61,6 +100,32 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(bankProvider);
+    final contableState = ref.watch(configuracionContableProvider);
+
+    // Encuentra la cuenta principal "ACTIVOS CORRIENTES"
+    final bancoParent = contableState.catalogoCuentasCompleto
+        .where((c) => c.nombre.toUpperCase().trim() == 'ACTIVOS CORRIENTES')
+        .firstOrNull;
+
+    List<int> descendientesIds = [];
+    if (bancoParent != null) {
+      void buscarHijos(int id) {
+        final hijos = contableState.catalogoCuentasCompleto
+            .where((c) => c.padreId == id)
+            .toList();
+        for (var h in hijos) {
+          descendientesIds.add(h.id);
+          buscarHijos(h.id);
+        }
+      }
+
+      buscarHijos(bancoParent.id);
+    }
+
+    // Filtrar cuentas de banco (descendientes de BANCOS que permiten movimiento)
+    final cuentasBancos = contableState.catalogoCuentasCompleto
+        .where((c) => descendientesIds.contains(c.id) && c.permiteMovimiento)
+        .toList();
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -77,9 +142,11 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Nueva Cuenta Bancaria',
-                      style: TextStyle(
+                    Text(
+                      widget.account == null
+                          ? 'Nueva Cuenta Bancaria'
+                          : 'Editar Cuenta Bancaria',
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: AppColors.azulOscuro,
@@ -93,7 +160,7 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16),
-                
+
                 Text(
                   'Banco',
                   style: TextStyle(
@@ -108,7 +175,10 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.grey.shade50,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 15,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey.shade200),
@@ -119,17 +189,22 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.azulOscuro, width: 1.5),
+                      borderSide: const BorderSide(
+                        color: AppColors.azulOscuro,
+                        width: 1.5,
+                      ),
                     ),
                   ),
-                  items: state.banks.map((b) => DropdownMenuItem(
-                    value: b.id,
-                    child: Text(b.name),
-                  )).toList(),
+                  items: state.banks
+                      .map(
+                        (b) =>
+                            DropdownMenuItem(value: b.id, child: Text(b.name)),
+                      )
+                      .toList(),
                   onChanged: (v) => setState(() => _selectedBankId = v),
                 ),
                 const SizedBox(height: 16),
-                
+
                 CustomTextField(
                   controller: _nameCtrl,
                   label: 'Nombre de la cuenta',
@@ -137,7 +212,7 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                   validator: (v) => v!.isEmpty ? 'Requerido' : null,
                 ),
                 const SizedBox(height: 16),
-                
+
                 CustomTextField(
                   controller: _accountNumberCtrl,
                   label: 'Número de Cuenta',
@@ -146,7 +221,7 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                   validator: (v) => v!.isEmpty ? 'Requerido' : null,
                 ),
                 const SizedBox(height: 16),
-                
+
                 Row(
                   children: [
                     Expanded(
@@ -162,15 +237,23 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                       flex: 2,
                       child: CustomTextField(
                         controller: _initialBalanceCtrl,
-                        label: 'Balance Inicial',
+                        label: widget.account == null
+                            ? 'Balance Inicial'
+                            : 'Balance Actual',
                         hintText: '0.00',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,2}'),
+                          ),
                         ],
                         prefixIcon: Icons.attach_money,
                         validator: (v) {
-                          if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
+                          if (v != null &&
+                              v.isNotEmpty &&
+                              double.tryParse(v) == null) {
                             return 'Inválido';
                           }
                           return null;
@@ -179,7 +262,54 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                     ),
                   ],
                 ),
-                
+                const SizedBox(height: 16),
+
+                Text(
+                  'Cuenta Contable Asociada (Opcional)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  value: _selectedAccountingAccountId,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 15,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.azulOscuro,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  items: cuentasBancos
+                      .map(
+                        (c) => DropdownMenuItem(
+                          value: c.id,
+                          child: Text('${c.codigo} - ${c.nombre}'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) =>
+                      setState(() => _selectedAccountingAccountId = v),
+                ),
+
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -193,7 +323,7 @@ class _BankAccountDialogState extends ConsumerState<BankAccountDialog> {
                     ),
                     const SizedBox(width: 16),
                     CustomButton(
-                      title: 'Guardar',
+                      title: widget.account == null ? 'Guardar' : 'Actualizar',
                       onPressed: _isLoading ? null : _guardar,
                       isLoading: _isLoading,
                       width: 150,

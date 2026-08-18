@@ -83,6 +83,20 @@ class BankNotifier extends StateNotifier<BankState> {
     }
   }
 
+  Future<void> updateAccount(String token, int id, Map<String, dynamic> data) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      final updatedAccount = await _service.updateBankAccount(token, id, data);
+      state = state.copyWith(
+        isLoading: false,
+        accounts: state.accounts.map((acc) => acc.id == id ? updatedAccount : acc).toList(),
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      rethrow;
+    }
+  }
+
   Future<void> loadTransactions(String token, int accountId) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {

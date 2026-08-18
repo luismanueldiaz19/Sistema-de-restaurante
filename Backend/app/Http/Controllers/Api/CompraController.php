@@ -128,6 +128,7 @@ class CompraController extends Controller
                     'compra_id'      => $compra->id,
                     'producto_id'    => $d['producto_id'] ?? null,
                     'descripcion'    => $d['descripcion'] ?? null,
+                    'cuenta_contable_id' => $d['cuenta_contable_id'] ?? null,
                     'cantidad'       => $d['cantidad'],
                     'costo_unitario' => $d['costo_unitario'],
                     'subtotal'       => $d['subtotal'],
@@ -168,7 +169,7 @@ class CompraController extends Controller
                 "COMPRA-{$compra->id}",
                 "Compra a proveedor Fac: {$compra->numero_factura_proveedor}",
                 auth()->id() ?? 1,
-                ['es_informal' => $esInformal]
+                ['es_informal' => $esInformal, 'detalles' => $detalles]
             );
 
             if ($asientoCompra) {

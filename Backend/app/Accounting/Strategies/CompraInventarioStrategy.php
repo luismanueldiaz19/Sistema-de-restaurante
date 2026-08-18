@@ -24,12 +24,41 @@ class CompraInventarioStrategy implements AsientoStrategy
 
         $detalles = [];
 
-        // DÉBITO: Inventario -> Subtotal
-        $detalles[] = [
-            'cuenta_id' => $cuentaInventario,
-            'debito' => $subtotal,
-            'credito' => 0.00
-        ];
+        $detallesArray = $configs['detalles'] ?? [];
+
+        // Agrupar subtotal por cuenta contable (Gastos vs Inventario)
+        if (!empty($detallesArray)) {
+            $subtotalesPorCuenta = [];
+            foreach ($detallesArray as $d) {
+                $cuentaId = $d['cuenta_contable_id'] ?? $cuentaInventario;
+                if (!$cuentaId) {
+                    $cuentaId = $cuentaInventario; // Fallback
+                }
+                $subtotalLinea = floatval($d['subtotal'] ?? ($d['cantidad'] * $d['costo_unitario']));
+                
+                if (!isset($subtotalesPorCuenta[$cuentaId])) {
+                    $subtotalesPorCuenta[$cuentaId] = 0.0;
+                }
+                $subtotalesPorCuenta[$cuentaId] += $subtotalLinea;
+            }
+
+            foreach ($subtotalesPorCuenta as $cId => $monto) {
+                if ($monto > 0) {
+                    $detalles[] = [
+                        'cuenta_id' => $cId,
+                        'debito' => $monto,
+                        'credito' => 0.00
+                    ];
+                }
+            }
+        } else {
+            // DÉBITO: Inventario -> Subtotal (Fallback original)
+            $detalles[] = [
+                'cuenta_id' => $cuentaInventario,
+                'debito' => $subtotal,
+                'credito' => 0.00
+            ];
+        }
 
         // DÉBITO: ITBIS adelantado en Compras -> ITBIS
         if ($itbis > 0) {

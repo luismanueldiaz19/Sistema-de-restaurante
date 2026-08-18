@@ -56,6 +56,15 @@ class BankService {
     }
   }
 
+  Future<BankAccountModel> updateBankAccount(String token, int id, Map<String, dynamic> data) async {
+    final response = await _api.put('$_baseUrl/cuentas-bancarias/$id', data, token: token);
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return BankAccountModel.fromJson(decoded['data']);
+    }
+    throw Exception(jsonDecode(response.body)['message'] ?? 'Error al actualizar cuenta bancaria');
+  }
+
   // ================= TRANSACCIONES BANCARIAS =================
 
   Future<List<BankTransactionModel>> getBankTransactions({required String token, int? accountId}) async {

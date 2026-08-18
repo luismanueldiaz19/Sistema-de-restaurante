@@ -21,9 +21,16 @@ class DashboardButtonsSection extends ConsumerWidget {
           color: Colors.green.shade600,
           onTap: () => onAction('venta'),
         ),
+      if (auth.hasPermission('crear_facturas'))
+        DashboardButton(
+          title: 'Pedidos',
+          icon: Icons.restaurant_menu_rounded,
+          color: Colors.amber.shade700,
+          onTap: () => onAction('pedidos'),
+        ),
       if (auth.hasPermission('ver_facturas'))
         DashboardButton(
-          title: 'H. Ventas',
+          title: 'Ventas',
           icon: Icons.history_rounded,
           color: Colors.blue.shade600,
           onTap: () => onAction('historial_ventas'),
@@ -35,13 +42,13 @@ class DashboardButtonsSection extends ConsumerWidget {
           color: AppColors.azulOscuro,
           onTap: () => onAction('clientes'),
         ),
-      if (auth.hasPermission('ver_facturas'))
-        DashboardButton(
-          title: 'Reportes',
-          icon: Icons.analytics_rounded,
-          color: Colors.indigo,
-          onTap: () => onAction('reportes'),
-        ),
+      // if (auth.hasPermission('ver_facturas'))
+      //   DashboardButton(
+      //     title: 'Reportes',
+      //     icon: Icons.analytics_rounded,
+      //     color: Colors.indigo,
+      //     onTap: () => onAction('reportes'),
+      //   ),
       if (auth.hasPermission('ver_inventario') ||
           auth.hasPermission('ver_productos'))
         DashboardButton(
@@ -64,13 +71,13 @@ class DashboardButtonsSection extends ConsumerWidget {
           color: Colors.cyan.shade700,
           onTap: () => onAction('ver_cotizaciones'),
         ),
-      if (auth.hasPermission('crear_facturas'))
-        DashboardButton(
-          title: 'Crear O. Compra',
-          icon: Icons.add_shopping_cart,
-          color: Colors.deepPurple,
-          onTap: () => onAction('crear_orden_compra'),
-        ),
+      // if (auth.hasPermission('crear_facturas'))
+      //   DashboardButton(
+      //     title: 'Crear O. Compra',
+      //     icon: Icons.add_shopping_cart,
+      //     color: Colors.deepPurple,
+      //     onTap: () => onAction('crear_orden_compra'),
+      //   ),
       if (auth.hasPermission('ver_facturas'))
         DashboardButton(
           title: 'Órdenes Compra',
@@ -80,19 +87,27 @@ class DashboardButtonsSection extends ConsumerWidget {
         ),
       if (auth.hasPermission('ver_cxp'))
         DashboardButton(
-          title: 'CxP',
+          title: 'Reg. Gasto',
+          icon: Icons.request_quote_outlined,
+          color: Colors.orange.shade700,
+          onTap: () => onAction('registrar_gasto'),
+        ),
+      if (auth.hasPermission('ver_cxp'))
+        DashboardButton(
+          title: 'Cuenta por pagar',
           icon: Icons.money_off,
           color: Colors.red.shade600,
           onTap: () => onAction('ver_cxp'),
         ),
       if (auth.hasPermission('ver_cxc'))
         DashboardButton(
-          title: 'CxC',
+          title: 'Cuenta por cobrar',
           icon: Icons.attach_money,
           color: Colors.green.shade800,
           onTap: () => onAction('ver_cxc'),
         ),
     ];
+
     return FadeInUp(
       duration: const Duration(milliseconds: 600),
       child: Padding(
@@ -101,9 +116,24 @@ class DashboardButtonsSection extends ConsumerWidget {
           builder: (context, constraints) {
             double width = constraints.maxWidth;
 
-            // Ajuste de columnas según el ancho
-            int crossAxisCount = (width / 160).floor();
-            if (crossAxisCount < 2) crossAxisCount = 2;
+            print(width);
+
+            // Ajuste de columnas (Breakpoints para mejor diseño responsivo)
+            int crossAxisCount =
+                2; // Por defecto para móviles pequeños (< 380px)
+            if (width >= 1300) {
+              crossAxisCount = 7; // Desktop grande
+            } else if (width >= 1100) {
+              crossAxisCount = 6; // Desktop normal / Tablet horizontal
+            } else if (width >= 900) {
+              crossAxisCount = 5; // Desktop normal / Tablet horizontal
+            } else if (width >= 700) {
+              crossAxisCount = 4; // Tablet pequeña
+            } else if (width >= 650) {
+              crossAxisCount = 4; // Phablets / Móviles en horizontal
+            } else if (width >= 380) {
+              crossAxisCount = 3; // Móviles estándar/grandes
+            }
 
             return GridView.builder(
               shrinkWrap: true,

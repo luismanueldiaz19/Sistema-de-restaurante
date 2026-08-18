@@ -7,8 +7,13 @@ import '../../providers/compras_provider.dart';
 
 class CompraPanelTotales extends ConsumerWidget {
   final VoidCallback onGuardar;
+  final String? textoBoton;
 
-  const CompraPanelTotales({super.key, required this.onGuardar});
+  const CompraPanelTotales({
+    super.key,
+    required this.onGuardar,
+    this.textoBoton,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,8 +84,8 @@ class CompraPanelTotales extends ConsumerWidget {
                       ),
                     )
                   : const Icon(Icons.check_circle_outline, size: 24),
-              label: const Text(
-                'REGISTRAR COMPRA',
+              label: Text(
+                textoBoton ?? 'REGISTRAR COMPRA',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
