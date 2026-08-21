@@ -5,6 +5,7 @@ import '../../../../palletes/app_colors.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../providers/configuracion_contable_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../widgets/custom_loading.dart';
 import '../../providers/nueva_compra_form_provider.dart';
 
 class GastoFormDetalle extends ConsumerStatefulWidget {
@@ -102,17 +103,24 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
     final configState = ref.watch(configuracionContableProvider);
 
     if (configState.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: SizedBox(
+          // height: 150,
+          width: double.infinity,
+          child: Center(
+            child: CustomLoading(
+              text: 'Cargando... Espere por favor.',
+              colorText: Colors.black54,
+            ),
+          ),
+        ),
+      );
     }
 
     // Filtrar cuentas de Gastos que permitan movimientos
     final cuentasGastos = configState.catalogoCuentasCompleto
-        .where(
-          (c) =>
-              (c.tipo.toUpperCase() == 'GASTOS' ||
-                  c.tipo.toUpperCase() == 'COSTOS') &&
-              c.permiteMovimiento,
-        )
+        .where((c) => (c.tipo.toUpperCase() == 'GASTOS') && c.permiteMovimiento)
         .toList();
 
     return Container(
@@ -123,7 +131,7 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -131,119 +139,129 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
       ),
       child: SingleChildScrollView(
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Detalle del Gasto',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-
-          // Selector de Cuenta
-          const Text(
-            'Cuenta Contable de Gasto',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF616161),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Detalle del Gasto',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<int>(
-            value: _selectedCuentaId,
-            isExpanded: true,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade200),
+            const SizedBox(height: 20),
+
+            // Selector de Cuenta
+            const Text(
+              'Cuenta Contable de Gasto',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF616161),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade200),
-              ),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             ),
-            items: cuentasGastos.map((c) {
-              return DropdownMenuItem<int>(
-                value: c.id,
-                child: Text('${c.codigo} - ${c.nombre}', style: const TextStyle(fontSize: 14)),
-              );
-            }).toList(),
-            onChanged: (val) {
-              setState(() {
-                _selectedCuentaId = val;
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Descripción
-          CustomTextField(
-            controller: _descripcionCtrl,
-            label: 'Descripción del Gasto (Opcional)',
-            hintText: 'Ej. Pago de luz eléctrica agosto',
-            prefixIcon: Icons.description_outlined,
-          ),
-          const SizedBox(height: 16),
-
-          // Montos
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  controller: _montoCtrl,
-                  label: 'Monto (Subtotal)',
-                  prefixIcon: Icons.attach_money,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: CustomTextField(
-                  controller: _impuestoCtrl,
-                  label: 'Impuestos (ITBIS)',
-                  prefixIcon: Icons.receipt_long,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              onPressed: _agregarGasto,
-              icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-              label: const Text(
-                'Agregar Gasto al Detalle',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
+            const SizedBox(height: 8),
+            DropdownButtonFormField<int>(
+              initialValue: _selectedCuentaId,
+              isExpanded: true,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 15,
+                ),
+              ),
+              items: cuentasGastos.map((c) {
+                return DropdownMenuItem<int>(
+                  value: c.id,
+                  child: Text(
+                    '${c.codigo} - ${c.nombre}',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                setState(() {
+                  _selectedCuentaId = val;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Descripción
+            CustomTextField(
+              controller: _descripcionCtrl,
+              label: 'Descripción del Gasto (Opcional)',
+              hintText: 'Ej. Pago de luz eléctrica agosto',
+              prefixIcon: Icons.description_outlined,
+            ),
+            const SizedBox(height: 16),
+
+            // Montos
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: CustomTextField(
+                    controller: _montoCtrl,
+                    label: 'Monto (Subtotal)',
+                    prefixIcon: Icons.attach_money,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CustomTextField(
+                    controller: _impuestoCtrl,
+                    label: 'Impuestos (ITBIS)',
+                    prefixIcon: Icons.receipt_long,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: _agregarGasto,
+                icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+                label: const Text(
+                  'Agregar Gasto al Detalle',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 }

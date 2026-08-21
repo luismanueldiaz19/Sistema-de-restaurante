@@ -5,6 +5,7 @@ import '../providers/proveedores_provider.dart';
 import '../../modulo_producto/providers/producto_provider.dart';
 import '../../utils/helpers.dart';
 import '../providers/nueva_compra_form_provider.dart';
+import '../../../facturacion/providers/metodo_pago_provider.dart';
 
 import 'widgets/compra_configuracion_form.dart';
 import 'widgets/gasto_form_detalle.dart';
@@ -29,6 +30,7 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
       if (token != null) {
         ref.read(productoProvider.notifier).loadProductos(token, silent: true);
       }
+      ref.read(metodoPagoProvider).fetchMetodosActivos();
       // Resetear el formulario al entrar
       ref.read(nuevaCompraFormProvider.notifier).clearForm();
     });
@@ -69,7 +71,7 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
       'ncf': formState.ncf,
       'fecha_compra': formState.fechaCompra.toIso8601String().split('T')[0],
       'fecha_vencimiento': formState.fechaVencimiento?.toIso8601String().split(
-        'T',
+        'G',
       )[0],
       'tipo_compra': formState.tipoCompra,
       'notas': formState.notas,
@@ -80,11 +82,15 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
       'idempotency_key': formState.idempotencyKey,
       // ──────────────────────────────────────────────────────────────────────
       'detalles': formState.detalles.map((d) => d.toJson()).toList(),
+      if (formState.tipoCompra == 'CONTADO')
+        'metodo_pago_id': formState.metodoPagoId,
     };
+
+    print(data);
 
     final success = await ref.read(comprasProvider.notifier).createCompra(data);
     if (success && mounted) {
-      showToast(context, 'Compra registrada con éxito', bgColor: Colors.green);
+      showToast(context, 'Gasto registrado con éxito', bgColor: Colors.green);
       // clearForm() genera un nuevo idempotency_key para el próximo formulario
       ref.read(nuevaCompraFormProvider.notifier).clearForm();
       Navigator.pop(context);

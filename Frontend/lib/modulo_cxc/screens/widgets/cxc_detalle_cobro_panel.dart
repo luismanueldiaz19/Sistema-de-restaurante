@@ -5,6 +5,8 @@ import '../../../widgets/custom_text_field.dart';
 import '../../models/cxc.dart';
 import '../../providers/cxc_provider.dart';
 import '../../../utils/helpers.dart';
+import '../../../facturacion/models/metodo_pago.dart';
+import '../../../facturacion/providers/metodo_pago_provider.dart';
 
 class CxcDetalleCobroPanel extends ConsumerStatefulWidget {
   final CuentaPorCobrar? cxc;
@@ -24,8 +26,7 @@ class CxcDetalleCobroPanel extends ConsumerStatefulWidget {
 class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
   final _montoCtrl = TextEditingController();
   final _refCtrl = TextEditingController();
-  String _metodo = 'EFECTIVO';
-  final int _cuentaDestinoId = 1; // Assuming account 1 is Caja General / Efectivo
+  MetodoPago? _metodoPagoSeleccionado;
 
   @override
   void didUpdateWidget(covariant CxcDetalleCobroPanel oldWidget) {
@@ -33,7 +34,6 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
     if (widget.cxc != oldWidget.cxc && widget.cxc != null) {
       _montoCtrl.text = widget.cxc!.balancePendiente.toStringAsFixed(2);
       _refCtrl.clear();
-      _metodo = 'EFECTIVO';
     }
   }
 
@@ -43,6 +43,17 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
     if (widget.cxc != null) {
       _montoCtrl.text = widget.cxc!.balancePendiente.toStringAsFixed(2);
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(metodoPagoProvider).fetchMetodosActivos().then((_) {
+        final prov = ref.read(metodoPagoProvider);
+        if (prov.metodos.isNotEmpty) {
+          setState(() {
+            _metodoPagoSeleccionado = prov.metodos.first;
+          });
+        }
+      });
+    });
   }
 
   @override
@@ -105,11 +116,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.receipt_long,
-                  color: Colors.green,
-                  size: 28,
-                ),
+                const Icon(Icons.receipt_long, color: Colors.green, size: 28),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -133,7 +140,10 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: cxc.estado == 'PENDIENTE'
                         ? Colors.red.shade50
@@ -150,7 +160,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       fontSize: 12,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -197,7 +207,9 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                             ),
                           ),
                           Text(
-                            formatCurrency(double.tryParse(d['subtotal'].toString()) ?? 0),
+                            formatCurrency(
+                              double.tryParse(d['subtotal'].toString()) ?? 0,
+                            ),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -218,7 +230,12 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       style: TextStyle(color: Colors.grey),
                     ),
                     Text(
-                      formatCurrency(double.tryParse(factura?['subtotal']?.toString() ?? '0') ?? 0),
+                      formatCurrency(
+                        double.tryParse(
+                              factura?['subtotal']?.toString() ?? '0',
+                            ) ??
+                            0,
+                      ),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -232,7 +249,12 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       style: TextStyle(color: Colors.grey),
                     ),
                     Text(
-                      formatCurrency(double.tryParse(factura?['itbis_total']?.toString() ?? '0') ?? 0),
+                      formatCurrency(
+                        double.tryParse(
+                              factura?['itbis_total']?.toString() ?? '0',
+                            ) ??
+                            0,
+                      ),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -249,7 +271,10 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       ),
                     ),
                     Text(
-                      formatCurrency(double.tryParse(factura?['total']?.toString() ?? '0') ?? 0),
+                      formatCurrency(
+                        double.tryParse(factura?['total']?.toString() ?? '0') ??
+                            0,
+                      ),
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 18,
@@ -329,34 +354,46 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Método',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                          ),
-                        ),
-                        initialValue: _metodo,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'EFECTIVO',
-                            child: Text('Efectivo'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'TRANSFERENCIA',
-                            child: Text('Transferencia'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'CHEQUE',
-                            child: Text('Cheque'),
-                          ),
-                        ],
-                        onChanged: (val) => setState(() => _metodo = val!),
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final metodoProv = ref.watch(metodoPagoProvider);
+
+                          if (metodoProv.isLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+
+                          if (metodoProv.metodos.isEmpty) {
+                            return const Text(
+                              'Sin métodos',
+                              style: TextStyle(color: Colors.red),
+                            );
+                          }
+
+                          return DropdownButtonFormField<MetodoPago>(
+                            decoration: InputDecoration(
+                              labelText: 'Método',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                            ),
+                            value: _metodoPagoSeleccionado,
+                            items: metodoProv.metodos.map((metodo) {
+                              return DropdownMenuItem<MetodoPago>(
+                                value: metodo,
+                                child: Text(metodo.nombre),
+                              );
+                            }).toList(),
+                            onChanged: (val) =>
+                                setState(() => _metodoPagoSeleccionado = val),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -400,9 +437,8 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                         'fecha_pago': DateTime.now().toIso8601String().split(
                           'T',
                         )[0],
-                        'metodo_pago': _metodo,
+                        'metodo_pago_id': _metodoPagoSeleccionado?.id,
                         'referencia': _refCtrl.text,
-                        'cuenta_destino_id': _cuentaDestinoId,
                       };
 
                       final success = await ref

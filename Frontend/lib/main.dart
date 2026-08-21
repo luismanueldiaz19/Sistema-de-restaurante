@@ -9,7 +9,7 @@ import 'utils/navigation_service.dart';
 bool _isLoggingOut = false;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final container = ProviderContainer();
 
   ApiService.onUnauthorized = () async {
@@ -18,7 +18,7 @@ void main() async {
     _isLoggingOut = true;
 
     await Future.delayed(const Duration(milliseconds: 300));
-    
+
     // Usar el container para cerrar sesión
     await container.read(authProvider.notifier).logout();
 
@@ -29,11 +29,6 @@ void main() async {
 
     _isLoggingOut = false;
   };
-  
-  runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const MyApp(),
-    ),
-  );
+
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }

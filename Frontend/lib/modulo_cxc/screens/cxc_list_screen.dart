@@ -53,32 +53,45 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
         iconTheme: const IconThemeData(color: AppColors.secondary),
       ),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : (state.error != null && state.error!.isNotEmpty)
-              ? Center(
-                  child: Text(
-                    'Error: ${state.error}',
-                    style: const TextStyle(color: AppColors.danger),
-                  ),
-                )
-              : _buildDashboard(state.cxcs),
+          ? Center(
+              child: Text(
+                'Error: ${state.error}',
+                style: const TextStyle(color: AppColors.danger),
+              ),
+            )
+          : _buildDashboard(state.cxcs),
     );
   }
 
   Widget _buildDashboard(List<CuentaPorCobrar> cxcs) {
     final pendientes = cxcs.where((c) => c.balancePendiente > 0).toList();
-    final totalCobrar = pendientes.fold(0.0, (sum, c) => sum + c.balancePendiente);
+    final totalCobrar = pendientes.fold(
+      0.0,
+      (sum, c) => sum + c.balancePendiente,
+    );
 
     if (pendientes.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.check_circle_outline, size: 80, color: Colors.green.shade200),
+            Icon(
+              Icons.check_circle_outline,
+              size: 80,
+              color: Colors.green.shade200,
+            ),
             const SizedBox(height: 16),
             const Text(
               '¡Todo al día!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.secondary),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.secondary,
+              ),
             ),
             Text(
               'No tienes cuentas por cobrar pendientes.',
@@ -167,7 +180,9 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                         itemCount: pendientes.length,
                         itemBuilder: (context, index) {
                           final cxc = pendientes[index];
-                          final isVencida = cxc.fechaVencimiento?.isBefore(DateTime.now()) ?? false;
+                          final isVencida =
+                              cxc.fechaVencimiento?.isBefore(DateTime.now()) ??
+                              false;
                           final isSelected = _selectedCxc?.id == cxc.id;
 
                           return InkWell(
@@ -181,7 +196,9 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,
                                   builder: (ctx) => Padding(
-                                    padding: EdgeInsets.only(top: MediaQuery.of(ctx).padding.top + 20),
+                                    padding: EdgeInsets.only(
+                                      top: MediaQuery.of(ctx).padding.top + 20,
+                                    ),
                                     child: CxcDetalleCobroPanel(
                                       cxc: cxc,
                                       onCobroCompletado: () {
@@ -199,14 +216,16 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 16),
                               decoration: BoxDecoration(
-                                color: isSelected ? Colors.green.withValues(alpha: 0.05) : Colors.white,
+                                color: isSelected
+                                    ? Colors.green.withValues(alpha: 0.05)
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
                                       ? Colors.green
                                       : isVencida
-                                          ? Colors.red.shade200
-                                          : Colors.grey.shade200,
+                                      ? Colors.red.shade200
+                                      : Colors.grey.shade200,
                                   width: isSelected ? 2 : 1,
                                 ),
                               ),
@@ -216,15 +235,19 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Row(
                                           children: [
                                             Container(
                                               padding: const EdgeInsets.all(10),
                                               decoration: BoxDecoration(
-                                                color: Colors.green.withValues(alpha: 0.1),
-                                                borderRadius: BorderRadius.circular(12),
+                                                color: Colors.green.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
                                               child: const Icon(
                                                 Icons.receipt_long,
@@ -234,15 +257,23 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                             ),
                                             const SizedBox(width: 12),
                                             Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  cxc.cliente?['nombre'] ?? 'Cliente Desconocido',
-                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                  cxc.cliente?['nombre'] ??
+                                                      'Cliente Desconocido',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
                                                 ),
                                                 Text(
                                                   'Factura NCF ${cxc.factura?['ncf'] ?? 'N/A'}',
-                                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade500,
+                                                    fontSize: 13,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -250,41 +281,72 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                         ),
                                         if (isVencida)
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: Colors.red.shade50,
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               'VENCIDA',
-                                              style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
                                       ],
                                     ),
                                     const SizedBox(height: 20),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Text('Vencimiento', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
                                             Text(
-                                              cxc.fechaVencimiento?.toLocal().toString().split(' ')[0] ?? 'N/A',
+                                              'Vencimiento',
                                               style: TextStyle(
-                                                color: isVencida ? Colors.red : Colors.black87,
+                                                color: Colors.grey.shade400,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            Text(
+                                              cxc.fechaVencimiento
+                                                      ?.toLocal()
+                                                      .toString()
+                                                      .split(' ')[0] ??
+                                                  'N/A',
+                                              style: TextStyle(
+                                                color: isVencida
+                                                    ? Colors.red
+                                                    : Colors.black87,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ],
                                         ),
                                         Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
                                           children: [
-                                            Text('Balance', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
                                             Text(
-                                              formatCurrency(cxc.balancePendiente),
+                                              'Balance',
+                                              style: TextStyle(
+                                                color: Colors.grey.shade400,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            Text(
+                                              formatCurrency(
+                                                cxc.balancePendiente,
+                                              ),
                                               style: const TextStyle(
                                                 color: Colors.green,
                                                 fontWeight: FontWeight.w900,
@@ -307,10 +369,9 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                 ),
               ),
 
-              if (isTablet) const SizedBox(width: 24),
-
               // PANEL DERECHO (Detalle y Cobro)
-              if (isTablet)
+              if (isTablet && _selectedCxc != null) ...[
+                const SizedBox(width: 24),
                 Expanded(
                   flex: 4,
                   child: CxcDetalleCobroPanel(
@@ -322,6 +383,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                     },
                   ),
                 ),
+              ],
             ],
           ),
         );

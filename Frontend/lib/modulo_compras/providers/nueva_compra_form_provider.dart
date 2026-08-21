@@ -56,6 +56,7 @@ class NuevaCompraFormState {
   final String ncf;
   final String numFactura;
   final String notas;
+  final int? metodoPagoId;
 
   /// UUID v4 generado una sola vez al crear/resetear el formulario.
   /// Se envía al backend en cada intento de POST para garantizar idempotencia:
@@ -72,6 +73,7 @@ class NuevaCompraFormState {
     this.ncf = '',
     this.numFactura = '',
     this.notas = '',
+    this.metodoPagoId,
     String? idempotencyKey,
   }) : idempotencyKey = idempotencyKey ?? _uuid.v4();
 
@@ -93,6 +95,8 @@ class NuevaCompraFormState {
     String? ncf,
     String? numFactura,
     String? notas,
+    int? metodoPagoId,
+    bool clearMetodoPago = false,
     // idempotencyKey NO se expone en copyWith para evitar mutaciones accidentales.
     // Solo se renueva explícitamente con clearForm().
   }) {
@@ -107,6 +111,7 @@ class NuevaCompraFormState {
       ncf: ncf ?? this.ncf,
       numFactura: numFactura ?? this.numFactura,
       notas: notas ?? this.notas,
+      metodoPagoId: clearMetodoPago ? null : (metodoPagoId ?? this.metodoPagoId),
       idempotencyKey: idempotencyKey, // mantiene el mismo key en cada copyWith
     );
   }
@@ -158,6 +163,10 @@ class NuevaCompraFormNotifier extends StateNotifier<NuevaCompraFormState> {
 
   void setNotas(String notas) {
     state = state.copyWith(notas: notas);
+  }
+
+  void setMetodoPago(int? id) {
+    state = state.copyWith(metodoPagoId: id, clearMetodoPago: id == null);
   }
 
   /// Resetea el formulario y genera un NUEVO idempotency_key.

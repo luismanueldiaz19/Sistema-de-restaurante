@@ -15,36 +15,39 @@ class CompraCarritoLista extends ConsumerWidget {
 
     if (detalles.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: AppColors.light,
-                shape: BoxShape.circle,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.light,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 36,
+                  color: Colors.grey,
+                ),
               ),
-              child: const Icon(
-                Icons.shopping_cart_outlined,
-                size: 64,
-                color: Colors.grey,
+              const SizedBox(height: 24),
+              const Text(
+                'Carrito Vacío',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.secondary,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Carrito Vacío',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.secondary,
+              const SizedBox(height: 8),
+              const Text(
+                'Agregue productos desde el catálogo',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Agregue productos desde el catálogo',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -68,11 +71,13 @@ class CompraCarritoLista extends ConsumerWidget {
           ),
         ),
         const Divider(height: 1, color: Colors.black12),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          itemCount: detalles.length,
+        Material(
+          color: Colors.transparent,
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: detalles.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (ctx, i) {
               final d = detalles[i];
@@ -92,7 +97,9 @@ class CompraCarritoLista extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            d.productoNombre ?? d.descripcionGasto ?? 'Gasto sin descripción',
+                            d.productoNombre ??
+                                d.descripcionGasto ??
+                                'Gasto sin descripción',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -100,7 +107,7 @@ class CompraCarritoLista extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Cant: ${d.cantidad} x ${formatCurrency(d.costoUnitarioConItbis)} (Con ITBIS)',
+                            'Cant: ${d.cantidad} x ${formatCurrency(d.costoUnitarioConItbis)}',
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 12,
@@ -144,6 +151,7 @@ class CompraCarritoLista extends ConsumerWidget {
               );
             },
           ),
+        ),
       ],
     );
   }

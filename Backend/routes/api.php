@@ -1,35 +1,35 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ClienteController;
-use App\Http\Controllers\Api\FacturaController;
-use App\Http\Controllers\Api\NcfSecuenciaController;
-use App\Http\Controllers\Api\CajaController;
-use App\Http\Controllers\Api\ProductoController;
-use App\Http\Controllers\Api\CotizacionController;
-use App\Http\Controllers\Api\OrdenCompraController;
-use App\Http\Controllers\Api\NominaController;
-use App\Http\Controllers\Api\EmpleadoController;
-use App\Http\Controllers\Api\ProveedorController;
-use App\Http\Controllers\Api\CompraController;
-use App\Http\Controllers\Api\CxpController;
-use App\Http\Controllers\Api\CxcController;
-use App\Http\Controllers\Api\DgiiController;
-use App\Http\Controllers\Api\ReporteContableController;
-use App\Http\Controllers\Api\AjusteInventarioController;
-use App\Http\Controllers\Api\NotaCreditoController;
-use App\Http\Controllers\Api\PedidoController;
-use App\Http\Controllers\Api\RecetaController;
-use App\Http\Controllers\Api\CatalogoCuentaController;
-use App\Http\Controllers\Api\ConfiguracionContableController;
-use App\Http\Controllers\Api\AsientoContableController;
-use App\Http\Controllers\Api\CategoriaController;
-use App\Http\Controllers\Api\MarcaController;
-use App\Http\Controllers\Api\UnidadMedidaController;
-use App\Http\Controllers\Api\ImpuestoController;
-use App\Http\Controllers\Api\BankController;
-use App\Http\Controllers\Api\BankAccountController;
-use App\Http\Controllers\Api\BankTransactionController;
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Facturacion\ClienteController;
+use App\Http\Controllers\Api\Facturacion\FacturaController;
+use App\Http\Controllers\Api\Facturacion\NcfSecuenciaController;
+use App\Http\Controllers\Api\Finanzas\CajaController;
+use App\Http\Controllers\Api\Inventario\ProductoController;
+use App\Http\Controllers\Api\Facturacion\CotizacionController;
+use App\Http\Controllers\Api\Compras\OrdenCompraController;
+use App\Http\Controllers\Api\RRHH\NominaController;
+use App\Http\Controllers\Api\RRHH\EmpleadoController;
+use App\Http\Controllers\Api\Compras\ProveedorController;
+use App\Http\Controllers\Api\Compras\CompraController;
+use App\Http\Controllers\Api\Finanzas\CxpController;
+use App\Http\Controllers\Api\Finanzas\CxcController;
+use App\Http\Controllers\Api\Impuestos\DgiiController;
+use App\Http\Controllers\Api\Contabilidad\ReporteContableController;
+use App\Http\Controllers\Api\Inventario\AjusteInventarioController;
+use App\Http\Controllers\Api\Facturacion\NotaCreditoController;
+use App\Http\Controllers\Api\Restaurante\PedidoController;
+use App\Http\Controllers\Api\Inventario\RecetaController;
+use App\Http\Controllers\Api\Contabilidad\CatalogoCuentaController;
+use App\Http\Controllers\Api\Contabilidad\ConfiguracionContableController;
+use App\Http\Controllers\Api\Contabilidad\AsientoContableController;
+use App\Http\Controllers\Api\Inventario\CategoriaController;
+use App\Http\Controllers\Api\Inventario\MarcaController;
+use App\Http\Controllers\Api\Inventario\UnidadMedidaController;
+use App\Http\Controllers\Api\Impuestos\ImpuestoController;
+use App\Http\Controllers\Api\Finanzas\BankController;
+use App\Http\Controllers\Api\Finanzas\BankAccountController;
+use App\Http\Controllers\Api\Finanzas\BankTransactionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -219,8 +219,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/asientos', [AsientoContableController::class, 'index']);
 
     // ================= METODOS DE PAGO =================
-    Route::get('/metodos-pagos/activos', [\App\Http\Controllers\Api\MetodoPagoController::class, 'activos']);
-    Route::apiResource('metodos-pagos', \App\Http\Controllers\Api\MetodoPagoController::class);
+    Route::get('/metodos-pagos/activos', [\App\Http\Controllers\Api\Finanzas\MetodoPagoController::class, 'activos']);
+    Route::apiResource('metodos-pagos', \App\Http\Controllers\Api\Finanzas\MetodoPagoController::class);
 
     // ================= CATÁLOGOS PRODUCTOS =================
     Route::apiResource('categorias', CategoriaController::class)->middleware('permission:ver_inventario');
@@ -253,3 +253,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('transacciones-bancarias', BankTransactionController::class)->only(['index', 'store']);
 
 });
+

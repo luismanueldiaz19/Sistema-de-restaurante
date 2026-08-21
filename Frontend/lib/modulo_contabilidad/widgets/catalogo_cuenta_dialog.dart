@@ -11,7 +11,8 @@ class CatalogoCuentaDialog extends ConsumerStatefulWidget {
   const CatalogoCuentaDialog({super.key, this.cuenta, this.cuentaPadreDefault});
 
   @override
-  ConsumerState<CatalogoCuentaDialog> createState() => _CatalogoCuentaDialogState();
+  ConsumerState<CatalogoCuentaDialog> createState() =>
+      _CatalogoCuentaDialogState();
 }
 
 class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
@@ -30,7 +31,7 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
     'Capital',
     'Ingresos',
     'Costos',
-    'Gastos'
+    'Gastos',
   ];
 
   @override
@@ -39,12 +40,60 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
     _codigoCtrl = TextEditingController(text: widget.cuenta?.codigo ?? '');
     _nombreCtrl = TextEditingController(text: widget.cuenta?.nombre ?? '');
     _nivelCtrl = TextEditingController(
-        text: widget.cuenta != null 
-          ? widget.cuenta!.nivel.toString() 
-          : (widget.cuentaPadreDefault != null ? (widget.cuentaPadreDefault!.nivel + 1).toString() : '1'));
+      text: widget.cuenta != null
+          ? widget.cuenta!.nivel.toString()
+          : (widget.cuentaPadreDefault != null
+                ? (widget.cuentaPadreDefault!.nivel + 1).toString()
+                : '1'),
+    );
     _tipo = widget.cuenta?.tipo ?? widget.cuentaPadreDefault?.tipo ?? 'Activo';
     _padreId = widget.cuenta?.padreId ?? widget.cuentaPadreDefault?.id;
     _permiteMovimiento = widget.cuenta?.permiteMovimiento ?? false;
+
+    // Si es una cuenta nueva y ya viene con un padre pre-seleccionado, generamos el código.
+    if (widget.cuenta == null && _padreId != null) {
+      // Usamos un microtask para asegurarnos de que el widget esté montado antes de usar ref.read
+      Future.microtask(() => _generarCodigoParaPadre(_padreId!));
+    }
+  }
+
+  void _generarCodigoParaPadre(int padreId) {
+    if (!mounted) return;
+
+    final state = ref.read(configuracionContableProvider);
+    try {
+      final padre = state.catalogoCuentasCompleto.firstWhere(
+        (c) => c.id == padreId,
+      );
+      final hijos = state.catalogoCuentasCompleto
+          .where((c) => c.padreId == padreId)
+          .toList();
+
+      int maxSecuencia = 0;
+      final prefix = '${padre.codigo}.';
+
+      for (var hijo in hijos) {
+        if (hijo.codigo.startsWith(prefix)) {
+          final suffix = hijo.codigo.substring(prefix.length);
+          final num = int.tryParse(suffix) ?? 0;
+          if (num > maxSecuencia) {
+            maxSecuencia = num;
+          }
+        }
+      }
+
+      final nuevaSecuencia = maxSecuencia + 1;
+      final suffixFormatted = nuevaSecuencia.toString().padLeft(2, '0');
+      final nuevoCodigo = '$prefix$suffixFormatted';
+
+      setState(() {
+        _codigoCtrl.text = nuevoCodigo;
+        _nivelCtrl.text = (padre.nivel + 1).toString();
+        _tipo = padre.tipo; // Hereda el tipo de cuenta del padre
+      });
+    } catch (e) {
+      // Por si no encuentra el padre
+    }
   }
 
   void _guardar() async {
@@ -66,14 +115,20 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
 
     try {
       if (widget.cuenta == null) {
-        await ref.read(configuracionContableProvider.notifier).crearCuenta(token, data);
+        await ref
+            .read(configuracionContableProvider.notifier)
+            .crearCuenta(token, data);
       } else {
-        await ref.read(configuracionContableProvider.notifier).actualizarCuenta(token, widget.cuenta!.id, data);
+        await ref
+            .read(configuracionContableProvider.notifier)
+            .actualizarCuenta(token, widget.cuenta!.id, data);
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -83,7 +138,9 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(configuracionContableProvider);
-    final cuentasPadre = state.catalogoCuentasCompleto.where((c) => c.id != widget.cuenta?.id).toList();
+    final cuentasPadre = state.catalogoCuentasCompleto
+        .where((c) => c.id != widget.cuenta?.id)
+        .toList();
 
     return AlertDialog(
       title: Text(widget.cuenta == null ? 'Nueva Cuenta' : 'Editar Cuenta'),
@@ -95,7 +152,9 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
             children: [
               TextFormField(
                 controller: _codigoCtrl,
-                decoration: const InputDecoration(labelText: 'Código (ej: 1.1.01)'),
+                decoration: const InputDecoration(
+                  labelText: 'Código (ej: 1.1.01)',
+                ),
                 validator: (v) => v!.isEmpty ? 'Requerido' : null,
               ),
               const SizedBox(height: 16),
@@ -108,7 +167,9 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
               DropdownButtonFormField<String>(
                 value: _tipo,
                 decoration: const InputDecoration(labelText: 'Tipo de Cuenta'),
-                items: _tiposCuenta.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                items: _tiposCuenta
+                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                    .toList(),
                 onChanged: (v) => setState(() => _tipo = v!),
               ),
               const SizedBox(height: 16),
@@ -121,24 +182,35 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 value: _padreId,
-                decoration: const InputDecoration(labelText: 'Cuenta Padre (Opcional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Cuenta Padre (Opcional)',
+                ),
                 isExpanded: true,
                 items: [
                   const DropdownMenuItem<int>(
                     value: null,
                     child: Text('Ninguna (Nivel Raíz)'),
                   ),
-                  ...cuentasPadre.map((c) => DropdownMenuItem(
-                    value: c.id,
-                    child: Text('${c.codigo} - ${c.nombre}'),
-                  ))
+                  ...cuentasPadre.map(
+                    (c) => DropdownMenuItem(
+                      value: c.id,
+                      child: Text('${c.codigo} - ${c.nombre}'),
+                    ),
+                  ),
                 ],
-                onChanged: (v) => setState(() => _padreId = v),
+                onChanged: (v) {
+                  setState(() => _padreId = v);
+                  if (v != null) {
+                    _generarCodigoParaPadre(v);
+                  }
+                },
               ),
               const SizedBox(height: 16),
               SwitchListTile(
                 title: const Text('Permite Movimiento (Transaccional)'),
-                subtitle: const Text('Solo las cuentas detalle permiten transacciones'),
+                subtitle: const Text(
+                  'Solo las cuentas detalle permiten transacciones',
+                ),
                 value: _permiteMovimiento,
                 onChanged: (v) => setState(() => _permiteMovimiento = v),
               ),
@@ -153,7 +225,13 @@ class _CatalogoCuentaDialogState extends ConsumerState<CatalogoCuentaDialog> {
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _guardar,
-          child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Guardar'),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Guardar'),
         ),
       ],
     );

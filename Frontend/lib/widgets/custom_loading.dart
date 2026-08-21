@@ -16,6 +16,7 @@ class CustomLoading extends StatelessWidget {
     this.scale = 8,
     this.radius,
     this.size = 100,
+    this.colorText = Colors.white70,
   });
   final String? image;
   final String? text;
@@ -23,6 +24,7 @@ class CustomLoading extends StatelessWidget {
   final double? scale;
   final double? radius;
   final double size;
+  final Color? colorText;
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +79,8 @@ class CustomLoading extends StatelessWidget {
             child: Text(
               text ?? 'Cargando...',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white70,
+              style: TextStyle(
+                color: colorText,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 1.1,
               ),

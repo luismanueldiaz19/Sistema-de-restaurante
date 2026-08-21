@@ -24,6 +24,7 @@ import 'package:sistema_restaurante/modulo_compras/screens/cxp_list_screen.dart'
 import '../modulo_compras/screens/historial_pagos_cxp_screen.dart';
 import '../modulo_compras/screens/registrar_gasto_screen.dart';
 import '../modulo_cxc/screens/cxc_list_screen.dart';
+import '../modulo_cxc/screens/historial_pagos_cxc_screen.dart';
 import '../modulo_finanzas/screens/bancos_dashboard_screen.dart';
 import '../modulo_contabilidad/screens/mayor_general_screen.dart';
 import '../modulo_contabilidad/screens/balance_general_screen.dart';
@@ -142,7 +143,6 @@ class MenuBuilder {
                   ),
                 ),
               ),
-            SidebarSubItem(title: 'Recibos de Pago', onTap: () {}),
             SidebarSubItem(
               title: 'Gestión de Documentos',
               onTap: () => Navigator.push(
@@ -371,6 +371,18 @@ class MenuBuilder {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const CxcListScreen()),
+                  );
+                },
+              ),
+            if (auth.hasPermission('ver_cxc') || isAdmin || isContador)
+              SidebarSubItem(
+                title: 'Historial de Cobros',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HistorialPagosCxcScreen(),
+                    ),
                   );
                 },
               ),

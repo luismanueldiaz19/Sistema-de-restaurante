@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('account_number');
             $table->string('currency')->default('DOP');
             $table->decimal('current_balance', 15, 2)->default(0);
-            $table->foreignId('accounting_account_id')->nullable()->constrained('catalogo_cuentas')->nullOnDelete();
+            $table->foreignId('accounting_account_id')->constrained('catalogo_cuentas')->restrictOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
