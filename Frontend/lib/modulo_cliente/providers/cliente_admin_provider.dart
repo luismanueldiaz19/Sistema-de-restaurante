@@ -27,7 +27,9 @@ class ClienteAdmin extends _$ClienteAdmin {
       } else {
         final parts = q.split(' ');
         final filtered = _allClientes.where((c) {
-          final clientData = "${c.nombre} ${c.telefono} ${c.rncCedula} ${c.email}".toLowerCase();
+          final clientData =
+              "${c.nombre} ${c.telefono} ${c.rncCedula} ${c.email}"
+                  .toLowerCase();
           return parts.every((part) => clientData.contains(part));
         }).toList();
         state = state.copyWith(clientes: filtered);
@@ -36,12 +38,14 @@ class ClienteAdmin extends _$ClienteAdmin {
   }
 
   /// 🔥 CARGAR CLIENTES
-  Future<void> loadClients(String token) async {
-    state = state.copyWith(isLoading: true);
+  Future<void> loadClients(String token, {bool forceRefresh = false}) async {
+    if (!forceRefresh && _allClientes.isNotEmpty) return;
+
+    state = state.copyWith(isLoading: true, error: '');
 
     try {
       final results = await _clienteApi.fetchClients(token);
-      
+
       if (!ref.mounted) return;
 
       _allClientes = results;
@@ -52,10 +56,7 @@ class ClienteAdmin extends _$ClienteAdmin {
       );
     } catch (e) {
       if (ref.mounted) {
-        state = state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        );
+        state = state.copyWith(isLoading: false, error: e.toString());
       }
     }
   }
@@ -66,7 +67,7 @@ class ClienteAdmin extends _$ClienteAdmin {
 
     try {
       final newClient = await _clienteApi.createClient(data, token);
-      
+
       if (!ref.mounted) return false;
 
       _allClientes = [..._allClientes, newClient];
@@ -78,10 +79,7 @@ class ClienteAdmin extends _$ClienteAdmin {
       return true;
     } catch (e) {
       if (ref.mounted) {
-        state = state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        );
+        state = state.copyWith(isLoading: false, error: e.toString());
       }
       return false;
     }
@@ -97,7 +95,7 @@ class ClienteAdmin extends _$ClienteAdmin {
 
     try {
       final updatedClient = await _clienteApi.updateClient(id, data, token);
-      
+
       if (!ref.mounted) return false;
 
       _allClientes = _allClientes.map((c) {
@@ -112,10 +110,7 @@ class ClienteAdmin extends _$ClienteAdmin {
       return true;
     } catch (e) {
       if (ref.mounted) {
-        state = state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        );
+        state = state.copyWith(isLoading: false, error: e.toString());
       }
       return false;
     }
@@ -127,7 +122,7 @@ class ClienteAdmin extends _$ClienteAdmin {
 
     try {
       await _clienteApi.deleteClient(id, token);
-      
+
       if (!ref.mounted) return false;
 
       _allClientes = _allClientes.where((c) => c.id != id).toList();
@@ -139,10 +134,7 @@ class ClienteAdmin extends _$ClienteAdmin {
       return true;
     } catch (e) {
       if (ref.mounted) {
-        state = state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        );
+        state = state.copyWith(isLoading: false, error: e.toString());
       }
       return false;
     }

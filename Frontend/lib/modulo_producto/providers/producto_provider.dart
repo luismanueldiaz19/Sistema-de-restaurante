@@ -16,7 +16,9 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
   final _api = ProductoApi();
   List<Producto> _allProductos = [];
 
-  Future<void> loadProductos(String token, {bool silent = false}) async {
+  Future<void> loadProductos(String token, {bool silent = false, bool forceRefresh = false}) async {
+    if (!forceRefresh && _allProductos.isNotEmpty) return;
+
     if (!silent) state = state.copyWith(isLoading: true);
     try {
       final results = await _api.fetchProductos(token);

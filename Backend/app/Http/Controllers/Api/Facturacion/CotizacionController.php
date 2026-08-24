@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Api\Facturacion;
 use App\Http\Controllers\Controller;
 use App\Models\Cotizacion;
 use App\Models\CotizacionDetalle;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 
@@ -40,7 +43,16 @@ class CotizacionController extends Controller
 
             $detallesCalculados = [];
 
-            foreach ($detalles as $item) {
+            foreach ($detalles as &$item) {
+                if (!isset($item['itbis_porcentaje']) && !empty($item['producto_id'])) {
+                    $producto = Producto::with('impuesto')->find($item['producto_id']);
+                    if ($producto && $producto->impuesto) {
+                        $item['itbis_porcentaje'] = $producto->impuesto->tasa;
+                    } else {
+                        $item['itbis_porcentaje'] = 0;
+                    }
+                }
+
                 $calc = $this->calcularLinea($item);
 
                 $subtotal += $calc['baseConDescuento'];
@@ -92,8 +104,8 @@ class CotizacionController extends Controller
 
             DB::commit();
 
-            $token = \Illuminate\Support\Str::random(40);
-            \Illuminate\Support\Facades\Cache::put("cotizacion_pdf_{$cotizacion_id}_{$token}", [
+            $token = Str::random(40);
+            Cache::put("cotizacion_pdf_{$cotizacion_id}_{$token}", [
                 'company_name' => $request->company_name,
                 'company_rnc' => $request->company_rnc,
                 'company_address' => $request->company_address,
@@ -150,8 +162,8 @@ class CotizacionController extends Controller
         $cotizaciones = $query->paginate($request->per_page ?? 15);
 
         $cotizaciones->getCollection()->transform(function ($cotizacion) use ($request) {
-            $token = \Illuminate\Support\Str::random(40);
-            \Illuminate\Support\Facades\Cache::put("cotizacion_pdf_{$cotizacion->id}_{$token}", [
+            $token = Str::random(40);
+            Cache::put("cotizacion_pdf_{$cotizacion->id}_{$token}", [
                 'company_name' => $request->company_name,
                 'company_rnc' => $request->company_rnc,
                 'company_address' => $request->company_address,
@@ -185,8 +197,8 @@ class CotizacionController extends Controller
                 ], 404);
             }
 
-            $token = \Illuminate\Support\Str::random(40);
-            \Illuminate\Support\Facades\Cache::put("cotizacion_pdf_{$cotizacion->id}_{$token}", [
+            $token = Str::random(40);
+            Cache::put("cotizacion_pdf_{$cotizacion->id}_{$token}", [
                 'company_name' => $request->company_name,
                 'company_rnc' => $request->company_rnc,
                 'company_address' => $request->company_address,
@@ -237,7 +249,7 @@ class CotizacionController extends Controller
             abort(403, 'Acceso denegado: Token de seguridad no proporcionado.');
         }
 
-        $companyData = \Illuminate\Support\Facades\Cache::get("cotizacion_pdf_{$id}_{$token}");
+        $companyData = Cache::get("cotizacion_pdf_{$id}_{$token}");
         
         if (!$companyData) {
             abort(403, 'Acceso denegado: El enlace ha expirado o es inválido.');

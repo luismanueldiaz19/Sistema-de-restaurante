@@ -5,6 +5,7 @@ import '../providers/proveedores_provider.dart';
 import '../../modulo_producto/providers/producto_provider.dart';
 import '../../utils/helpers.dart';
 import '../providers/nueva_compra_form_provider.dart';
+import '../../facturacion/providers/metodo_pago_provider.dart';
 
 import 'widgets/compra_configuracion_form.dart';
 import 'widgets/compra_catalogo_productos.dart';
@@ -28,6 +29,7 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
       if (token != null) {
         ref.read(productoProvider.notifier).loadProductos(token, silent: true);
       }
+      ref.read(metodoPagoProvider).fetchMetodosActivos();
       // Resetear el formulario al entrar
       ref.read(nuevaCompraFormProvider.notifier).clearForm();
     });
@@ -62,6 +64,15 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
       return;
     }
 
+    if (formState.tipoCompra == 'CONTADO' && formState.metodoPagoId == null) {
+      showToast(
+        context,
+        'Seleccione un método de pago',
+        bgColor: Colors.orange,
+      );
+      return;
+    }
+
     final data = {
       'proveedor_id': int.tryParse(formState.proveedorId ?? ''),
       'numero_factura_proveedor': formState.numFactura,
@@ -71,6 +82,7 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
         'T',
       )[0],
       'tipo_compra': formState.tipoCompra,
+      'metodo_pago_id': formState.metodoPagoId,
       'notas': formState.notas,
       // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
       // El mismo UUID se envía en cada reintento del formulario.

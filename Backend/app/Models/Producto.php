@@ -29,6 +29,7 @@ class Producto extends Model
         'cuenta_costo_id',
         'cuenta_gasto_id',
         'activo',
+        
     ];
 
     protected $casts = [

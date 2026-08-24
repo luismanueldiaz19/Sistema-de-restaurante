@@ -26,7 +26,7 @@ class FacturaController extends Controller {
         if ($cached) return $cached;
         // ─────────────────────────────────────────────────────────────────────
 
-        $facturaData = $facturacionService->procesarVenta($request->validated(), auth()->id() ?? 1);
+        $facturaData = $facturacionService -> procesarVenta($request->validated(), auth()->id() ?? 1);
 
         $responseData = [
             'message'      => 'Factura creada correctamente',

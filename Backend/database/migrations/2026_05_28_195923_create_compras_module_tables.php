@@ -13,6 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre');
             $table->string('rnc')->nullable();
+            $table->boolean('es_informal')->default(false)->comment('Indica si el proveedor es informal (requiere retención de ITBIS y NCF B11/E41)');
             $table->string('telefono')->nullable();
             $table->string('email')->nullable();
             $table->text('direccion')->nullable();
@@ -28,6 +29,10 @@ return new class extends Migration
             $table->foreignId('proveedor_id')->constrained('proveedores')->restrictOnDelete();
             $table->string('numero_orden')->unique();
             $table->date('fecha');
+            $table->date('fecha_vencimiento')->nullable();
+            $table->decimal('subtotal', 12, 2)->default(0);
+            $table->decimal('descuento_total', 12, 2)->default(0);
+            $table->decimal('itbis', 12, 2)->default(0);
             $table->decimal('total', 12, 2)->default(0);
             $table->enum('estado', ['BORRADOR', 'ENVIADA', 'RECIBIDA', 'CANCELADA'])->default('BORRADOR');
             $table->text('notas')->nullable();
@@ -42,7 +47,9 @@ return new class extends Migration
             $table->string('descripcion')->nullable(); // For expenses/services without product
             $table->decimal('cantidad', 10, 2);
             $table->decimal('costo_esperado', 10, 2);
+            $table->decimal('itbis', 10, 2)->default(0);
             $table->decimal('subtotal', 10, 2);
+            $table->decimal('total', 10, 2)->default(0);
             $table->timestamps();
         });
 
@@ -98,7 +105,7 @@ return new class extends Migration
             $table->foreignId('cxp_id')->constrained('cuentas_por_pagar')->restrictOnDelete();
             $table->decimal('monto_pagado', 12, 2);
             $table->date('fecha_pago');
-            $table->enum('metodo_pago', ['EFECTIVO', 'TRANSFERENCIA', 'CHEQUE']);
+            $table->foreignId('metodo_pago_id')->constrained('metodo_pagos')->restrictOnDelete();
             $table->string('referencia')->nullable();
             $table->foreignId('cuenta_origen_id')->constrained('catalogo_cuentas')->restrictOnDelete();
             $table->foreignId('asiento_id')->nullable()->constrained('asientos_contables')->nullOnDelete();

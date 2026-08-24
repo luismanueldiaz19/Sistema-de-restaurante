@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../../../../palletes/app_colors.dart';
 import '../../../../utils/helpers.dart';
 import '../../../modulo_producto/models/producto.dart';
@@ -45,6 +44,7 @@ class _CompraCatalogoProductosState
     }
 
     final filteredProducts = prodState.productos.where((p) {
+      if (p.tipoProducto == 'COMBO') return false;
       final name = p.nombre?.toLowerCase() ?? "";
       return name.contains(_searchQuery.toLowerCase());
     }).toList();

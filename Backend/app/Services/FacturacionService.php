@@ -41,7 +41,17 @@ class FacturacionService {
             $detallesCalculados = [];
 
             // 🧮 CALCULAR TODO PRIMERO
-            foreach ($detalles as $item) {
+            foreach ($detalles as &$item) {
+                // Si no mandan el itbis_porcentaje desde el frontend, buscarlo en BD
+                if (!isset($item['itbis_porcentaje']) && !empty($item['producto_id'])) {
+                    $producto = Producto::with('impuesto')->find($item['producto_id']);
+                    if ($producto && $producto->impuesto) {
+                        $item['itbis_porcentaje'] = $producto->impuesto->tasa;
+                    } else {
+                        $item['itbis_porcentaje'] = 0; // Exento por defecto si no tiene impuesto
+                    }
+                }
+
                 $calc = $this->calcularLinea($item);
                 $subtotal += $calc['baseConDescuento'];
                 $descuentoTotal += $calc['descuento'];
@@ -185,7 +195,7 @@ class FacturacionService {
             // - CRÉDITO a: Ingresos por Ventas (reconoce el ingreso)
             // - CRÉDITO a: ITBIS por Pagar (reconoce el impuesto a pagar)
             // - (También afecta Costo e Inventario si aplica)
-            $asientoContable = $this->contabilidadService->registrarAsientoAuto(
+            $asientoContable = $this->contabilidadService -> registrarAsientoAuto(
                 'venta_credito',
                 round($subtotal, 2),
                 round($itbisTotal, 2),
@@ -205,6 +215,7 @@ class FacturacionService {
             // NOTA CONTABLE: Si el cliente pagó inmediatamente (Venta al Contado), 
             // procedemos a registrar el recibo de caja y el asiento de cobro.
             if ($tienePago) {
+                
                 $pagoData = $data['pago'];
                 
                 $pagoCxc = PagoCxc::create([

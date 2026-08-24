@@ -11,6 +11,11 @@ use App\Models\Factura;
 use App\Services\ContabilidadService;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use App\Models\ConfiguracionContable;
+use App\Models\AsientoContable;
+use App\Accounting\AsientoStrategyFactory;
+use App\Models\NotaCredito;
+use Carbon\Carbon;
 
 class DgiiController extends Controller
 {
@@ -74,28 +79,19 @@ class DgiiController extends Controller
                 'usuario_id' => auth()->id() ?? 1,
             ]);
 
-            // Crear el asiento contable inyectando temporalmente la cuenta_banco_haber en config
-            // Para eso, le enviamos un flag al servicio si lo tuviéramos, o registramos
-            // manual si la estrategia lo pide. La estrategia PagoDgiiStrategy lee
-            // $configs['pago_dgii_banco_haber'].
-            // Como no podemos modificar la config on the fly fácilmente desde aquí, 
-            // crearemos el array config personalizado para este asiento:
+            $configs = ConfiguracionContable::pluck('cuenta_id', 'clave')->toArray();
+            $configs['pago_dgii_banco_haber'] = $validated['cuenta_origen_id'];
 
-            $configs = \App\Models\ConfiguracionContable::pluck('cuenta_id', 'clave')->toArray();
-            $configs['pago_dgii_banco_haber'] = $validated['cuenta_origen_id']; // inyección manual de cuenta elegida
-
-            $asiento = \App\Models\AsientoContable::create([
+            $asiento = AsientoContable::create([
                 'fecha' => $validated['fecha_pago'],
                 'referencia' => "DGII-{$pago->id}",
                 'descripcion' => "Pago de Impuestos DGII período {$validated['periodo_mes']}/{$validated['periodo_anio']} - Ref: " . ($validated['referencia'] ?? 'N/A'),
                 'usuario_id' => auth()->id() ?? 1,
             ]);
 
-            // Generar detalles del asiento
-            $strategyFactory = new \App\Accounting\AsientoStrategyFactory();
+            $strategyFactory = new AsientoStrategyFactory();
             $strategy = $strategyFactory->make('pago_dgii');
             
-            // $subtotal=0, $itbis=0, $total=$monto_pagado
             $detalles = $strategy->generarDetalles($configs, 0, 0, $validated['monto_pagado']);
 
             foreach ($detalles as $detalle) {
@@ -142,7 +138,7 @@ class DgiiController extends Controller
         foreach ($compras as $compra) {
             $rnc = $compra->proveedor->rnc ?? '';
             $ncf = $compra->ncf ?? '';
-            $fecha = \Carbon\Carbon::parse($compra->fecha_compra)->format('Ymd');
+            $fecha = Carbon::parse($compra->fecha_compra)->format('Ymd');
             $subtotal = number_format($compra->subtotal, 2, '.', '');
             $itbis = number_format($compra->impuestos, 2, '.', '');
             
@@ -179,7 +175,7 @@ class DgiiController extends Controller
                 'rnc' => $compra->proveedor->rnc ?? '',
                 'nombre' => $compra->proveedor->nombre ?? 'Desconocido',
                 'ncf' => $compra->ncf ?? '',
-                'fecha' => \Carbon\Carbon::parse($compra->fecha_compra)->format('Y/m/d'),
+                'fecha' => Carbon::parse($compra->fecha_compra)->format('Y/m/d'),
                 'subtotal' => (float)$compra->subtotal,
                 'itbis' => (float)$compra->impuestos,
                 'total' => (float)$compra->total,
@@ -204,7 +200,7 @@ class DgiiController extends Controller
             ->where('estado', '!=', 'anulada')
             ->get();
             
-        $notasCredito = \App\Models\NotaCredito::with('factura.cliente')
+        $notasCredito = NotaCredito::with('factura.cliente')
             ->whereMonth('created_at', $mes)
             ->whereYear('created_at', $anio)
             ->get();
@@ -213,7 +209,7 @@ class DgiiController extends Controller
         foreach ($facturas as $factura) {
             $rnc = $factura->cliente->rnc ?? '';
             $ncf = $factura->ncf ?? '';
-            $fecha = \Carbon\Carbon::parse($factura->fecha_emision)->format('Ymd');
+            $fecha = Carbon::parse($factura->fecha_emision)->format('Ymd');
             $subtotal = number_format($factura->subtotal, 2, '.', '');
             $itbis = number_format($factura->itbis, 2, '.', '');
             
@@ -224,7 +220,7 @@ class DgiiController extends Controller
             $rnc = $nc->factura->cliente->rnc ?? '';
             $ncf = $nc->ncf ?? '';
             $ncfModificado = $nc->factura->ncf ?? '';
-            $fecha = \Carbon\Carbon::parse($nc->created_at)->format('Ymd');
+            $fecha = Carbon::parse($nc->created_at)->format('Ymd');
             $subtotal = number_format($nc->subtotal, 2, '.', '');
             $itbis = number_format($nc->itbis, 2, '.', '');
             
@@ -253,7 +249,7 @@ class DgiiController extends Controller
             ->where('estado', '!=', 'anulada')
             ->get();
             
-        $notasCredito = \App\Models\NotaCredito::with('factura.cliente')
+        $notasCredito = NotaCredito::with('factura.cliente')
             ->whereMonth('created_at', $mes)
             ->whereYear('created_at', $anio)
             ->get();
@@ -265,7 +261,7 @@ class DgiiController extends Controller
                 'nombre' => $factura->cliente->nombre ?? 'Desconocido',
                 'ncf' => $factura->ncf ?? '',
                 'ncf_modificado' => '',
-                'fecha' => \Carbon\Carbon::parse($factura->fecha_emision)->format('Y/m/d'),
+                'fecha' => Carbon::parse($factura->fecha_emision)->format('Y/m/d'),
                 'subtotal' => (float)$factura->subtotal,
                 'itbis' => (float)$factura->itbis,
                 'total' => (float)$factura->total,
@@ -278,7 +274,7 @@ class DgiiController extends Controller
                 'nombre' => $nc->factura->cliente->nombre ?? 'Desconocido',
                 'ncf' => $nc->ncf ?? '',
                 'ncf_modificado' => $nc->factura->ncf ?? '',
-                'fecha' => \Carbon\Carbon::parse($nc->created_at)->format('Y/m/d'),
+                'fecha' => Carbon::parse($nc->created_at)->format('Y/m/d'),
                 'subtotal' => (float)$nc->subtotal,
                 'itbis' => (float)$nc->itbis,
                 'total' => (float)$nc->total,

@@ -197,7 +197,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                                   ),
                                 ),
                                 Text(
-                                  '${d['cantidad']} x ${formatCurrency(double.tryParse(d['precio_unitario'].toString()) ?? 0)}',
+                                  '${d['cantidad']} x ${formatCurrency(double.tryParse(d['precio'].toString()) ?? 0)}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -208,7 +208,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                           ),
                           Text(
                             formatCurrency(
-                              double.tryParse(d['subtotal'].toString()) ?? 0,
+                              double.tryParse(d['total'].toString()) ?? 0,
                             ),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
@@ -250,9 +250,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                     ),
                     Text(
                       formatCurrency(
-                        double.tryParse(
-                              factura?['itbis_total']?.toString() ?? '0',
-                            ) ??
+                        double.tryParse(factura?['itbis']?.toString() ?? '0') ??
                             0,
                       ),
                       style: const TextStyle(fontWeight: FontWeight.bold),

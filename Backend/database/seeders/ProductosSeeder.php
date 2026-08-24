@@ -37,15 +37,62 @@ class ProductosSeeder extends Seeder
             'codigo' => 'HB-001',
             'descripcion' => 'Hamburguesa de res con queso y vegetales.',
             'categoria_id' => $catComida->id ?? null,
-            'tipo_producto' => 'PRODUCTO',
+            'tipo_producto' => 'COMBO',
             'tipo_contable' => 'INVENTARIO',
             'precio_venta' => 250.00,
             'costo' => 117.50,
             'impuesto_id' => $imp18->id ?? null,
-            'maneja_inventario' => true,
+            'maneja_inventario' => false,
             'stock_minimo' => 10,
             'activo' => true,
         ]);
+
+            Producto::create([
+            'nombre' => 'Plata del dia 250',
+            'codigo' => 'PD-250',
+            'descripcion' => 'Plata del dia',
+            'categoria_id' => $catComida->id ?? null,
+            'tipo_producto' => 'COMBO',
+            'tipo_contable' => 'INVENTARIO',
+            'precio_venta' => 250.00,
+            'costo' => 150.00,
+            'impuesto_id' => $imp18->id ?? null,
+            'maneja_inventario' => false,
+            'stock_minimo' => 0,
+            'activo' => true,
+        ]);
+
+
+            Producto::create([
+            'nombre' => 'Lasagna',
+            'codigo' => 'LAS-001',
+            'descripcion' => 'Lasagna',
+            'categoria_id' => $catComida->id ?? null,
+            'tipo_producto' => 'COMBO',
+            'tipo_contable' => 'INVENTARIO',
+            'precio_venta' => 300.00,
+            'costo' => 180.00,
+            'impuesto_id' => $imp18->id ?? null,
+            'maneja_inventario' => false,
+            'stock_minimo' => 0,
+            'activo' => true,
+        ]);
+
+          Producto::create([
+            'nombre' => 'Servicios Delivery',
+            'codigo' => 'SERV-DEL',
+            'descripcion' => 'Servicios de Delivery',
+            'categoria_id' => $catServicio->id ?? null,
+            'tipo_producto' => 'SERVICIO',
+            'tipo_contable' => 'SERVICIO',
+            'precio_venta' => 20.00,
+            'costo' => 16.66,
+            'impuesto_id' => $imp0->id ?? null,
+            'maneja_inventario' => false,
+            'stock_minimo' => 0,
+            'activo' => true,
+        ]);
+
 
         /*
         |--------------------------------------------------------------------------

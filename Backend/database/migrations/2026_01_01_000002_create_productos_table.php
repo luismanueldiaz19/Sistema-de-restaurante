@@ -22,6 +22,7 @@ return new class extends Migration
             // RELACIONES
             $table->foreignId('categoria_id')->nullable();
             $table->foreignId('marca_id')->nullable();
+            $table->foreignId('unidad_medida_id')->nullable();
 
             // TIPOS
             $table->enum('tipo_producto', [
@@ -41,6 +42,7 @@ return new class extends Migration
 
             // INVENTARIO
             $table->boolean('maneja_inventario')->default(true);
+            $table->boolean('maneja_vencimiento')->default(false);
             $table->decimal('stock_actual', 15, 2)->default(0);
             $table->decimal('stock_minimo', 15, 2)->default(0);
 
@@ -50,6 +52,8 @@ return new class extends Migration
 
             // IMPUESTOS
             $table->foreignId('impuesto_id')->nullable();
+            $table->foreignId('impuesto_venta_id')->nullable();
+            $table->foreignId('impuesto_compra_id')->nullable();
 
             // CONTABILIDAD
             $table->foreignId('cuenta_ingreso_id')->nullable();

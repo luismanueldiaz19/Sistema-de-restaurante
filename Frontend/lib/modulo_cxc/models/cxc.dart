@@ -8,7 +8,7 @@ class CuentaPorCobrar {
   final DateTime? fechaVencimiento;
   final String estado;
   final String? descripcion;
-  
+
   // Relaciones
   final dynamic cliente;
   final dynamic factura;
@@ -33,10 +33,11 @@ class CuentaPorCobrar {
       clienteId: json['cliente_id'],
       facturaId: json['factura_id'],
       montoOriginal: double.tryParse(json['monto_original'].toString()) ?? 0,
-      balancePendiente: double.tryParse(json['balance_pendiente'].toString()) ?? 0,
+      balancePendiente:
+          double.tryParse(json['balance_pendiente'].toString()) ?? 0,
       fechaEmision: DateTime.parse(json['fecha_emision']),
-      fechaVencimiento: json['fecha_vencimiento'] != null 
-          ? DateTime.parse(json['fecha_vencimiento']) 
+      fechaVencimiento: json['fecha_vencimiento'] != null
+          ? DateTime.parse(json['fecha_vencimiento'])
           : null,
       estado: json['estado'] ?? 'PENDIENTE',
       descripcion: json['descripcion'],

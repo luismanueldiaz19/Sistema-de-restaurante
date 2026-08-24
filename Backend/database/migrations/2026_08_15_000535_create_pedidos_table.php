@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
             $table->integer('secuencia_diaria');
+            $table->string('codigo_barras')->nullable()->unique();
             $table->date('fecha');
             $table->string('cliente_nombre');
             $table->string('cliente_telefono');

@@ -15,7 +15,9 @@ class MetodoPagoNotifier extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String get error => _error;
 
-  Future<void> fetchMetodosActivos() async {
+  Future<void> fetchMetodosActivos({bool forceRefresh = false}) async {
+    if (!forceRefresh && _metodos.isNotEmpty) return;
+
     _isLoading = true;
     _error = '';
     notifyListeners();
@@ -30,7 +32,9 @@ class MetodoPagoNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchTodos() async {
+  Future<void> fetchTodos({bool forceRefresh = false}) async {
+    if (!forceRefresh && _metodos.isNotEmpty) return;
+
     _isLoading = true;
     _error = '';
     notifyListeners();

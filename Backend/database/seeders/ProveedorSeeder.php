@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Proveedor;
 
 class ProveedorSeeder extends Seeder
 {
@@ -14,7 +15,7 @@ class ProveedorSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Proveedor::create([
+        Proveedor::create([
             'nombre' => 'Distribuidora Formal SRL (Ejemplo)',
             'rnc' => '130123456',
             'telefono' => '809-555-1234',
@@ -24,7 +25,7 @@ class ProveedorSeeder extends Seeder
             'activo' => true,
         ]);
 
-        \App\Models\Proveedor::create([
+        Proveedor::create([
             'nombre' => 'Juan Pérez - Colmado Informal (Ejemplo)',
             'rnc' => '00101234567',
             'telefono' => '829-555-9876',

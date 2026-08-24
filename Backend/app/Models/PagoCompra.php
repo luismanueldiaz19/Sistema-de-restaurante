@@ -15,7 +15,7 @@ class PagoCompra extends Model
         'cxp_id',
         'monto_pagado',
         'fecha_pago',
-        'metodo_pago',
+        'metodo_pago_id',
         'referencia',
         'cuenta_origen_id',
         'asiento_id',
@@ -40,5 +40,10 @@ class PagoCompra extends Model
     public function usuario()
     {
         return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    public function metodoPago()
+    {
+        return $this->belongsTo(MetodoPago::class, 'metodo_pago_id');
     }
 }

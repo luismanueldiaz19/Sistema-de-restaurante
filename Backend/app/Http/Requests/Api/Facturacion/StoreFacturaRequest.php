@@ -6,13 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreFacturaRequest extends FormRequest
 {
-    public function authorize()
-    {
+    public function authorize() {
         return true;
     }
 
-    public function rules()
-    {
+    public function rules() {
         return [
             'cliente_id'               => 'required|exists:clientes,id',
             'ncf_secuencia_id'         => 'required|exists:ncf_secuencias,id',

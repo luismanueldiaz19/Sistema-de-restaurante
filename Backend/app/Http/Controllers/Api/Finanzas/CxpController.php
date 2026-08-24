@@ -63,7 +63,7 @@ class CxpController extends Controller
                 'cxp_id' => $cxp->id,
                 'monto_pagado' => $validated['monto_pagado'],
                 'fecha_pago' => $validated['fecha_pago'],
-                'metodo_pago' => $nombreMetodo,
+                'metodo_pago_id' => $validated['metodo_pago_id'],
                 'referencia' => $validated['referencia'] ?? null,
                 'cuenta_origen_id' => $cuentaOrigenId,
                 'usuario_id' => auth()->id() ?? 1,

@@ -14,6 +14,9 @@ use App\Traits\HasIdempotency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use App\Models\ConfiguracionContable;
+use App\Models\MetodoPago;
+use App\Services\BankService;
 
 class CompraController extends Controller
 {
@@ -202,7 +205,7 @@ class CompraController extends Controller
                 ]);
 
                 $metodoPagoId = $request->metodo_pago_id;
-                $configCuentaEfectivo = \App\Models\ConfiguracionContable::where('clave', 'pago_compra_efectivo_haber')->value('cuenta_id') ?? 1;
+                $configCuentaEfectivo = ConfiguracionContable::where('clave', 'pago_compra_efectivo_haber')->value('cuenta_id') ?? 1;
                 $bancoIdAfectado = null;
                 $nombreMetodo = 'EFECTIVO';
                 $referenciaPago = $request->referencia_pago;
@@ -210,7 +213,7 @@ class CompraController extends Controller
                 $customConfigsPago = [];
 
                 if ($metodoPagoId) {
-                    $metodo = \App\Models\MetodoPago::find($metodoPagoId);
+                    $metodo = MetodoPago::find($metodoPagoId);
                     if ($metodo) {
                         $nombreMetodo = $metodo->nombre;
                         if ($metodo->catalogo_cuenta_id) {
@@ -227,7 +230,7 @@ class CompraController extends Controller
                     'cxp_id'          => $cxp->id,
                     'monto_pagado'    => $montoAlProveedor,
                     'fecha_pago'      => $compra->fecha_compra,
-                    'metodo_pago'     => $nombreMetodo,
+                    'metodo_pago_id'  => $metodoPagoId,
                     'referencia'      => $referenciaPago,
                     'cuenta_origen_id'=> $configCuentaEfectivo,
                     'usuario_id'      => auth()->id() ?? 1,
@@ -250,7 +253,7 @@ class CompraController extends Controller
                 // 🏦 REGISTRAR TRANSACCIÓN BANCARIA (Si aplica)
                 if ($bancoIdAfectado) {
                     $asientoId = $asientoPago ? $asientoPago->id : null;
-                    app(\App\Services\BankService::class)->registrarTransaccion(
+                    app(BankService::class)->registrarTransaccion(
                         $bancoIdAfectado,
                         'withdrawal',
                         $montoAlProveedor,
