@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\Impuestos\ImpuestoController;
 use App\Http\Controllers\Api\Finanzas\BankController;
 use App\Http\Controllers\Api\Finanzas\BankAccountController;
 use App\Http\Controllers\Api\Finanzas\BankTransactionController;
+use App\Http\Controllers\Api\AiAgentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -64,6 +65,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
+
+    // ================= AI AGENT =================
+    Route::post('/ai/chat', [AiAgentController::class, 'chat']);
 
     // Compras Module
     Route::apiResource('proveedores', ProveedorController::class);

@@ -27,6 +27,7 @@ import '../utils/helpers.dart';
 import '../modulo_menu/menu_builder.dart';
 import 'dashboard_buttons_section/dashboard_buttons_section.dart';
 import 'login_page.dart';
+import '../modulo_ai/screens/chat_ia_screen.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
@@ -185,6 +186,20 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ChatIaScreen()),
+          );
+        },
+        backgroundColor: Colors.blueAccent,
+        icon: const Icon(Icons.smart_toy, color: Colors.white),
+        label: const Text(
+          'Meta AI',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

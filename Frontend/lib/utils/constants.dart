@@ -10,6 +10,9 @@ const String sloganApp = 'Todo tu restaurante en un solo lugar';
 const String developer = 'Lwader-Soft';
 const String developerVersion = '2.0.0';
 
+final String menuxaAIKeyAPY =
+    ''; // LA CLAVE SE MOVIÓ AL BACKEND (.env) POR SEGURIDAD
+
 // User? currentUsuario;
 
 const String logoApp = 'assets/logo.jpeg';
