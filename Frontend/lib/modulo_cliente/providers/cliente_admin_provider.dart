@@ -17,40 +17,29 @@ class ClienteAdmin extends _$ClienteAdmin {
     return ClienteAdminState();
   }
 
-  void searchClientes(String query) {
+  void searchClientes(String query, String token) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
     _debounce = Timer(const Duration(milliseconds: 400), () {
-      final q = query.toLowerCase().trim();
-      if (q.isEmpty) {
-        state = state.copyWith(clientes: _allClientes);
-      } else {
-        final parts = q.split(' ');
-        final filtered = _allClientes.where((c) {
-          final clientData =
-              "${c.nombre} ${c.telefono} ${c.rncCedula} ${c.email}"
-                  .toLowerCase();
-          return parts.every((part) => clientData.contains(part));
-        }).toList();
-        state = state.copyWith(clientes: filtered);
-      }
+      final q = query.trim();
+      loadClients(token, page: 1, search: q, forceRefresh: true);
     });
   }
 
   /// 🔥 CARGAR CLIENTES
-  Future<void> loadClients(String token, {bool forceRefresh = false}) async {
-    if (!forceRefresh && _allClientes.isNotEmpty) return;
-
+  Future<void> loadClients(String token, {bool forceRefresh = false, int page = 1, String search = ''}) async {
     state = state.copyWith(isLoading: true, error: '');
 
     try {
-      final results = await _clienteApi.fetchClients(token);
+      final results = await _clienteApi.fetchClients(token, page: page, search: search);
 
       if (!ref.mounted) return;
 
-      _allClientes = results;
+      _allClientes = results['clientes'];
       state = state.copyWith(
         clientes: _allClientes,
+        currentPage: results['current_page'],
+        totalPages: results['last_page'],
         isLoading: false,
         error: null,
       );

@@ -13,6 +13,8 @@ class DashboardButtonsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
+    final isCajero = auth.roles.any((r) => r.toLowerCase() == 'cajero');
+
     final items = [
       if (auth.hasPermission('crear_facturas'))
         DashboardButton(
@@ -49,22 +51,22 @@ class DashboardButtonsSection extends ConsumerWidget {
       //     color: Colors.indigo,
       //     onTap: () => onAction('reportes'),
       //   ),
-      if (auth.hasPermission('ver_inventario') ||
-          auth.hasPermission('ver_productos'))
+      if (!isCajero && (auth.hasPermission('ver_inventario') ||
+          auth.hasPermission('ver_productos')))
         DashboardButton(
           title: 'Productos',
           icon: Icons.fastfood_rounded,
           color: Colors.deepOrange,
           onTap: () => onAction('productos'),
         ),
-      if (auth.hasPermission('crear_facturas'))
+      if (!isCajero && auth.hasPermission('crear_facturas'))
         DashboardButton(
           title: 'Cotizar',
           icon: Icons.request_quote_rounded,
           color: Colors.teal,
           onTap: () => onAction('crear_cotizacion'),
         ),
-      if (auth.hasPermission('ver_facturas'))
+      if (!isCajero && auth.hasPermission('ver_facturas'))
         DashboardButton(
           title: 'Cotizaciones',
           icon: Icons.receipt_long_rounded,
@@ -78,28 +80,28 @@ class DashboardButtonsSection extends ConsumerWidget {
       //     color: Colors.deepPurple,
       //     onTap: () => onAction('crear_orden_compra'),
       //   ),
-      if (auth.hasPermission('ver_facturas'))
+      if (!isCajero && auth.hasPermission('ver_facturas'))
         DashboardButton(
           title: 'Órdenes Compra',
           icon: Icons.history,
           color: Colors.purple.shade700,
           onTap: () => onAction('ver_ordenes_compra'),
         ),
-      if (auth.hasPermission('ver_cxp'))
+      if (!isCajero && auth.hasPermission('ver_cxp'))
         DashboardButton(
           title: 'Reg. Gasto',
           icon: Icons.request_quote_outlined,
           color: Colors.orange.shade700,
           onTap: () => onAction('registrar_gasto'),
         ),
-      if (auth.hasPermission('ver_cxp'))
+      if (!isCajero && auth.hasPermission('ver_cxp'))
         DashboardButton(
           title: 'Cuenta por pagar',
           icon: Icons.money_off,
           color: Colors.red.shade600,
           onTap: () => onAction('ver_cxp'),
         ),
-      if (auth.hasPermission('ver_cxc'))
+      if (!isCajero && auth.hasPermission('ver_cxc'))
         DashboardButton(
           title: 'Cuenta por cobrar',
           icon: Icons.attach_money,

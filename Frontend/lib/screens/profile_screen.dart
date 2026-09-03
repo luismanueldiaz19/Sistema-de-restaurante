@@ -11,54 +11,207 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
     final user = auth.user;
-    final textTheme = Theme.of(context).textTheme;
 
     if (user == null) {
       return const Scaffold(body: Center(child: Text('No hay sesión activa')));
     }
 
+    // Identificar el rol principal para el tema visual
+    String primaryRole = 'usuario';
+    final roles = auth.roles.map((r) => r.toLowerCase()).toList();
+    if (roles.contains('admin')) {
+      primaryRole = 'admin';
+    } else if (roles.contains('cajero')) {
+      primaryRole = 'cajero';
+    } else if (roles.contains('contador')) {
+      primaryRole = 'contador';
+    } else if (roles.isNotEmpty) {
+      primaryRole = roles.first;
+    }
+
+    // Configuración del tema basado en el rol
+    List<Color> gradientColors;
+    IconData roleIcon;
+    String roleLabel;
+
+    switch (primaryRole) {
+      case 'admin':
+        gradientColors = [
+          const Color(0xFF1E3A8A),
+          const Color(0xFF3B82F6),
+        ]; // Azul Profundo
+        roleIcon = Icons.admin_panel_settings_rounded;
+        roleLabel = 'Administrador del Sistema';
+        break;
+      case 'cajero':
+        gradientColors = [
+          const Color(0xFF047857),
+          const Color(0xFF10B981),
+        ]; // Verde Esmeralda
+        roleIcon = Icons.point_of_sale_rounded;
+        roleLabel = 'Cajero / Facturación';
+        break;
+      case 'contador':
+        gradientColors = [
+          const Color(0xFF4338CA),
+          const Color(0xFF6366F1),
+        ]; // Indigo
+        roleIcon = Icons.account_balance_rounded;
+        roleLabel = 'Contabilidad y Finanzas';
+        break;
+      default:
+        gradientColors = [
+          const Color(0xFF374151),
+          const Color(0xFF6B7280),
+        ]; // Gris oscuro
+        roleIcon = Icons.person_rounded;
+        roleLabel = 'Usuario Estándar';
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Mi Perfil',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: AppColors.azulOscuro,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // 1. Header Card (Avatar & Name)
-            FadeInDown(
-              child: _buildHeaderCard(user.name ?? 'Usuario', user.email ?? '', textTheme),
+            // 1. Header con degradado (Dependiente del Rol)
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.bottomCenter,
+              children: [
+                Container(
+                  height: 280,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: gradientColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: -50,
+                  child: FadeInDown(
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 55,
+                        backgroundColor: gradientColors.last.withValues(
+                          alpha: 0.15,
+                        ),
+                        child: Text(
+                          user.name != null && user.name!.isNotEmpty
+                              ? user.name![0].toUpperCase()
+                              : 'U',
+                          style: TextStyle(
+                            fontSize: 45,
+                            color: gradientColors.first,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 70),
 
-            const SizedBox(height: 24),
-
-            // 2. Roles Section
-            FadeInLeft(
-              delay: const Duration(milliseconds: 200),
-              child: _buildSectionTitle('Roles del Sistema', Icons.admin_panel_settings_rounded),
-            ),
-            const SizedBox(height: 12),
-            FadeInLeft(
-              delay: const Duration(milliseconds: 300),
-              child: _buildChipsList(auth.roles, Colors.blueAccent),
-            ),
-
-            const SizedBox(height: 32),
-
-            // 3. Permissions Section
+            // 2. Información del Usuario y Rol
             FadeInUp(
-              delay: const Duration(milliseconds: 400),
-              child: _buildSectionTitle('Permisos Habilitados', Icons.vpn_key_rounded),
+              child: Column(
+                children: [
+                  Text(
+                    user.name ?? 'Usuario',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.azulOscuro,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    user.email ?? '',
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: gradientColors.last.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: gradientColors.last.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(roleIcon, size: 20, color: gradientColors.first),
+                        const SizedBox(width: 8),
+                        Text(
+                          roleLabel.toUpperCase(),
+                          style: TextStyle(
+                            color: gradientColors.first,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            FadeInUp(
-              delay: const Duration(milliseconds: 500),
-              child: _buildPermissionsGrid(auth.permissions),
+
+            const SizedBox(height: 40),
+
+            // 3. Sección de Permisos
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FadeInLeft(
+                    delay: const Duration(milliseconds: 200),
+                    child: _buildSectionTitle(
+                      'Permisos Asignados',
+                      Icons.vpn_key_rounded,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 300),
+                    child: _buildPermissionsCard(auth.permissions),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ],
         ),
@@ -66,112 +219,102 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeaderCard(String name, String email, TextTheme textTheme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(30),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          )
-        ],
-      ),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: AppColors.azulOscuro,
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : 'U',
-              style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            name,
-            style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: AppColors.azulOscuro),
-          ),
-          Text(
-            email,
-            style: textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.azulOscuro, size: 22),
-        const SizedBox(width: 10),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.azulOscuro.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.azulOscuro, size: 20),
+        ),
+        const SizedBox(width: 12),
         Text(
           title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.azulOscuro),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.azulOscuro,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildChipsList(List<String> items, Color color) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: items.map((item) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.3)),
-          ),
+  Widget _buildPermissionsCard(List<String> permissions) {
+    if (permissions.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(30),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: const Center(
           child: Text(
-            item.toUpperCase(),
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+            'No tienes permisos específicos asignados.',
+            style: TextStyle(color: Colors.grey),
           ),
-        );
-      }).toList(),
-    );
-  }
+        ),
+      );
+    }
 
-  Widget _buildPermissionsGrid(List<String> permissions) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.black.withValues(alpha: 0.02)),
       ),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: 12,
+        runSpacing: 12,
         children: permissions.map((p) => _buildPermissionBadge(p)).toList(),
       ),
     );
   }
 
   Widget _buildPermissionBadge(String permission) {
+    // Colores dinámicos sutiles para diferenciar un poco los permisos
+    final colors = [
+      Colors.teal,
+      Colors.indigo,
+      Colors.blue,
+      Colors.orange.shade800,
+      Colors.deepPurple,
+    ];
+    final color = colors[permission.length % colors.length];
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle_outline_rounded, size: 14, color: Colors.green),
-          const SizedBox(width: 6),
+          Icon(Icons.check_circle_rounded, size: 14, color: color),
+          const SizedBox(width: 8),
           Text(
-            permission.replaceAll('_', ' '),
-            style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w500),
+            permission.replaceAll('_', ' ').toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

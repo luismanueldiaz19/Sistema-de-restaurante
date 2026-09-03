@@ -9,16 +9,22 @@ class ClienteApi {
 
   final String baseUrl = "$hostName/api/clientes";
 
-  /// 🔥 GET TODOS LOS CLIENTES
-  Future<List<Cliente>> fetchClients(String token) async {
-    final response = await api.get(baseUrl, token: token);
+  /// 🔥 GET TODOS LOS CLIENTES (Paginated)
+  Future<Map<String, dynamic>> fetchClients(
+    String token, {
+    int page = 1,
+    String search = '',
+  }) async {
+    final queryUrl = "$baseUrl?page=$page&search=$search";
+    final response = await api.get(queryUrl, token: token);
 
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      final List data = body['data'] ?? [];
 
-      print("DATA LENGTH: ${data.length}");
+      // print("DATA LENGTH: ${data.length}");
 
-      return data
+      final clientes = data
           .map((e) {
             try {
               return Cliente.fromJson(e);
@@ -29,9 +35,14 @@ class ClienteApi {
           .where((e) => e != null)
           .cast<Cliente>()
           .toList();
+
+      return {
+        'clientes': clientes,
+        'current_page': body['current_page'] ?? 1,
+        'last_page': body['last_page'] ?? 1,
+      };
     } else {
-      return [];
-      // throw Exception("Error al obtener clientes");
+      return {'clientes': <Cliente>[], 'current_page': 1, 'last_page': 1};
     }
   }
 

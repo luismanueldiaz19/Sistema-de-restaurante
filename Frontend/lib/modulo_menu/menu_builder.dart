@@ -86,7 +86,7 @@ class MenuBuilder {
           title: 'Ventas',
           icon: Icons.point_of_sale_outlined,
           subItems: [
-            if (auth.hasPermission('crear_facturas') || isAdmin)
+            if (!isCajero && (auth.hasPermission('crear_facturas') || isAdmin))
               SidebarSubItem(
                 title: 'Nueva Cotización',
                 onTap: () => Navigator.push(
@@ -96,7 +96,7 @@ class MenuBuilder {
                   ),
                 ),
               ),
-            if (auth.hasPermission('ver_facturas') || isAdmin)
+            if (!isCajero && (auth.hasPermission('ver_facturas') || isAdmin))
               SidebarSubItem(
                 title: 'Cotizaciones',
                 onTap: () => Navigator.push(
@@ -143,24 +143,26 @@ class MenuBuilder {
                   ),
                 ),
               ),
-            SidebarSubItem(
-              title: 'Gestión de Documentos',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const GestionDocumentosScreen(),
+            if (!isCajero)
+              SidebarSubItem(
+                title: 'Gestión de Documentos',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const GestionDocumentosScreen(),
+                  ),
                 ),
               ),
-            ),
-            SidebarSubItem(
-              title: 'Notas de Crédito',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const HistorialNotasCreditoScreen(),
+            if (!isCajero)
+              SidebarSubItem(
+                title: 'Notas de Crédito',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HistorialNotasCreditoScreen(),
+                  ),
                 ),
               ),
-            ),
             if (auth.hasPermission('ver_clientes') || isAdmin)
               SidebarSubItem(
                 title: 'Clientes',
@@ -173,9 +175,9 @@ class MenuBuilder {
         ),
 
       // 3. INVENTARIO
-      if (auth.hasPermission('ver_inventario') ||
+      if (!isCajero && (auth.hasPermission('ver_inventario') ||
           auth.hasPermission('ver_productos') ||
-          isAdmin)
+          isAdmin))
         SidebarItem(
           title: 'Inventario',
           icon: Icons.inventory_2_outlined,
@@ -255,9 +257,9 @@ class MenuBuilder {
         ),
 
       // 4. COMPRAS
-      if (auth.hasPermission('ver_compras') ||
+      if (!isCajero && (auth.hasPermission('ver_compras') ||
           auth.hasPermission('ver_proveedores') ||
-          isAdmin)
+          isAdmin))
         SidebarItem(
           title: 'Compras',
           icon: Icons.shopping_bag_outlined,
@@ -353,18 +355,19 @@ class MenuBuilder {
                 ),
               ),
             ],
-            SidebarSubItem(
-              title: 'Bancos',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BancosDashboardScreen(),
-                  ),
-                );
-              },
-            ),
-            if (auth.hasPermission('ver_cxc') || isAdmin || isContador)
+            if (!isCajero)
+              SidebarSubItem(
+                title: 'Bancos',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BancosDashboardScreen(),
+                    ),
+                  );
+                },
+              ),
+            if (!isCajero && (auth.hasPermission('ver_cxc') || isAdmin || isContador))
               SidebarSubItem(
                 title: 'Cuentas por Cobrar',
                 onTap: () {
@@ -374,7 +377,7 @@ class MenuBuilder {
                   );
                 },
               ),
-            if (auth.hasPermission('ver_cxc') || isAdmin || isContador)
+            if (!isCajero && (auth.hasPermission('ver_cxc') || isAdmin || isContador))
               SidebarSubItem(
                 title: 'Historial de Cobros',
                 onTap: () {
@@ -386,7 +389,7 @@ class MenuBuilder {
                   );
                 },
               ),
-            if (auth.hasPermission('ver_gastos') || isAdmin || isContador)
+            if (!isCajero && (auth.hasPermission('ver_gastos') || isAdmin || isContador))
               SidebarSubItem(
                 title: 'Gastos',
                 onTap: () {
@@ -459,10 +462,10 @@ class MenuBuilder {
         ),
 
       // 7. RRHH
-      if (isAdmin ||
+      if (!isCajero && (isAdmin ||
           isContador ||
           isAuxContable ||
-          auth.hasPermission('ver_nomina'))
+          auth.hasPermission('ver_nomina')))
         SidebarItem(
           title: 'RRHH',
           icon: Icons.people_outline,
@@ -524,7 +527,7 @@ class MenuBuilder {
         ),
 
       // 9. REPORTES
-      if (auth.hasPermission('ver_reportes') || isAdmin || isContador)
+      if (!isCajero && (auth.hasPermission('ver_reportes') || isAdmin || isContador))
         SidebarItem(
           title: 'Reportes',
           icon: Icons.bar_chart_outlined,
@@ -545,7 +548,7 @@ class MenuBuilder {
         ),
 
       // 10. ADMINISTRACION
-      if (auth.hasPermission('gestionar_usuarios') || isAdmin)
+      if (!isCajero && (auth.hasPermission('gestionar_usuarios') || isAdmin))
         SidebarItem(
           title: 'Administración',
           icon: Icons.settings_outlined,

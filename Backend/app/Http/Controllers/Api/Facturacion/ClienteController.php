@@ -12,8 +12,20 @@ use Illuminate\Database\QueryException;
 
 class ClienteController extends Controller {
     // 🔍 LISTAR
-    public function index()  {
-        $clientes = Cliente::latest()->get();
+    public function index(Request $request)  {
+        $query = Cliente::latest();
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $this->normalizarTexto($request->search);
+            
+            $query->where(function($q) use ($search) {
+                $q->where('nombre', 'LIKE', "%{$search}%")
+                  ->orWhere('rnc_cedula', 'LIKE', "%{$search}%")
+                  ->orWhere('telefono', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $clientes = $query->paginate(15);
         return response()->json($clientes);
     }
 

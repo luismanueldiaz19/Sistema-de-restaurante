@@ -194,8 +194,11 @@ class _CustomSidebarState extends State<CustomSidebar> {
             expandedIndex = isExpanded ? null : index;
           });
         } else {
-          widget.onItemSelected(index);
-          if (item.onTap != null) item.onTap!();
+          if (item.onTap != null) {
+            item.onTap!();
+          } else {
+            widget.onItemSelected(index);
+          }
         }
       },
       borderRadius: BorderRadius.circular(12),
