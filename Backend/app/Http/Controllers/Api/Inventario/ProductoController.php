@@ -10,9 +10,25 @@ use Exception;
 
 class ProductoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $productos = Producto::with(['categoria', 'marca', 'unidadMedida', 'impuesto'])->latest()->get();
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 20);
+
+        $query = Producto::with(['categoria', 'marca', 'unidadMedida', 'impuesto']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                  ->orWhere('codigo', 'like', "%{$search}%")
+                  ->orWhereHas('categoria', function ($q2) use ($search) {
+                      $q2->where('nombre', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $productos = $query->latest()->paginate($perPage);
+
         return response()->json($productos);
     }
 

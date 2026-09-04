@@ -14,44 +14,34 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
   ProductoNotifier() : super(ProductoState());
 
   final _api = ProductoApi();
-  List<Producto> _allProductos = [];
-
-  Future<void> loadProductos(String token, {bool silent = false, bool forceRefresh = false}) async {
-    if (!forceRefresh && _allProductos.isNotEmpty) return;
-
+  Future<void> loadProductos(String token, {int page = 1, String search = '', bool silent = false}) async {
     if (!silent) state = state.copyWith(isLoading: true);
     try {
-      final results = await _api.fetchProductos(token);
-      results.sort(
-        (a, b) => (a.nombre ?? '').toLowerCase().compareTo(
-          (b.nombre ?? '').toLowerCase(),
-        ),
+      final response = await _api.fetchProductos(token, page: page, search: search);
+      final List<Producto> resultados = response['productos'];
+      
+      state = state.copyWith(
+        productos: resultados,
+        isLoading: false,
+        currentPage: response['currentPage'],
+        totalPages: response['totalPages'],
+        totalRecords: response['totalRecords'],
       );
-      _allProductos = results;
-      state = state.copyWith(productos: _allProductos, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
-  void searchProductos(String query) {
-    final normalizedQuery = TextNormalizer.normalizar(query);
-    final productos = normalizedQuery.isEmpty
-        ? _allProductos
-        : _allProductos
-              .where(
-                (producto) => producto.searchIndex.contains(normalizedQuery),
-              )
-              .toList();
-    state = state.copyWith(productos: productos);
+  void searchProductos(String query, String token) {
+    loadProductos(token, page: 1, search: query, silent: true);
   }
 
   Future<bool> createProducto(Map<String, dynamic> data, String token) async {
     state = state.copyWith(isLoading: true);
     try {
       final newItem = await _api.createProducto(data, token);
-      _allProductos = [..._allProductos, newItem];
-      state = state.copyWith(productos: _allProductos, isLoading: false);
+      final currentList = [newItem, ...state.productos];
+      state = state.copyWith(productos: currentList, isLoading: false, totalRecords: state.totalRecords + 1);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -67,10 +57,10 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
     state = state.copyWith(isLoading: true);
     try {
       final updatedItem = await _api.updateProducto(id, data, token);
-      _allProductos = _allProductos
+      final currentList = state.productos
           .map((p) => p.id.toString() == id ? updatedItem : p)
           .toList();
-      state = state.copyWith(productos: _allProductos, isLoading: false);
+      state = state.copyWith(productos: currentList, isLoading: false);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -83,8 +73,8 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
     try {
       final success = await _api.deleteProducto(id, token);
       if (success) {
-        _allProductos = _allProductos.where((p) => p.id != id).toList();
-        state = state.copyWith(productos: _allProductos, isLoading: false);
+        final currentList = state.productos.where((p) => p.id != id).toList();
+        state = state.copyWith(productos: currentList, isLoading: false, totalRecords: state.totalRecords - 1);
         return true;
       }
       state = state.copyWith(isLoading: false);

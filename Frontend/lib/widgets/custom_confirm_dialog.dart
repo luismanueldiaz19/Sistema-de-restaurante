@@ -76,11 +76,7 @@ class CustomConfirmDialog extends StatelessWidget {
                       color: primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      icon,
-                      size: 40,
-                      color: primaryColor,
-                    ),
+                    child: Icon(icon, size: 40, color: primaryColor),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -128,7 +124,10 @@ class CustomConfirmDialog extends StatelessWidget {
                           ),
                           child: Text(
                             cancelText,
-                            style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),

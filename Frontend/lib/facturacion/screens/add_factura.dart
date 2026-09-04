@@ -23,6 +23,7 @@ import '../../model/comprobante.dart';
 import '../../palletes/app_colors.dart';
 import '../../modulo_caja/providers/caja_provider.dart';
 import 'apertura_caja_page.dart';
+import '../../widgets/custom_confirm_dialog.dart';
 
 class CrearFacturaPage extends ConsumerStatefulWidget {
   const CrearFacturaPage({super.key});
@@ -179,6 +180,32 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     if (state.carrito.isEmpty) {
       showToast(context, 'El carrito está vacío', bgColor: Colors.orange);
       return;
+    }
+
+    // 🖨️ VERIFICACIÓN DE IMPRESORA
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final conexion = await _printer.pingImpresora();
+
+    if (mounted) {
+      Navigator.pop(context); // cerrar loader
+    }
+
+    if (!conexion.exito) {
+      final continuar = await CustomConfirmDialog.show(
+        context,
+        title: '⚠️ Error de Impresora',
+        message:
+            '${conexion.mensaje}\n\n¿Desea registrar la venta de todos modos (sin imprimir ticket)?',
+        confirmText: 'Sí, continuar',
+        cancelText: 'Cancelar venta',
+        primaryColor: Colors.orange,
+      );
+      if (continuar != true) return;
     }
 
     Map<String, dynamic>? pagoInfo;

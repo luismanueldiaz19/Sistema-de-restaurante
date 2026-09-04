@@ -6,12 +6,16 @@ import '../../widgets/custom_confirm_dialog.dart';
 import '../../widgets/custom_loading.dart';
 import '../../widgets/custom_text_field.dart';
 import '../providers/producto_provider.dart';
-import '../widgets/producto_table.dart';
 import '../widgets/dialog_instrucciones_importacion.dart';
 import 'add_producto.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io' as io;
 import 'package:flutter/foundation.dart' show kIsWeb;
+
+import '../models/producto.dart';
+import '../widgets/producto_list_card.dart';
+import '../widgets/producto_detail_panel.dart';
+import '../../modulo_cliente/widgets/paginador.dart';
 
 class ScreenProductos extends ConsumerStatefulWidget {
   const ScreenProductos({super.key});
@@ -21,7 +25,9 @@ class ScreenProductos extends ConsumerStatefulWidget {
 }
 
 class _ScreenProductosState extends ConsumerState<ScreenProductos> {
+  final scrollController = ScrollController();
   final searchController = TextEditingController();
+  Producto? selectedProducto;
 
   @override
   void initState() {
@@ -33,12 +39,19 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
   }
 
   @override
+  void dispose() {
+    scrollController.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(productoProvider);
     final auth = ref.watch(authProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -51,6 +64,13 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
         ),
         iconTheme: const IconThemeData(color: AppColors.azulOscuro),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Recargar Productos',
+            onPressed: () {
+              ref.read(productoProvider.notifier).loadProductos(auth.token!);
+            },
+          ),
           if (auth.hasPermission('crear_productos'))
             Padding(
               padding: const EdgeInsets.only(right: 10),
@@ -85,62 +105,178 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
             ),
         ],
       ),
-      body: Column(
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-            child: CustomTextField(
-              label: "Buscar por nombre, código o categoría",
-              hintText: "Producto...",
-              controller: searchController,
-              prefixIcon: Icons.search_rounded,
-              onChanged: (v) =>
-                  ref.read(productoProvider.notifier).searchProductos(v),
-              onSuffixIconTap: () {
-                searchController.clear();
-                ref.read(productoProvider.notifier).searchProductos('');
-              },
-              suffixIcon: searchController.text.isNotEmpty
-                  ? Icons.clear_rounded
-                  : null,
+          /// LADO IZQUIERDO: LISTA DE PRODUCTOS
+          Container(
+            width: 450,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(right: BorderSide(color: Colors.black12)),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: state.isLoading && state.productos.isEmpty
-                  ? const CustomLoading(text: "Cargando productos...")
-                  : state.productos.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            size: 80,
-                            color: Colors.grey.shade200,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// Búsqueda
+                Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: CustomTextField(
+                    label: "",
+                    hintText: "Buscar por nombre o código...",
+                    controller: searchController,
+                    prefixIcon: Icons.search_rounded,
+                    onChanged: (value) => ref
+                        .read(productoProvider.notifier)
+                        .searchProductos(value, auth.token!),
+                    onSuffixIconTap: () {
+                      searchController.clear();
+                      ref
+                          .read(productoProvider.notifier)
+                          .searchProductos('', auth.token!);
+                      setState(() {});
+                    },
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? Icons.clear_rounded
+                        : null,
+                  ),
+                ),
+
+                Expanded(
+                  child: Stack(
+                    children: [
+                      if (!state.isLoading && state.productos.isEmpty)
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inventory_2_outlined,
+                                size: 50,
+                                color: Colors.grey.shade300,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                "No hay productos",
+                                style: TextStyle(color: Colors.grey.shade500),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 15),
-                          Text(
-                            "No hay productos registrados",
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                        )
+                      else
+                        ListView.separated(
+                          controller: scrollController,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 10,
+                          ),
+                          itemCount: state.productos.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final p = state.productos[index];
+                            final isSelected = selectedProducto?.id == p.id;
+
+                            return ProductoListCard(
+                              producto: p,
+                              isSelected: isSelected,
+                              canEdit: auth.hasPermission("editar_productos"),
+                              canDelete: auth.hasPermission(
+                                "eliminar_productos",
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  selectedProducto = p;
+                                });
+                              },
+                              onMenuSelected: (value, productoSelected) async {
+                                if (value == 'edit') {
+                                  _showAddEditDialog(
+                                    producto: productoSelected,
+                                  );
+                                } else if (value == 'delete') {
+                                  _deleteProducto(productoSelected);
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      if (state.isLoading)
+                        Positioned.fill(
+                          child: Container(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            child: const CustomLoading(
+                              text: "Cargando productos...",
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  : ProductoTable(
-                      productos: state.productos,
-                      onEdit: (p) => _showAddEditDialog(producto: p),
-                      onDelete: (p) => _deleteProducto(p),
+                        ),
+                    ],
+                  ),
+                ),
+
+                /// Paginador
+                if (state.productos.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 15,
                     ),
+                    child: Column(
+                      children: [
+                        Paginador(
+                          currentPage: state.currentPage,
+                          totalPages: state.totalPages,
+                          onPageChanged: (page) {
+                            ref
+                                .read(productoProvider.notifier)
+                                .loadProductos(
+                                  auth.token!,
+                                  page: page,
+                                  search: searchController.text,
+                                );
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Total de registros: ${state.totalRecords}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
-          Text('Total de productos: de ${state.productos.length}'),
-          const SizedBox(height: 20),
+
+          /// LADO DERECHO: DETALLES DEL PRODUCTO
+          Expanded(
+            child: selectedProducto == null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.touch_app_outlined,
+                          size: 100,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          "Selecciona un producto de la lista\npara ver sus detalles",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ProductoDetailPanel(producto: selectedProducto!),
+          ),
         ],
       ),
     );
@@ -154,6 +290,9 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     if (result == true) {
       final auth = ref.read(authProvider);
       ref.read(productoProvider.notifier).loadProductos(auth.token!);
+      setState(() {
+        selectedProducto = null;
+      });
     }
   }
 
@@ -175,9 +314,14 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
       final success = await ref
           .read(productoProvider.notifier)
           .deleteProducto(p.id!, auth.token!);
-          
+
       if (mounted) {
         if (success) {
+          if (selectedProducto?.id == p.id) {
+            setState(() {
+              selectedProducto = null;
+            });
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Producto eliminado exitosamente.'),
@@ -201,9 +345,7 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     showDialog(
       context: context,
       builder: (context) {
-        return DialogInstruccionesImportacion(
-          onImport: _importarMasivo,
-        );
+        return DialogInstruccionesImportacion(onImport: _importarMasivo);
       },
     );
   }

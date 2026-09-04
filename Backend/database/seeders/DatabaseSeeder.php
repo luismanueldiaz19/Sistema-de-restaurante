@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder
             ConfiguracionContableSeeder::class,
             ProveedorSeeder::class,
             BankSeeder::class,
-            MetodoPagoCajaGeneralSeeder::class
+            MetodoPagoCajaGeneralSeeder::class,
+            ProductosDominicanosSeeder::class
         ]);
     }
 }

@@ -86,6 +86,34 @@ class ThermalPrinterService {
   }
 
   // ─────────────────────────────────────────────
+  // PING IMPRESORA (Validación rápida)
+  // ─────────────────────────────────────────────
+  Future<ResultadoImpresora> pingImpresora() async {
+    try {
+      if (_printerConectado == null) {
+        final conexion = await conectarAutomaticamente();
+        if (!conexion.exito) {
+          return const ResultadoImpresora(
+            exito: false,
+            mensaje: 'La impresora no está conectada o está apagada.',
+          );
+        }
+      }
+
+      // Enviar comando inofensivo (ESC @ - Inicializar impresora)
+      await _plugin.printData(_printerConectado!, [0x1B, 0x40], longData: true);
+
+      return const ResultadoImpresora(exito: true, mensaje: 'Conectada');
+    } catch (e) {
+      _printerConectado = null;
+      return const ResultadoImpresora(
+        exito: false,
+        mensaje: 'La impresora no está conectada o está apagada.',
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // TEST: HOLA MUNDO  (verifica que la impresora funciona)
   // ─────────────────────────────────────────────
   Future<ResultadoImpresora> imprimirPrueba() async {
@@ -134,7 +162,10 @@ class ThermalPrinterService {
   // ─────────────────────────────────────────────
   // IMPRIMIR RAW BYTES (PARA OTROS SERVICIOS)
   // ─────────────────────────────────────────────
-  Future<ResultadoImpresora> printBytes(List<int> bytes, {Printer? printer}) async {
+  Future<ResultadoImpresora> printBytes(
+    List<int> bytes, {
+    Printer? printer,
+  }) async {
     try {
       Printer? target = printer ?? _printerConectado;
 
@@ -150,9 +181,15 @@ class ThermalPrinterService {
       }
 
       await _plugin.printData(target, bytes, longData: true);
-      return const ResultadoImpresora(exito: true, mensaje: 'Impreso correctamente');
+      return const ResultadoImpresora(
+        exito: true,
+        mensaje: 'Impreso correctamente',
+      );
     } catch (e) {
-      return ResultadoImpresora(exito: false, mensaje: 'Error al enviar bytes a impresora: $e');
+      return ResultadoImpresora(
+        exito: false,
+        mensaje: 'Error al enviar bytes a impresora: $e',
+      );
     }
   }
 
@@ -250,7 +287,7 @@ class ThermalPrinterService {
           styles: const PosStyles(align: PosAlign.left, bold: true),
         );
       }
-      
+
       bytes += generator.text(
         'Factura No. : $numeroFactura',
         styles: const PosStyles(align: PosAlign.left),

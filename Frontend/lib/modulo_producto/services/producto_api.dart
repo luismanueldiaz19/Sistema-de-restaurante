@@ -8,13 +8,42 @@ class ProductoApi {
   final ApiService api = ApiService();
   final String baseUrl = "$hostName/api/productos";
 
-  Future<List<Producto>> fetchProductos(String token) async {
-    final response = await api.get(baseUrl, token: token);
+  Future<Map<String, dynamic>> fetchProductos(String token, {int page = 1, String search = ''}) async {
+    final queryParams = "?page=$page&search=${Uri.encodeComponent(search)}";
+    final response = await api.get("$baseUrl$queryParams", token: token);
+    
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((e) => Producto.fromJson(e)).toList();
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      
+      // Manejar respuesta paginada de Laravel
+      if (responseData.containsKey('data')) {
+        final List data = responseData['data'];
+        final productos = data.map((e) => Producto.fromJson(e)).toList();
+        return {
+          'productos': productos,
+          'currentPage': responseData['current_page'] ?? 1,
+          'totalPages': responseData['last_page'] ?? 1,
+          'totalRecords': responseData['total'] ?? productos.length,
+        };
+      } else {
+        // Fallback por si acaso devuelve lista plana
+        final List data = jsonDecode(response.body) as List;
+        final productos = data.map((e) => Producto.fromJson(e)).toList();
+        return {
+          'productos': productos,
+          'currentPage': 1,
+          'totalPages': 1,
+          'totalRecords': productos.length,
+        };
+      }
     }
-    return [];
+    
+    return {
+      'productos': <Producto>[],
+      'currentPage': 1,
+      'totalPages': 1,
+      'totalRecords': 0,
+    };
   }
 
   Future<Producto> createProducto(Map<String, dynamic> data, String token) async {
