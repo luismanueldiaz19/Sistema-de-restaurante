@@ -40,6 +40,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Comprobante> _comprobantes = [];
   String _searchQuery = "";
+  bool _imprimirAutomaticamente = true;
 
   @override
   void initState() {
@@ -209,17 +210,23 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     }
 
     Map<String, dynamic>? pagoInfo;
+    bool imprimirTicket = _imprimirAutomaticamente;
 
     // Si es al contado, pedir el pago primero
     if (state.tipoFactura == 'contado') {
       pagoInfo = await showDialog<Map<String, dynamic>>(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => PagoDialog(total: state.totales.total),
+        builder: (ctx) => PagoDialog(
+          total: state.totales.total,
+          initialImprimir: _imprimirAutomaticamente,
+        ),
       );
 
       // Si cancela el diálogo, no procesar factura
       if (pagoInfo == null) return;
+
+      imprimirTicket = pagoInfo['imprimir_factura'] ?? _imprimirAutomaticamente;
     }
 
     final result = await _facturaService.crearFactura(
@@ -236,8 +243,10 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
 
     if (result['success'] && mounted) {
       // showToast(context, 'Factura creada con éxito', bgColor: Colors.green);
-      // 🖨️ Imprimir ticket en impresora térmica USB (no bloquea el flujo)
-      _imprimirTicket(state, result['data'], pagoInfo);
+      // 🖨️ Imprimir ticket en impresora térmica USB si está activado
+      if (imprimirTicket) {
+        _imprimirTicket(state, result['data'], pagoInfo);
+      }
       // Resetear para la siguiente venta
       _resetParaSiguienteVenta();
     } else if (mounted) {
@@ -337,10 +346,33 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
         ),
         actions: [
           const SizedBox(width: 12),
+          // 🖨️ Botón toggle de impresión automática
+          _buildCircleButton(
+            icon: _imprimirAutomaticamente ? Icons.print : Icons.print_disabled,
+            color: _imprimirAutomaticamente ? Colors.teal : Colors.grey,
+            tooltip: _imprimirAutomaticamente
+                ? 'Impresión Automática: ON'
+                : 'Impresión Automática: OFF',
+            onTap: () {
+              setState(() {
+                _imprimirAutomaticamente = !_imprimirAutomaticamente;
+              });
+              showToast(
+                context,
+                _imprimirAutomaticamente
+                    ? 'Impresión automática ACTIVADA'
+                    : 'Impresión automática DESACTIVADA',
+                bgColor: _imprimirAutomaticamente
+                    ? Colors.teal
+                    : Colors.grey.shade700,
+              );
+            },
+          ),
+          const SizedBox(width: 8),
           // 🖨️ Botón de prueba de impresora
           _buildCircleButton(
-            icon: Icons.print_outlined,
-            color: Colors.teal,
+            icon: Icons.receipt_long_outlined,
+            color: Colors.blueAccent,
             tooltip: 'Probar Impresora',
             onTap: () async {
               final resultado = await _printer.imprimirPrueba();
