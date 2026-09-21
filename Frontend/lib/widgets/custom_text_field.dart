@@ -48,12 +48,12 @@ class CustomTextField extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: Colors.grey.shade700,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
         ],
         TextFormField(
           controller: controller,
@@ -65,14 +65,14 @@ class CustomTextField extends StatelessWidget {
           maxLines: maxLines,
           enabled: enabled,
           readOnly: readOnly,
-          style: const TextStyle(fontSize: 14),
+          style: const TextStyle(fontSize: 12),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
             prefixIcon: prefixIcon != null
                 ? Icon(
                     prefixIcon,
-                    size: 20,
+                    size: 16,
                     color: AppColors.azulOscuro.withValues(alpha: 0.6),
                   )
                 : null,
@@ -81,7 +81,7 @@ class CustomTextField extends StatelessWidget {
                 (suffixIcon != null
                     ? GestureDetector(
                         onTap: onSuffixIconTap,
-                        child: Icon(suffixIcon, size: 20, color: Colors.grey),
+                        child: Icon(suffixIcon, size: 16, color: Colors.grey),
                       )
                     : null),
             filled: true,
@@ -106,8 +106,8 @@ class CustomTextField extends StatelessWidget {
               borderSide: const BorderSide(color: Colors.redAccent, width: 1),
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 15,
+              horizontal: 12,
+              vertical: 10,
             ),
           ),
         ),

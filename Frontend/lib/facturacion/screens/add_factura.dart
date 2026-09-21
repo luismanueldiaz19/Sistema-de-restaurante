@@ -123,7 +123,9 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     await ref.read(clienteAdminProvider.notifier).loadClients(auth.token!);
 
     // 4. Cargar productos (Carga inicial con spinner)
-    await ref.read(productoProvider.notifier).loadProductos(auth.token!);
+    await ref
+        .read(productoProvider.notifier)
+        .loadProductos(auth.token!, search: '');
 
     // 5. Aplicar configuraciones por defecto
     _aplicarConfiguracionPorDefecto();
@@ -161,7 +163,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     // 3. Opcional: Actualizar stock de productos en segundo plano (silencioso)
     ref
         .read(productoProvider.notifier)
-        .loadProductos(auth.token!, silent: true);
+        .loadProductos(auth.token!, silent: true, search: '');
   }
 
   Future<void> _procesarVenta() async {
@@ -333,19 +335,19 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
             const Text(
               'Punto de Venta',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.w900,
                 color: AppColors.secondary,
               ),
             ),
             Text(
               '${cajaState.sesionActiva?['caja']?['nombre'] ?? '...'} | ${cajaState.sesionActiva?['turno']?['nombre'] ?? '...'}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
             ),
           ],
         ),
         actions: [
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           // 🖨️ Botón toggle de impresión automática
           _buildCircleButton(
             icon: _imprimirAutomaticamente ? Icons.print : Icons.print_disabled,
@@ -403,9 +405,9 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
         children: [
           // 📋 PANEL IZQUIERDO: CONFIGURACIÓN
           SizedBox(
-            width: 320,
+            width: 260,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(8),
               child: PanelConfiguracion(
                 cliente: factState.clienteSeleccionado,
                 comprobante: factState.comprobanteSeleccionado,
@@ -435,15 +437,15 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
           // 🍕 PANEL CENTRAL: CATÁLOGO
           Expanded(
             child: Container(
-              margin: const EdgeInsets.fromLTRB(0, 24, 24, 24),
+              margin: const EdgeInsets.fromLTRB(0, 8, 8, 8),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
@@ -453,9 +455,9 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
 
           // 🛒 PANEL DERECHO: CARRITO Y TOTALES
           SizedBox(
-            width: 380,
+            width: 300,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 24, 24, 24),
+              padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
               child: Column(
                 children: [
                   Expanded(
@@ -463,12 +465,12 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(32),
+                        borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
@@ -479,7 +481,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
                   PanelTotales(
                     totales: factState.totales,
                     isLoading: factState.isLoading,
@@ -518,30 +520,36 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(8),
           child: Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
                     color: AppColors.light,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextField(
                     controller: _searchController,
+                    style: const TextStyle(fontSize: 14),
                     onChanged: (v) => setState(() => _searchQuery = v),
                     onSubmitted: (v) => _handleBarcodeScan(v, factNotifier),
                     decoration: const InputDecoration(
                       hintText:
                           'Buscar producto o escanear ticket de pedido...',
                       border: InputBorder.none,
-                      icon: Icon(Icons.qr_code_scanner, color: Colors.grey),
+                      hintStyle: const TextStyle(fontSize: 13),
+                      icon: const Icon(
+                        Icons.qr_code_scanner,
+                        color: Colors.grey,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
               _buildCircleButton(
                 icon: Icons.filter_list,
                 color: AppColors.secondary,
@@ -555,11 +563,11 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
           child: filteredProducts.isEmpty
               ? _buildEmptyState()
               : GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 250,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
+                    maxCrossAxisExtent: 140,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
                     childAspectRatio: 0.85,
                   ),
                   itemCount: filteredProducts.length,
@@ -585,17 +593,17 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -608,20 +616,20 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.05),
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(24),
+                    top: Radius.circular(8),
                   ),
                 ),
                 child: Center(
                   child: Icon(
                     Icons.fastfood_outlined,
-                    size: 48,
+                    size: 32,
                     color: AppColors.primary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -631,10 +639,10 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 11,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Expanded(
@@ -646,7 +654,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w900,
-                              fontSize: 16,
+                              fontSize: 13,
                             ),
                           ),
                         ),
@@ -665,7 +673,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                           'S: --',
                           style: const TextStyle(
                             color: AppColors.success,
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -686,11 +694,11 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off_rounded, size: 80, color: Colors.grey.shade200),
-          const SizedBox(height: 16),
+          Icon(Icons.search_off_rounded, size: 32, color: Colors.grey.shade200),
+          const SizedBox(height: 8),
           Text(
             'No se encontraron productos',
-            style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
           ),
         ],
       ),
@@ -705,16 +713,18 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     return TextButton.icon(
       onPressed: onTap,
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
-      icon: Icon(icon, color: AppColors.primary, size: 20),
+      icon: Icon(icon, color: AppColors.primary, size: 14),
       label: Text(
         label,
         style: const TextStyle(
           color: AppColors.primary,
           fontWeight: FontWeight.w900,
-          fontSize: 13,
+          fontSize: 11,
         ),
       ),
     );
@@ -732,12 +742,12 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(50),
         child: Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: color, size: 22),
+          child: Icon(icon, color: color, size: 18),
         ),
       ),
     );

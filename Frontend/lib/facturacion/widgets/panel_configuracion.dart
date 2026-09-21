@@ -61,13 +61,13 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -90,10 +90,10 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
               const Text(
                 'CONFIGURACIÓN',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w900,
                   color: AppColors.secondary,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
               ),
             ],
@@ -105,7 +105,7 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           const SizedBox(height: 8),
           InkWell(
             onTap: widget.onSelectCliente,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -118,9 +118,9 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
                   const Icon(
                     Icons.person_outline,
                     color: AppColors.primary,
-                    size: 22,
+                    size: 24,
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +139,7 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
                           Text(
                             widget.cliente!.rncCedula ?? 'Sin identificación',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               color: Colors.grey.shade500,
                             ),
                           ),
@@ -149,7 +149,7 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
                   const Icon(
                     Icons.keyboard_arrow_right,
                     color: Colors.grey,
-                    size: 20,
+                    size: 24,
                   ),
                 ],
               ),
@@ -185,19 +185,23 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
             const _Label(text: 'DÍAS DE CRÉDITO'),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: AppColors.light,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.shade100),
               ),
               child: TextFormField(
                 key: ValueKey(widget.cliente?.id),
                 initialValue: widget.diasCredito.toString(),
                 keyboardType: TextInputType.number,
+                style: const TextStyle(fontSize: 14),
                 decoration: const InputDecoration(
                   hintText: 'Ej. 30',
                   border: InputBorder.none,
+                  hintStyle: TextStyle(fontSize: 14),
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10),
                 ),
                 onChanged: (v) => widget.onCambiarDias(int.tryParse(v) ?? 0),
               ),
@@ -210,19 +214,22 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           const _Label(text: 'NOTAS / DIRECCIÓN'),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: AppColors.light,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade100),
             ),
             child: TextFormField(
               controller: _notaController,
-              maxLines: 3,
-              style: const TextStyle(fontSize: 13),
+              maxLines: 2,
+              style: const TextStyle(fontSize: 14),
               decoration: const InputDecoration(
                 hintText: 'Ej. Dirección de entrega, indicaciones...',
                 border: InputBorder.none,
+                hintStyle: TextStyle(fontSize: 14),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 10),
               ),
               onChanged: widget.onCambiarNota,
             ),
@@ -234,18 +241,26 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           const _Label(text: 'TIPO DE COMPROBANTE'),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: AppColors.light,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade100),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButtonFormField<Comprobante>(
                 initialValue: widget.comprobante,
                 isExpanded: true,
-                decoration: const InputDecoration(border: InputBorder.none),
-                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                ),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Colors.grey,
+                  size: 22,
+                ),
                 hint: const Text(
                   'Seleccionar...',
                   style: TextStyle(fontSize: 14),
@@ -259,6 +274,7 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   );
                 }).toList(),
@@ -284,7 +300,7 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : AppColors.light,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected ? AppColors.primary : Colors.grey.shade100,
             ),

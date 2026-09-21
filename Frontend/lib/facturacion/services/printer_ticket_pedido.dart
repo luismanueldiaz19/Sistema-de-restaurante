@@ -77,7 +77,7 @@ class PedidoPrinterService {
         styles: const PosStyles(align: PosAlign.left),
       );
       bytes += generator.text(
-        'Telefono   : ${pedido.clienteTelefono ?? 'N/A'}',
+        'Telefono   : ${pedido.clienteTelefono}',
         styles: const PosStyles(align: PosAlign.left),
       );
       if (pedido.direccion != null && pedido.direccion!.isNotEmpty) {

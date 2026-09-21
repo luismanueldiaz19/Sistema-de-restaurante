@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../../model/nota_credito_model.dart';
 import '../services/facturacion_service.dart';
@@ -23,9 +22,7 @@ class NotasCreditoState {
     for (var nc in historial) {
       total += double.tryParse(nc.totalDevolucion ?? '0') ?? 0;
     }
-    return {
-      'total': total,
-    };
+    return {'total': total};
   }
 
   NotasCreditoState copyWith({
@@ -60,22 +57,27 @@ class NotasCreditoNotifier extends StateNotifier<NotasCreditoState> {
 
     if (result['success']) {
       final List<dynamic> data = result['data']['data'] ?? [];
-      final List<NotaCreditoModel> notas = data.map((json) => NotaCreditoModel.fromJson(json)).toList();
+      final List<NotaCreditoModel> notas = data
+          .map((json) => NotaCreditoModel.fromJson(json))
+          .toList();
       state = state.copyWith(
         isLoading: false,
         historial: notas,
         resumen: result['resumen'],
       );
     } else {
-      state = state.copyWith(
-        isLoading: false,
-        error: result['message'],
-      );
+      state = state.copyWith(isLoading: false, error: result['message']);
     }
   }
 
-  void updateFilters(String token, Map<String, String> newFilters, {bool replace = false}) {
-    state = state.copyWith(filters: replace ? newFilters : {...state.filters, ...newFilters});
+  void updateFilters(
+    String token,
+    Map<String, String> newFilters, {
+    bool replace = false,
+  }) {
+    state = state.copyWith(
+      filters: replace ? newFilters : {...state.filters, ...newFilters},
+    );
     fetchHistorial(token);
   }
 
@@ -85,6 +87,7 @@ class NotasCreditoNotifier extends StateNotifier<NotasCreditoState> {
   }
 }
 
-final notasCreditoProvider = StateNotifierProvider<NotasCreditoNotifier, NotasCreditoState>((ref) {
-  return NotasCreditoNotifier();
-});
+final notasCreditoProvider =
+    StateNotifierProvider<NotasCreditoNotifier, NotasCreditoState>((ref) {
+      return NotasCreditoNotifier();
+    });

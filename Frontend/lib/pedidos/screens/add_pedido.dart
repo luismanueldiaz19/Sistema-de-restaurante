@@ -39,7 +39,9 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
 
       final auth = ref.read(authProvider);
       if (auth.token != null) {
-        ref.read(productoProvider.notifier).loadProductos(auth.token!);
+        ref
+            .read(productoProvider.notifier)
+            .loadProductos(auth.token!, search: '');
       }
     });
   }

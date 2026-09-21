@@ -4,7 +4,6 @@ import '../../palletes/app_colors.dart';
 import '../../utils/helpers.dart';
 import '../../modulo_caja/providers/caja_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/custom_confirm_dialog.dart';
 
 class ArqueoCajaPage extends ConsumerStatefulWidget {
   const ArqueoCajaPage({super.key});

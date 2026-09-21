@@ -94,7 +94,7 @@ class _ScreenClientAdminState extends ConsumerState<ScreenClientAdmin> {
         children: [
           /// LADO IZQUIERDO: LISTA DE CLIENTES
           Container(
-            width: 450,
+            width: 340,
             decoration: const BoxDecoration(
               color: Colors.white,
               border: Border(right: BorderSide(color: Colors.black12)),
@@ -104,7 +104,7 @@ class _ScreenClientAdminState extends ConsumerState<ScreenClientAdmin> {
               children: [
                 /// Búsqueda
                 Padding(
-                  padding: const EdgeInsets.all(15.0),
+                  padding: const EdgeInsets.all(8.0),
                   child: CustomTextField(
                     label: "",
                     hintText: "Buscar por nombre o WhatsApp...",
@@ -151,12 +151,12 @@ class _ScreenClientAdminState extends ConsumerState<ScreenClientAdmin> {
                         ListView.separated(
                           controller: scrollController,
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 15,
-                            vertical: 10,
+                            horizontal: 8,
+                            vertical: 4,
                           ),
                           itemCount: provider.clientes.length,
                           separatorBuilder: (_, __) =>
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 4),
                           itemBuilder: (context, index) {
                             final cliente = provider.clientes[index];
                             final isSelected = selectedClient?.id == cliente.id;

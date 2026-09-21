@@ -76,17 +76,17 @@ class ClientListCard extends StatelessWidget {
                 Container(width: 5, color: cardColor),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     child: Row(
                       children: [
                         CircleAvatar(
                           backgroundColor: cardColor,
-                          radius: 22,
+                          radius: 18,
                           child: Text(
                             _getInitials(cliente.nombre),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 14,
                               color: Colors.white,
                             ),
                           ),
@@ -100,7 +100,7 @@ class ClientListCard extends StatelessWidget {
                                 cliente.nombre ?? "Sin nombre",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   color: AppColors.azulOscuro,
                                 ),
                                 maxLines: 1,
@@ -111,7 +111,7 @@ class ClientListCard extends StatelessWidget {
                                 children: [
                                   const Icon(
                                     Icons.phone,
-                                    size: 14,
+                                    size: 12,
                                     color: Colors.green,
                                   ),
                                   const SizedBox(width: 4),
@@ -122,7 +122,7 @@ class ClientListCard extends StatelessWidget {
                                           ? cliente.telefono!
                                           : "----",
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10,
                                         color: Colors.grey.shade600,
                                       ),
                                       maxLines: 1,
@@ -138,7 +138,7 @@ class ClientListCard extends StatelessWidget {
                                   children: [
                                     const Icon(
                                       Icons.location_on,
-                                      size: 14,
+                                      size: 12,
                                       color: Colors.grey,
                                     ),
                                     const SizedBox(width: 4),
@@ -146,7 +146,7 @@ class ClientListCard extends StatelessWidget {
                                       child: Text(
                                         cliente.direccion!,
                                         style: TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 10,
                                           color: Colors.grey.shade500,
                                         ),
                                         maxLines: 1,
@@ -165,7 +165,7 @@ class ClientListCard extends StatelessWidget {
                             icon: const Icon(
                               Icons.more_vert,
                               color: Colors.grey,
-                              size: 20,
+                              size: 16,
                             ),
                             onSelected: (value) {
                               if (onMenuSelected != null) {
@@ -180,7 +180,7 @@ class ClientListCard extends StatelessWidget {
                                     children: [
                                       Icon(
                                         Icons.edit,
-                                        size: 18,
+                                        size: 16,
                                         color: Colors.blue,
                                       ),
                                       SizedBox(width: 8),
@@ -195,7 +195,7 @@ class ClientListCard extends StatelessWidget {
                                     children: [
                                       Icon(
                                         Icons.delete,
-                                        size: 18,
+                                        size: 16,
                                         color: Colors.red,
                                       ),
                                       SizedBox(width: 8),

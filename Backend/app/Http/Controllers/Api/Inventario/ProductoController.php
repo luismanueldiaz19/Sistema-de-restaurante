@@ -14,8 +14,23 @@ class ProductoController extends Controller
     {
         $search = $request->input('search');
         $perPage = $request->input('per_page', 20);
+        $categoriaId = $request->input('categoria_id');
+        $marcaId = $request->input('marca_id');
+        $tipoProducto = $request->input('tipo_producto');
 
         $query = Producto::with(['categoria', 'marca', 'unidadMedida', 'impuesto']);
+
+        if ($categoriaId) {
+            $query->where('categoria_id', $categoriaId);
+        }
+
+        if ($marcaId) {
+            $query->where('marca_id', $marcaId);
+        }
+
+        if ($tipoProducto) {
+            $query->where('tipo_producto', $tipoProducto);
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search) {

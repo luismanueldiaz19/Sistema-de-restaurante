@@ -190,7 +190,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
                 Text(
                   isEdit ? 'Editar Cliente' : 'Nuevo Cliente',
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.azulOscuro,
                   ),
@@ -207,7 +207,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
 
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -217,18 +217,22 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
                       title: "Información Básica",
                       icon: Icons.person_outline,
                       children: [
-                        CustomTextField(
-                          controller: nombreCtrl,
-                          label: 'Nombre Completo',
-                          prefixIcon: Icons.person_outline,
-                          validator: (v) =>
-                              v!.isEmpty ? 'El nombre es obligatorio' : null,
-                        ),
-                        const SizedBox(height: 16),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
+                              flex: 2,
+                              child: CustomTextField(
+                                controller: nombreCtrl,
+                                label: 'Nombre Completo',
+                                prefixIcon: Icons.person_outline,
+                                validator: (v) =>
+                                    v!.isEmpty ? 'El nombre es obligatorio' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 1,
                               child: CustomTextField(
                                 controller: telefonoCtrl,
                                 label: 'Teléfono',
@@ -242,24 +246,33 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 16),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Expanded(
+                              flex: 1,
                               child: CustomTextField(
                                 controller: rncCtrl,
                                 label: 'RNC / Cédula',
                                 prefixIcon: Icons.badge_outlined,
                               ),
                             ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 1,
+                              child: CustomTextField(
+                                controller: emailCtrl,
+                                label: 'Correo Electrónico',
+                                prefixIcon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          controller: emailCtrl,
-                          label: 'Correo Electrónico',
-                          prefixIcon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
                         CustomTextField(
                           controller: direccionCtrl,
                           label: 'Dirección',
@@ -275,45 +288,88 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
                         title: "Configuración Contable y Avanzada",
                         icon: Icons.account_balance_wallet_outlined,
                         children: [
-                          DropdownButtonFormField<String>(
-                            value: tipoCliente,
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'consumidor_final',
-                                child: Text('Consumidor Final'),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Tipo de Cliente',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    DropdownButtonFormField<String>(
+                                      value: tipoCliente,
+                                      style: const TextStyle(fontSize: 12, color: Colors.black87),
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: 'consumidor_final',
+                                          child: Text('Consumidor Final'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'credito',
+                                          child: Text('Crédito'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'gubernamental',
+                                          child: Text('Gubernamental'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'especial',
+                                          child: Text('Especial'),
+                                        ),
+                                      ],
+                                      onChanged: (v) => setState(() => tipoCliente = v!),
+                                      decoration: InputDecoration(
+                                        prefixIcon: Icon(Icons.category_outlined, size: 16, color: AppColors.azulOscuro.withValues(alpha: 0.6)),
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                        filled: true,
+                                        fillColor: Colors.grey.shade50,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: BorderSide(color: Colors.grey.shade200),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: BorderSide(color: Colors.grey.shade200),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: const BorderSide(
+                                            color: AppColors.azulOscuro,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              DropdownMenuItem(
-                                value: 'credito',
-                                child: Text('Crédito'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'gubernamental',
-                                child: Text('Gubernamental'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'especial',
-                                child: Text('Especial'),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                flex: 1,
+                                child: GestureDetector(
+                                  onTap: _seleccionarCuentaContable,
+                                  child: AbsorbPointer(
+                                    child: CustomTextField(
+                                      controller: cuentaContableCtrl,
+                                      label: 'Cuenta Contable',
+                                      prefixIcon: Icons.account_tree_outlined,
+                                      hintText: 'Buscar...',
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
-                            onChanged: (v) => setState(() => tipoCliente = v!),
-                            decoration: const InputDecoration(
-                              labelText: 'Tipo de Cliente',
-                              prefixIcon: Icon(Icons.category_outlined),
-                            ),
                           ),
-                          const SizedBox(height: 16),
-                          GestureDetector(
-                            onTap: _seleccionarCuentaContable,
-                            child: AbsorbPointer(
-                              child: CustomTextField(
-                                controller: cuentaContableCtrl,
-                                label: 'Cuenta Contable',
-                                prefixIcon: Icons.account_tree_outlined,
-                                hintText: 'Buscar en catálogo...',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               Expanded(
@@ -335,37 +391,47 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          CustomTextField(
-                            controller: descuentoFijoCtrl,
-                            label: '% Descuento Fijo',
-                            prefixIcon: Icons.percent_outlined,
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
-                              children: [
-                                const Text(
-                                  'Estado del Cliente',
-                                  style: TextStyle(fontWeight: FontWeight.w500),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: descuentoFijoCtrl,
+                                  label: '% Descuento Fijo',
+                                  prefixIcon: Icons.percent_outlined,
+                                  keyboardType: TextInputType.number,
                                 ),
-                                const Spacer(),
-                                Switch(
-                                  value: activo,
-                                  onChanged: (val) => setState(() => activo = val),
-                                  activeColor: AppColors.primary,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Container(
+                                  margin: const EdgeInsets.only(top: 22),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        'Estado',
+                                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+                                      ),
+                                      const Spacer(),
+                                      Switch(
+                                        value: activo,
+                                        onChanged: (val) => setState(() => activo = val),
+                                        activeColor: AppColors.primary,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           CustomTextField(
                             controller: notasCtrl,
                             label: 'Notas / Observaciones',
@@ -381,7 +447,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
 
                     SizedBox(
                       width: double.infinity,
-                      height: 55,
+                      height: 40,
                       child: ElevatedButton(
                         onPressed: isLoading ? null : _guardar,
                         style: ElevatedButton.styleFrom(
@@ -401,13 +467,13 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
                                     ? 'Actualizar Cliente'
                                     : 'Guardar Cliente',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -424,7 +490,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
     required List<Widget> children,
   }) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -443,25 +509,25 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.azulOscuro.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: AppColors.azulOscuro, size: 20),
+                child: Icon(icon, color: AppColors.azulOscuro, size: 16),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.azulOscuro,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           ...children,
         ],
       ),

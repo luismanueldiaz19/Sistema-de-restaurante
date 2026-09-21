@@ -14,12 +14,24 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
   ProductoNotifier() : super(ProductoState());
 
   final _api = ProductoApi();
-  Future<void> loadProductos(String token, {int page = 1, String search = '', bool silent = false}) async {
+  Future<void> loadProductos(
+    String token, {
+    int page = 1,
+    bool silent = false,
+    required String search,
+  }) async {
     if (!silent) state = state.copyWith(isLoading: true);
     try {
-      final response = await _api.fetchProductos(token, page: page, search: search);
+      final response = await _api.fetchProductos(
+        token,
+        page: page,
+        search: state.searchQuery,
+        categoriaId: state.categoriaId,
+        marcaId: state.marcaId,
+        tipoProducto: state.tipoProducto,
+      );
       final List<Producto> resultados = response['productos'];
-      
+
       state = state.copyWith(
         productos: resultados,
         isLoading: false,
@@ -33,7 +45,23 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
   }
 
   void searchProductos(String query, String token) {
-    loadProductos(token, page: 1, search: query, silent: true);
+    state = state.copyWith(searchQuery: query);
+    loadProductos(token, page: 1, silent: true, search: '');
+  }
+
+  void setCategoriaFilter(int? id, String token) {
+    state = state.copyWith(categoriaId: id ?? -1); // -1 means clear
+    loadProductos(token, page: 1, silent: true, search: '');
+  }
+
+  void setMarcaFilter(int? id, String token) {
+    state = state.copyWith(marcaId: id ?? -1);
+    loadProductos(token, page: 1, silent: true, search: '');
+  }
+
+  void setTipoProductoFilter(String? tipo, String token) {
+    state = state.copyWith(tipoProducto: tipo ?? ''); // '' means clear
+    loadProductos(token, page: 1, silent: true, search: '');
   }
 
   Future<bool> createProducto(Map<String, dynamic> data, String token) async {
@@ -41,7 +69,11 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
     try {
       final newItem = await _api.createProducto(data, token);
       final currentList = [newItem, ...state.productos];
-      state = state.copyWith(productos: currentList, isLoading: false, totalRecords: state.totalRecords + 1);
+      state = state.copyWith(
+        productos: currentList,
+        isLoading: false,
+        totalRecords: state.totalRecords + 1,
+      );
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -74,7 +106,11 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
       final success = await _api.deleteProducto(id, token);
       if (success) {
         final currentList = state.productos.where((p) => p.id != id).toList();
-        state = state.copyWith(productos: currentList, isLoading: false, totalRecords: state.totalRecords - 1);
+        state = state.copyWith(
+          productos: currentList,
+          isLoading: false,
+          totalRecords: state.totalRecords - 1,
+        );
         return true;
       }
       state = state.copyWith(isLoading: false);
@@ -93,7 +129,7 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
     state = state.copyWith(isLoading: true);
     try {
       final message = await _api.importProductos(bytes, filename, token);
-      await loadProductos(token, silent: true);
+      await loadProductos(token, silent: true, search: '');
       return message;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

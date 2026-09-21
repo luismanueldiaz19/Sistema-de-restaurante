@@ -30,7 +30,7 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: _isHovered ? Colors.white : const Color(0xFFF9FAFC),
           borderRadius: BorderRadius.circular(16),
@@ -59,7 +59,7 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: widget.isHighlight
                     ? Colors.green.withValues(alpha: 0.1)
@@ -71,7 +71,7 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
               child: Icon(
                 widget.icon,
                 color: widget.isHighlight ? Colors.green : AppColors.azulOscuro,
-                size: 20,
+                size: 16,
               ),
             ),
             const SizedBox(width: 15),
@@ -83,7 +83,7 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
                     widget.label,
                     style: TextStyle(
                       color: Colors.grey.shade600,
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -92,7 +92,7 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
                     widget.value,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: widget.isHighlight ? 16 : 14,
+                      fontSize: widget.isHighlight ? 13 : 11,
                       color: widget.isHighlight
                           ? Colors.green.shade700
                           : Colors.black87,

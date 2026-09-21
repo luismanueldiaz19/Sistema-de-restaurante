@@ -42,14 +42,14 @@ class CarritoLista extends StatelessWidget {
               'Carrito Vacío',
               style: TextStyle(
                 color: AppColors.secondary.withOpacity(0.5),
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Agrega productos del catálogo',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 15),
             ),
           ],
         ),
@@ -66,7 +66,7 @@ class CarritoLista extends StatelessWidget {
               const Text(
                 'Carrito',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 14,
                   fontWeight: FontWeight.w900,
                   color: AppColors.secondary,
                 ),
@@ -86,7 +86,7 @@ class CarritoLista extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
                 ),
               ),
@@ -109,11 +109,11 @@ class CarritoLista extends StatelessWidget {
 
   Widget _buildItem(BuildContext context, FacturaItem item) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade50),
         boxShadow: [
           BoxShadow(
@@ -128,15 +128,15 @@ class CarritoLista extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: AppColors.light,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(Icons.fastfood, color: Colors.grey, size: 20),
+                child: const Icon(Icons.fastfood, color: Colors.grey, size: 16),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,7 +147,7 @@ class CarritoLista extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 15,
+                        fontSize: 12,
                         color: AppColors.secondary,
                       ),
                     ),
@@ -157,7 +157,7 @@ class CarritoLista extends StatelessWidget {
                           formatCurrency(item.precio),
                           style: TextStyle(
                             color: Colors.grey.shade400,
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -182,11 +182,11 @@ class CarritoLista extends StatelessWidget {
                 icon: Icons.close,
                 color: Colors.redAccent,
                 onTap: () => onRemove(item.id),
-                size: 28,
+                size: 24,
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -220,7 +220,7 @@ class CarritoLista extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
-                            fontSize: 16,
+                            fontSize: 13,
                             color: AppColors.secondary,
                             decoration: TextDecoration.underline,
                             decorationStyle: TextDecorationStyle.dashed,
@@ -240,7 +240,7 @@ class CarritoLista extends StatelessWidget {
                 formatCurrency(item.total),
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
-                  fontSize: 18,
+                  fontSize: 14,
                   color: AppColors.primary,
                 ),
               ),
@@ -259,10 +259,10 @@ class CarritoLista extends StatelessWidget {
       shadowColor: Colors.black12,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(6),
         child: Container(
           padding: const EdgeInsets.all(6),
-          child: Icon(icon, size: 18, color: AppColors.secondary),
+          child: Icon(icon, size: 16, color: AppColors.secondary),
         ),
       ),
     );

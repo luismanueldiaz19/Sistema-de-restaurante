@@ -42,7 +42,9 @@ class _CrearOrdenCompraScreenState
     Future.microtask(() async {
       ref.read(ordenCompraFormProvider.notifier).resetState();
       await ref.read(proveedoresProvider.notifier).loadProveedores();
-      await ref.read(productoProvider.notifier).loadProductos(auth.token!);
+      await ref
+          .read(productoProvider.notifier)
+          .loadProductos(auth.token!, search: '');
       _aplicarConfiguracionPorDefecto();
     });
   }

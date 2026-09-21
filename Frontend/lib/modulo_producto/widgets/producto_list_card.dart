@@ -73,17 +73,17 @@ class ProductoListCard extends StatelessWidget {
                 Container(width: 5, color: cardColor),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     child: Row(
                       children: [
                         CircleAvatar(
                           backgroundColor: cardColor,
-                          radius: 22,
+                          radius: 18,
                           child: Text(
                             _getInitials(producto.nombre),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 14,
                               color: Colors.white,
                             ),
                           ),
@@ -97,7 +97,7 @@ class ProductoListCard extends StatelessWidget {
                                 producto.nombre ?? "Sin nombre",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   color: AppColors.azulOscuro,
                                 ),
                                 maxLines: 1,
@@ -118,7 +118,7 @@ class ProductoListCard extends StatelessWidget {
                                           ? producto.codigo!
                                           : "Sin código",
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10,
                                         color: Colors.grey.shade600,
                                       ),
                                       maxLines: 1,
@@ -140,7 +140,7 @@ class ProductoListCard extends StatelessWidget {
                                     child: Text(
                                       "RD\$ ${producto.precioVenta?.toStringAsFixed(2) ?? '0.00'}",
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10,
                                         color: Colors.grey.shade600,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -159,7 +159,7 @@ class ProductoListCard extends StatelessWidget {
                             icon: const Icon(
                               Icons.more_vert,
                               color: Colors.grey,
-                              size: 20,
+                              size: 18,
                             ),
                             onSelected: (value) {
                               if (onMenuSelected != null) {

@@ -34,7 +34,7 @@ class ClientDetailPanel extends StatelessWidget {
         children: [
           // Banner/Header
           Container(
-            padding: const EdgeInsets.all(40),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -53,11 +53,11 @@ class ClientDetailPanel extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.azulOscuro,
-                  radius: 40,
+                  radius: 30,
                   child: Text(
                     _getInitials(cliente.nombre),
                     style: const TextStyle(
-                      fontSize: 30,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -71,7 +71,7 @@ class ClientDetailPanel extends StatelessWidget {
                       Text(
                         cliente.nombre ?? "Sin nombre",
                         style: const TextStyle(
-                          fontSize: 28,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: AppColors.azulOscuro,
                         ),
@@ -100,7 +100,7 @@ class ClientDetailPanel extends StatelessWidget {
                                 ? Colors.green.shade700
                                 : Colors.red.shade700,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 10,
                           ),
                         ),
                       ),
@@ -114,7 +114,7 @@ class ClientDetailPanel extends StatelessWidget {
           // Details Grid
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(40),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -189,18 +189,18 @@ class ClientDetailPanel extends StatelessWidget {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: AppColors.azulOscuro.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: AppColors.azulOscuro, size: 20),
+          child: Icon(icon, color: AppColors.azulOscuro, size: 16),
         ),
         const SizedBox(width: 12),
         Text(
           title,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
             color: AppColors.azulOscuro,
             letterSpacing: -0.5,

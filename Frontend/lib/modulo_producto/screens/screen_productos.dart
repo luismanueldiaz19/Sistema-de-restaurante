@@ -6,6 +6,7 @@ import '../../widgets/custom_confirm_dialog.dart';
 import '../../widgets/custom_loading.dart';
 import '../../widgets/custom_text_field.dart';
 import '../providers/producto_provider.dart';
+import '../providers/catalogo_provider.dart';
 import '../widgets/dialog_instrucciones_importacion.dart';
 import 'add_producto.dart';
 import 'package:file_picker/file_picker.dart';
@@ -34,7 +35,11 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = ref.read(authProvider);
-      ref.read(productoProvider.notifier).loadProductos(auth.token!);
+      ref
+          .read(productoProvider.notifier)
+          .loadProductos(auth.token!, search: '');
+      ref.read(categoriasProvider.notifier).fetchAll(auth.token!);
+      ref.read(marcasProvider.notifier).fetchAll(auth.token!);
     });
   }
 
@@ -68,7 +73,9 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
             icon: const Icon(Icons.refresh),
             tooltip: 'Recargar Productos',
             onPressed: () {
-              ref.read(productoProvider.notifier).loadProductos(auth.token!);
+              ref
+                  .read(productoProvider.notifier)
+                  .loadProductos(auth.token!, search: searchController.text);
             },
           ),
           if (auth.hasPermission('crear_productos'))
@@ -105,177 +112,190 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
             ),
         ],
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
         children: [
-          /// LADO IZQUIERDO: LISTA DE PRODUCTOS
-          Container(
-            width: 450,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(right: BorderSide(color: Colors.black12)),
-            ),
-            child: Column(
+          _buildFilterBar(),
+          Expanded(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// Búsqueda
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: CustomTextField(
-                    label: "",
-                    hintText: "Buscar por nombre o código...",
-                    controller: searchController,
-                    prefixIcon: Icons.search_rounded,
-                    onChanged: (value) => ref
-                        .read(productoProvider.notifier)
-                        .searchProductos(value, auth.token!),
-                    onSuffixIconTap: () {
-                      searchController.clear();
-                      ref
-                          .read(productoProvider.notifier)
-                          .searchProductos('', auth.token!);
-                      setState(() {});
-                    },
-                    suffixIcon: searchController.text.isNotEmpty
-                        ? Icons.clear_rounded
-                        : null,
+                /// LADO IZQUIERDO: LISTA DE PRODUCTOS
+                Container(
+                  width: 340,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(right: BorderSide(color: Colors.black12)),
                   ),
-                ),
-
-                Expanded(
-                  child: Stack(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (!state.isLoading && state.productos.isEmpty)
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.inventory_2_outlined,
-                                size: 50,
-                                color: Colors.grey.shade300,
+                      /// Búsqueda
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: CustomTextField(
+                          label: "",
+                          hintText: "Buscar por nombre o código...",
+                          controller: searchController,
+                          prefixIcon: Icons.search_rounded,
+                          onChanged: (value) => ref
+                              .read(productoProvider.notifier)
+                              .searchProductos(value, auth.token!),
+                          onSuffixIconTap: () {
+                            searchController.clear();
+                            ref
+                                .read(productoProvider.notifier)
+                                .searchProductos('', auth.token!);
+                            setState(() {});
+                          },
+                          suffixIcon: searchController.text.isNotEmpty
+                              ? Icons.clear_rounded
+                              : null,
+                        ),
+                      ),
+
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            if (!state.isLoading && state.productos.isEmpty)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.inventory_2_outlined,
+                                      size: 50,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      "No hay productos",
+                                      style: TextStyle(
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                itemCount: state.productos.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 4),
+                                itemBuilder: (context, index) {
+                                  final p = state.productos[index];
+                                  final isSelected =
+                                      selectedProducto?.id == p.id;
+
+                                  return ProductoListCard(
+                                    producto: p,
+                                    isSelected: isSelected,
+                                    canEdit: auth.hasPermission(
+                                      "editar_productos",
+                                    ),
+                                    canDelete: auth.hasPermission(
+                                      "eliminar_productos",
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        selectedProducto = p;
+                                      });
+                                    },
+                                    onMenuSelected:
+                                        (value, productoSelected) async {
+                                          if (value == 'edit') {
+                                            _showAddEditDialog(
+                                              producto: productoSelected,
+                                            );
+                                          } else if (value == 'delete') {
+                                            _deleteProducto(productoSelected);
+                                          }
+                                        },
+                                  );
+                                },
                               ),
-                              const SizedBox(height: 10),
+                            if (state.isLoading)
+                              Positioned.fill(
+                                child: Container(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  child: const CustomLoading(
+                                    text: "Cargando productos...",
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      /// Paginador
+                      if (state.productos.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 15,
+                          ),
+                          child: Column(
+                            children: [
+                              Paginador(
+                                currentPage: state.currentPage,
+                                totalPages: state.totalPages,
+                                onPageChanged: (page) {
+                                  ref
+                                      .read(productoProvider.notifier)
+                                      .loadProductos(
+                                        auth.token!,
+                                        page: page,
+                                        search: searchController.text,
+                                      );
+                                },
+                              ),
+                              const SizedBox(height: 5),
                               Text(
-                                "No hay productos",
-                                style: TextStyle(color: Colors.grey.shade500),
+                                'Total de registros: ${state.totalRecords}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
                               ),
                             ],
-                          ),
-                        )
-                      else
-                        ListView.separated(
-                          controller: scrollController,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 15,
-                            vertical: 10,
-                          ),
-                          itemCount: state.productos.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final p = state.productos[index];
-                            final isSelected = selectedProducto?.id == p.id;
-
-                            return ProductoListCard(
-                              producto: p,
-                              isSelected: isSelected,
-                              canEdit: auth.hasPermission("editar_productos"),
-                              canDelete: auth.hasPermission(
-                                "eliminar_productos",
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  selectedProducto = p;
-                                });
-                              },
-                              onMenuSelected: (value, productoSelected) async {
-                                if (value == 'edit') {
-                                  _showAddEditDialog(
-                                    producto: productoSelected,
-                                  );
-                                } else if (value == 'delete') {
-                                  _deleteProducto(productoSelected);
-                                }
-                              },
-                            );
-                          },
-                        ),
-                      if (state.isLoading)
-                        Positioned.fill(
-                          child: Container(
-                            color: Colors.white.withValues(alpha: 0.5),
-                            child: const CustomLoading(
-                              text: "Cargando productos...",
-                            ),
                           ),
                         ),
                     ],
                   ),
                 ),
 
-                /// Paginador
-                if (state.productos.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 15,
-                    ),
-                    child: Column(
-                      children: [
-                        Paginador(
-                          currentPage: state.currentPage,
-                          totalPages: state.totalPages,
-                          onPageChanged: (page) {
-                            ref
-                                .read(productoProvider.notifier)
-                                .loadProductos(
-                                  auth.token!,
-                                  page: page,
-                                  search: searchController.text,
-                                );
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'Total de registros: ${state.totalRecords}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade500,
+                /// LADO DERECHO: DETALLES DEL PRODUCTO
+                Expanded(
+                  child: selectedProducto == null
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.touch_app_outlined,
+                                size: 100,
+                                color: Colors.grey.shade300,
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                "Selecciona un producto de la lista\npara ver sus detalles",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        )
+                      : ProductoDetailPanel(producto: selectedProducto!),
+                ),
               ],
             ),
-          ),
-
-          /// LADO DERECHO: DETALLES DEL PRODUCTO
-          Expanded(
-            child: selectedProducto == null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.touch_app_outlined,
-                          size: 100,
-                          color: Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          "Selecciona un producto de la lista\npara ver sus detalles",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ProductoDetailPanel(producto: selectedProducto!),
           ),
         ],
       ),
@@ -289,7 +309,9 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     );
     if (result == true) {
       final auth = ref.read(authProvider);
-      ref.read(productoProvider.notifier).loadProductos(auth.token!);
+      ref
+          .read(productoProvider.notifier)
+          .loadProductos(auth.token!, search: '');
       setState(() {
         selectedProducto = null;
       });
@@ -392,5 +414,158 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
         );
       }
     }
+  }
+
+  Widget _buildFilterBar() {
+    final categorias = ref.watch(categoriasProvider).items;
+    final marcas = ref.watch(marcasProvider).items;
+    final prodState = ref.watch(productoProvider);
+    final auth = ref.read(authProvider);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Row(
+        children: [
+          const Text(
+            "Categorías:",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildChip(
+                    label: "Todas",
+                    isSelected: prodState.categoriaId == null,
+                    onTap: () => ref
+                        .read(productoProvider.notifier)
+                        .setCategoriaFilter(null, auth.token!),
+                  ),
+                  ...categorias.map((c) {
+                    return _buildChip(
+                      label: c.nombre,
+                      isSelected: prodState.categoriaId == c.id,
+                      onTap: () => ref
+                          .read(productoProvider.notifier)
+                          .setCategoriaFilter(c.id, auth.token!),
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          _buildCompactDropdown(
+            label: "Marca",
+            value: prodState.marcaId,
+            items: [
+              const DropdownMenuItem(value: null, child: Text("Todas")),
+              ...marcas.map(
+                (m) => DropdownMenuItem(value: m.id, child: Text(m.nombre)),
+              ),
+            ],
+            onChanged: (val) => ref
+                .read(productoProvider.notifier)
+                .setMarcaFilter(val as int?, auth.token!),
+          ),
+          const SizedBox(width: 16),
+          _buildCompactDropdown(
+            label: "Tipo",
+            value: prodState.tipoProducto,
+            items: const [
+              DropdownMenuItem(value: null, child: Text("Todos")),
+              DropdownMenuItem(value: "PRODUCTO", child: Text("Productos")),
+              DropdownMenuItem(value: "SERVICIO", child: Text("Servicios")),
+              DropdownMenuItem(value: "COMBO", child: Text("Combos")),
+            ],
+            onChanged: (val) => ref
+                .read(productoProvider.notifier)
+                .setTipoProductoFilter(val as String?, auth.token!),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.azulOscuro : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? AppColors.azulOscuro : Colors.grey.shade300,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.white : Colors.black87,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactDropdown({
+    required String label,
+    required dynamic value,
+    required List<DropdownMenuItem<dynamic>> items,
+    required Function(dynamic) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "$label:",
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(width: 8),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<dynamic>(
+              value: items.any((e) => e.value == value) ? value : null,
+              isDense: true,
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              icon: const Icon(Icons.arrow_drop_down, size: 16),
+              items: items,
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

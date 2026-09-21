@@ -156,32 +156,34 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                                       ),
                                     ),
                                     const SizedBox(height: 12),
-                                    ...widget.ventasPorMetodo.map((m) => Padding(
-                                          padding:
-                                              const EdgeInsets.only(bottom: 8),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment
-                                                    .spaceBetween,
-                                            children: [
-                                              Text(
-                                                m['metodo_pago']
-                                                    .toString()
-                                                    .toUpperCase(),
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                    ...widget.ventasPorMetodo.map(
+                                      (m) => Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              m['metodo_pago']
+                                                  .toString()
+                                                  .toUpperCase(),
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                              Text(
-                                                '\$${double.parse(m['total'].toString()).toStringAsFixed(2)}',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                ),
+                                            ),
+                                            Text(
+                                              '\$${double.parse(m['total'].toString()).toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontSize: 12,
                                               ),
-                                            ],
-                                          ),
-                                        )),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                     const Divider(height: 32),
                                   ],
                                   _buildSummaryItem(
@@ -397,7 +399,6 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
   }
 
   Widget _buildDiferenciaCard() {
-    final bool isError = _diferencia != 0;
     final Color color = _diferencia == 0
         ? Colors.green
         : (_diferencia > 0 ? Colors.blue : Colors.red);
@@ -405,9 +406,9 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [

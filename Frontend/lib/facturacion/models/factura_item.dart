@@ -1,4 +1,3 @@
-import 'package:sistema_restaurante/modulo_producto/models/producto.dart';
 
 class FacturaItem {
   final String id;

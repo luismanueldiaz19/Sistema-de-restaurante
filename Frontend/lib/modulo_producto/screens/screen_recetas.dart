@@ -46,7 +46,9 @@ class _ScreenRecetasState extends ConsumerState<ScreenRecetas> {
     final auth = ref.read(authProvider);
     // Ensure we have all products loaded so we can pick Materia Prima
     if (ref.read(productoProvider).productos.isEmpty) {
-      await ref.read(productoProvider.notifier).loadProductos(auth.token!);
+      await ref
+          .read(productoProvider.notifier)
+          .loadProductos(auth.token!, search: '');
     }
 
     final result = await showDialog(
@@ -363,20 +365,21 @@ class _ConfigurarRecetaDialogState
                               onTap: () {
                                 showDialog(
                                   context: context,
-                                  builder: (context) => BuscadorDialog<Producto>(
-                                    items: _materiaPrima,
-                                    itemLabel: (p) => "${p.nombre}",
-                                    onSelected: (p) {
-                                      setState(() {
-                                        _recetaLines[i] = Receta(
-                                          id: line.id,
-                                          productoId: line.productoId,
-                                          ingredienteProductoId: p.id ?? 0,
-                                          cantidad: line.cantidad,
-                                        );
-                                      });
-                                    },
-                                  ),
+                                  builder: (context) =>
+                                      BuscadorDialog<Producto>(
+                                        items: _materiaPrima,
+                                        itemLabel: (p) => "${p.nombre}",
+                                        onSelected: (p) {
+                                          setState(() {
+                                            _recetaLines[i] = Receta(
+                                              id: line.id,
+                                              productoId: line.productoId,
+                                              ingredienteProductoId: p.id ?? 0,
+                                              cantidad: line.cantidad,
+                                            );
+                                          });
+                                        },
+                                      ),
                                 );
                               },
                               child: InputDecorator(
@@ -389,7 +392,8 @@ class _ConfigurarRecetaDialogState
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: Text(
@@ -397,8 +401,12 @@ class _ConfigurarRecetaDialogState
                                             ? 'Seleccionar...'
                                             : () {
                                                 final p = _materiaPrima.firstWhere(
-                                                  (p) => p.id == line.ingredienteProductoId,
-                                                  orElse: () => Producto(nombre: 'Desconocido'),
+                                                  (p) =>
+                                                      p.id ==
+                                                      line.ingredienteProductoId,
+                                                  orElse: () => Producto(
+                                                    nombre: 'Desconocido',
+                                                  ),
                                                 );
                                                 return "${p.nombre}";
                                               }(),
@@ -406,7 +414,10 @@ class _ConfigurarRecetaDialogState
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                                    const Icon(
+                                      Icons.arrow_drop_down,
+                                      color: Colors.grey,
+                                    ),
                                   ],
                                 ),
                               ),

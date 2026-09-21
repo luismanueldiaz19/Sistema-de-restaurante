@@ -29,7 +29,7 @@ class _NuevoAjusteDialogState extends ConsumerState<NuevoAjusteDialog> {
       final auth = ref.read(authProvider);
       // Asegurar que los productos esten cargados
       if (ref.read(productoProvider).productos.isEmpty) {
-        ref.read(productoProvider.notifier).loadProductos(auth.token!);
+        ref.read(productoProvider.notifier).loadProductos(auth.token!, search: '');
       }
     });
   }

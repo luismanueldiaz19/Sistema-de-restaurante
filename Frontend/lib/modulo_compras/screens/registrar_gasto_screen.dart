@@ -28,7 +28,9 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
       ref.read(proveedoresProvider.notifier).loadProveedores();
       final token = ref.read(comprasProvider.notifier).token;
       if (token != null) {
-        ref.read(productoProvider.notifier).loadProductos(token, silent: true);
+        ref
+            .read(productoProvider.notifier)
+            .loadProductos(token, silent: true, search: '');
       }
       ref.read(metodoPagoProvider).fetchMetodosActivos();
       // Resetear el formulario al entrar

@@ -42,10 +42,10 @@ class PanelTotales extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.azulOscuro,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -72,22 +72,27 @@ class PanelTotales extends StatelessWidget {
             formatCurrency(totales.total),
             isTotal: true,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
-            height: 60,
+            height: 40,
             child: ElevatedButton(
               onPressed: (totales.total > 0 && !isLoading) ? onProcesar : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 0),
               ),
               child: isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
                   : Text(
                       esPedido
                           ? 'PROCESAR PEDIDO'
@@ -96,10 +101,10 @@ class PanelTotales extends StatelessWidget {
                                 : (esCotizacion
                                       ? 'PROCESAR COTIZACION'
                                       : 'PROCESAR FACTURA')),
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: const TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 1,
+                        letterSpacing: 0.5,
                       ),
                     ),
             ),
@@ -122,11 +127,11 @@ class PanelTotales extends StatelessWidget {
           label,
           style: TextStyle(
             color: isTotal ? Colors.white : Colors.white70,
-            fontSize: isTotal ? 16 : 14, // Reducimos un poco el tamaño base
+            fontSize: isTotal ? 13 : 11,
             fontWeight: isTotal ? FontWeight.w900 : FontWeight.w500,
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Flexible(
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -135,7 +140,7 @@ class PanelTotales extends StatelessWidget {
               value,
               style: TextStyle(
                 color: isNegative ? Colors.redAccent : Colors.white,
-                fontSize: isTotal ? 22 : 16,
+                fontSize: isTotal ? 16 : 13,
                 fontWeight: isTotal ? FontWeight.w900 : FontWeight.bold,
               ),
             ),

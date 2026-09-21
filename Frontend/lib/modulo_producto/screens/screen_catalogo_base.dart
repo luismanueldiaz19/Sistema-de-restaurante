@@ -220,61 +220,61 @@ class _ScreenCatalogoBaseState extends ConsumerState<ScreenCatalogoBase> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Lado Lista
-          Expanded(
-            flex: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(right: BorderSide(color: Colors.grey.shade300)),
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: CustomTextField(
-                      label: '',
-                      hintText: 'Buscar...',
-                      controller: _searchCtrl,
-                      onChanged: _onSearch,
-                      prefixIcon: Icons.search,
-                    ),
+          Container(
+            width: 340,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(right: BorderSide(color: Colors.grey.shade300)),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CustomTextField(
+                    label: '',
+                    hintText: 'Buscar...',
+                    controller: _searchCtrl,
+                    onChanged: _onSearch,
+                    prefixIcon: Icons.search,
                   ),
-                  Expanded(
-                    child: isLoading
-                        ? const Center(child: CustomLoading())
-                        : items.isEmpty
-                        ? const Center(child: Text('No hay resultados'))
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: items.length,
-                            itemBuilder: (ctx, i) {
-                              final item = items[i];
-                              final isSelected =
-                                  selectedItem?['id'] == item['id'];
-                              return CardModerno(
-                                title: item['nombre'] ?? '',
-                                subtitle:
-                                    item['descripcion'] ??
-                                    item['abreviatura'] ??
-                                    '',
-                                isActive:
-                                    item['activo'] == 1 ||
-                                    item['activo'] == true,
-                                isSelected: isSelected,
-                                onTap: () => _selectItem(item),
-                              );
-                            },
+                ),
+                Expanded(
+                  child: isLoading
+                      ? const Center(child: CustomLoading())
+                      : items.isEmpty
+                      ? const Center(child: Text('No hay resultados'))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
-                  ),
-                ],
-              ),
+                          itemCount: items.length,
+                          itemBuilder: (ctx, i) {
+                            final item = items[i];
+                            final isSelected =
+                                selectedItem?['id'] == item['id'];
+                            return CardModerno(
+                              title: item['nombre'] ?? '',
+                              subtitle:
+                                  item['descripcion'] ??
+                                  item['abreviatura'] ??
+                                  '',
+                              isActive:
+                                  item['activo'] == 1 || item['activo'] == true,
+                              isSelected: isSelected,
+                              onTap: () => _selectItem(item),
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
           ),
+
           // Lado Formulario
           Expanded(
-            flex: 2,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(16.0),
               child: Card(
                 elevation: 0,
                 color: Colors.white,
@@ -283,7 +283,7 @@ class _ScreenCatalogoBaseState extends ConsumerState<ScreenCatalogoBase> {
                   side: BorderSide(color: Colors.grey.shade200),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -292,19 +292,19 @@ class _ScreenCatalogoBaseState extends ConsumerState<ScreenCatalogoBase> {
                             ? 'Nuevo Registro'
                             : 'Editar Registro',
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      CustomTextField(label: 'Nombre', controller: _nombreCtrl),
                       const SizedBox(height: 16),
+                      CustomTextField(label: 'Nombre', controller: _nombreCtrl),
+                      const SizedBox(height: 8),
                       CustomTextField(
                         label: 'Descripción',
                         controller: _descCtrl,
                         maxLines: 3,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           const Text(
@@ -322,7 +322,7 @@ class _ScreenCatalogoBaseState extends ConsumerState<ScreenCatalogoBase> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [

@@ -9,17 +9,17 @@ class ProductoDetailPanel extends StatelessWidget {
 
   Widget _buildInfoRow(IconData icon, String title, String value, {Color? valueColor}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: AppColors.azulOscuro.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 20, color: AppColors.azulOscuro),
+            child: Icon(icon, size: 16, color: AppColors.azulOscuro),
           ),
           const SizedBox(width: 15),
           Expanded(
@@ -29,7 +29,7 @@ class ProductoDetailPanel extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: Colors.grey.shade500,
                     fontWeight: FontWeight.w600,
                   ),
@@ -38,7 +38,7 @@ class ProductoDetailPanel extends StatelessWidget {
                 Text(
                   value.isNotEmpty ? value : "N/A",
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 13,
                     color: valueColor ?? AppColors.azulOscuro,
                     fontWeight: FontWeight.w500,
                   ),
@@ -59,7 +59,7 @@ class ProductoDetailPanel extends StatelessWidget {
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(30),
+            padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
@@ -69,15 +69,15 @@ class ProductoDetailPanel extends StatelessWidget {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 35,
+                  radius: 22,
                   backgroundColor: AppColors.azulOscuro.withValues(alpha: 0.1),
                   child: const Icon(
                     Icons.inventory_2_outlined,
-                    size: 40,
+                    size: 24,
                     color: AppColors.azulOscuro,
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 15),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +85,7 @@ class ProductoDetailPanel extends StatelessWidget {
                       Text(
                         producto.nombre ?? "Sin Nombre",
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.azulOscuro,
                         ),
@@ -118,7 +118,7 @@ class ProductoDetailPanel extends StatelessWidget {
           // Body
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(30),
+              padding: const EdgeInsets.all(15),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -130,12 +130,12 @@ class ProductoDetailPanel extends StatelessWidget {
                         const Text(
                           "Información General",
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.azulOscuro,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 12),
                         _buildInfoRow(
                           Icons.qr_code,
                           "Código",
@@ -159,7 +159,7 @@ class ProductoDetailPanel extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 40),
+                  const SizedBox(width: 20),
                   // Columna 2
                   Expanded(
                     child: Column(
@@ -168,12 +168,12 @@ class ProductoDetailPanel extends StatelessWidget {
                         const Text(
                           "Detalles de Precio e Inventario",
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.azulOscuro,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 12),
                         _buildInfoRow(
                           Icons.attach_money,
                           "Precio de Venta",

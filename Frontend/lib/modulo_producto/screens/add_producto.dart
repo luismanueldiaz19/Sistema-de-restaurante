@@ -200,7 +200,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         width: 700,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -226,7 +226,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                   ],
                 ),
                 const Divider(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
@@ -375,7 +375,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 const Text(
                   'CONFIGURACION FINANCIERA',
                   style: TextStyle(
@@ -439,9 +439,9 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 const Text(
                   'INVENTARIO Y CONTROL',
                   style: TextStyle(
@@ -501,10 +501,10 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                   ],
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 40,
                   child: ElevatedButton(
                     onPressed: _guardar,
                     style: ElevatedButton.styleFrom(
@@ -539,14 +539,14 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
             color: Colors.grey,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.grey.shade50,
             borderRadius: BorderRadius.circular(12),
@@ -556,6 +556,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
             child: DropdownButton<dynamic>(
               value: items.any((e) => e.value == value) ? value : null,
               isExpanded: true,
+              isDense: true,
               hint: const Text("Seleccionar..."),
               items: items,
               onChanged: onChanged,

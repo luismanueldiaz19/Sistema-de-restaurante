@@ -43,7 +43,9 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
     Future.microtask(() async {
       ref.read(cotizacionFormProvider.notifier).resetState();
       await ref.read(clienteAdminProvider.notifier).loadClients(auth.token!);
-      await ref.read(productoProvider.notifier).loadProductos(auth.token!);
+      await ref
+          .read(productoProvider.notifier)
+          .loadProductos(auth.token!, search: '');
       _aplicarConfiguracionPorDefecto();
     });
   }

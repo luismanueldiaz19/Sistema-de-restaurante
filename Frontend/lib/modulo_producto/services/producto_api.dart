@@ -8,8 +8,19 @@ class ProductoApi {
   final ApiService api = ApiService();
   final String baseUrl = "$hostName/api/productos";
 
-  Future<Map<String, dynamic>> fetchProductos(String token, {int page = 1, String search = ''}) async {
-    final queryParams = "?page=$page&search=${Uri.encodeComponent(search)}";
+  Future<Map<String, dynamic>> fetchProductos(
+    String token, {
+    int page = 1,
+    String search = '',
+    int? categoriaId,
+    int? marcaId,
+    String? tipoProducto,
+  }) async {
+    String queryParams = "?page=$page&search=${Uri.encodeComponent(search)}";
+    if (categoriaId != null) queryParams += "&categoria_id=$categoriaId";
+    if (marcaId != null) queryParams += "&marca_id=$marcaId";
+    if (tipoProducto != null && tipoProducto.isNotEmpty) queryParams += "&tipo_producto=$tipoProducto";
+
     final response = await api.get("$baseUrl$queryParams", token: token);
     
     if (response.statusCode == 200) {
