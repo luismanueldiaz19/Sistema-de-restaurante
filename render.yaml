@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: laravel-api
+    env: docker
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+
+    preDeployCommand: php artisan migrate --force
+
+  # - type: web
+  #   name: flutter-frontend
+  #   env: static
+  #   buildCommand: flutter build web
+  #   staticPublishPath: build/web
