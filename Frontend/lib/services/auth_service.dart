@@ -17,18 +17,15 @@ class AuthService {
     final url = "$baseUrl/login";
 
     try {
-      final response = await api.post(
-        url,
-        {
-          "email": email,
-          "password": password,
-        },
-        checkUnauthorized: false,
-      );
+      final response = await api.post(url, {
+        "email": email,
+        "password": password,
+      }, checkUnauthorized: false);
 
       final data = jsonDecode(response.body);
 
-      if ((response.statusCode == 200 || response.statusCode == 201) && data['status'] == true) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data['status'] == true) {
         return AuthResponse.fromJson(data);
       } else {
         return null;

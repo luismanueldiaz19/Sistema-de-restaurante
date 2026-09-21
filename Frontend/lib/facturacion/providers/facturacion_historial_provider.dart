@@ -10,6 +10,9 @@ class FacturacionHistorialState {
   final Map<String, String> filters;
 
   final Map<String, dynamic>? resumen;
+  final int currentPage;
+  final int lastPage;
+  final int total;
 
   FacturacionHistorialState({
     this.historial = const [],
@@ -17,6 +20,9 @@ class FacturacionHistorialState {
     this.error,
     this.filters = const {},
     this.resumen,
+    this.currentPage = 1,
+    this.lastPage = 1,
+    this.total = 0,
   });
 
   Map<String, double> get totales {
@@ -49,6 +55,9 @@ class FacturacionHistorialState {
     bool clearError = false,
     Map<String, String>? filters,
     Map<String, dynamic>? resumen,
+    int? currentPage,
+    int? lastPage,
+    int? total,
   }) {
     return FacturacionHistorialState(
       historial: historial ?? this.historial,
@@ -56,6 +65,9 @@ class FacturacionHistorialState {
       error: clearError ? null : (error ?? this.error),
       filters: filters ?? this.filters,
       resumen: resumen ?? this.resumen,
+      currentPage: currentPage ?? this.currentPage,
+      lastPage: lastPage ?? this.lastPage,
+      total: total ?? this.total,
     );
   }
 }
@@ -67,18 +79,32 @@ class FacturacionHistorialNotifier extends StateNotifier<FacturacionHistorialSta
 
   Future<void> fetchHistorial(String token) async {
     state = state.copyWith(isLoading: true, clearError: true);
+    
+    // Preparar filtros incluyendo paginación
+    final queryFilters = Map<String, String>.from(state.filters);
+    queryFilters['page'] = state.currentPage.toString();
+    
     final result = await _service.getHistorial(
       token: token,
-      filters: state.filters,
+      filters: queryFilters,
     );
 
     if (result['success']) {
-      final List<dynamic> data = result['data']['data'] ?? [];
-      final List<Factura> facturas = data.map((json) => Factura.fromJson(json)).toList();
+      final dataObj = result['data'] ?? {};
+      final List<dynamic> dataList = dataObj['data'] ?? [];
+      
+      final int current = dataObj['current_page'] ?? 1;
+      final int last = dataObj['last_page'] ?? 1;
+      final int totalItems = dataObj['total'] ?? 0;
+      
+      final List<Factura> facturas = dataList.map((json) => Factura.fromJson(json)).toList();
       state = state.copyWith(
         isLoading: false,
         historial: facturas,
         resumen: result['resumen'],
+        currentPage: current,
+        lastPage: last,
+        total: totalItems,
       );
     } else {
       state = state.copyWith(
@@ -89,12 +115,20 @@ class FacturacionHistorialNotifier extends StateNotifier<FacturacionHistorialSta
   }
 
   void updateFilters(String token, Map<String, String> newFilters, {bool replace = false}) {
-    state = state.copyWith(filters: replace ? newFilters : {...state.filters, ...newFilters});
+    state = state.copyWith(
+      filters: replace ? newFilters : {...state.filters, ...newFilters},
+      currentPage: 1, // Resetear paginación al cambiar filtros
+    );
+    fetchHistorial(token);
+  }
+
+  void setPage(String token, int page) {
+    state = state.copyWith(currentPage: page);
     fetchHistorial(token);
   }
 
   void clearFilters(String token) {
-    state = state.copyWith(filters: {});
+    state = state.copyWith(filters: {}, currentPage: 1);
     fetchHistorial(token);
   }
 

@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             ProveedorSeeder::class,
             BankSeeder::class,
             MetodoPagoCajaGeneralSeeder::class,
-            ProductosDominicanosSeeder::class
+            // ProductosDominicanosSeeder::class
         ]);
     }
 }
