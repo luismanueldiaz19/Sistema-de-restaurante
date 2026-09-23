@@ -17,6 +17,11 @@ class User extends Authenticatable
     use Notifiable;
 
     /**
+     * Set the guard for Spatie Permissions to always match the DB guard.
+     */
+    protected $guard_name = 'web';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

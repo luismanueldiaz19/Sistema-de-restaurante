@@ -25,10 +25,10 @@ class ProductosSeeder extends Seeder
             'tipo_producto' => 'PRODUCTO',
             'tipo_contable' => 'INVENTARIO',
             'precio_venta' => 25.00,
-            'costo' => 16.66,
+            'costo' => 15.18,
             'impuesto_id' => $imp18->id ?? null,
             'maneja_inventario' => true,
-            'stock_minimo' => 50,
+            'stock_minimo' => 1500,
             'activo' => true,
         ]);
 

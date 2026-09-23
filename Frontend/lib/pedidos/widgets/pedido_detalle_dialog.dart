@@ -21,12 +21,12 @@ class PedidoDetalleDialog extends ConsumerWidget {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
-        width: 600,
-        constraints: const BoxConstraints(maxHeight: 700),
+        width: 450,
+        constraints: const BoxConstraints(maxHeight: 600),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -35,8 +35,8 @@ class PedidoDetalleDialog extends ConsumerWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                      horizontal: 12,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -46,24 +46,26 @@ class PedidoDetalleDialog extends ConsumerWidget {
                       '# ${pedido.secuenciaDiaria}',
                       style: const TextStyle(
                         color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
                       'Detalles del Pedido',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -71,7 +73,7 @@ class PedidoDetalleDialog extends ConsumerWidget {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -97,9 +99,9 @@ class PedidoDetalleDialog extends ConsumerWidget {
                     ),
                     _buildInfoRow(Icons.info, 'Estado:', pedido.estado),
                     if (pedido.nota != null && pedido.nota!.isNotEmpty) ...[
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.yellow.shade100,
                           borderRadius: BorderRadius.circular(8),
@@ -107,18 +109,18 @@ class PedidoDetalleDialog extends ConsumerWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.note, color: Colors.orange),
+                            const Icon(Icons.note, color: Colors.orange, size: 16),
                             const SizedBox(width: 8),
-                            Expanded(child: Text('Nota: ${pedido.nota}')),
+                            Expanded(child: Text('Nota: ${pedido.nota}', style: const TextStyle(fontSize: 13))),
                           ],
                         ),
                       ),
                     ],
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     const Text(
                       'Artículos',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -126,18 +128,19 @@ class PedidoDetalleDialog extends ConsumerWidget {
                     ...pedido.detalles
                         .map(
                           (det) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Row(
                               children: [
                                 Text(
                                   '${det.cantidad}x',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 13,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                Expanded(child: Text(det.nombreProducto)),
-                                Text(formatCurrency(det.subtotal)),
+                                Expanded(child: Text(det.nombreProducto, style: const TextStyle(fontSize: 13))),
+                                Text(formatCurrency(det.subtotal), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
@@ -150,16 +153,16 @@ class PedidoDetalleDialog extends ConsumerWidget {
                         const Text(
                           'Total:',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Text(
                           formatCurrency(pedido.total),
                           style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
                             color: AppColors.primary,
                           ),
                         ),
@@ -170,7 +173,7 @@ class PedidoDetalleDialog extends ConsumerWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
                 borderRadius: const BorderRadius.vertical(
@@ -190,17 +193,17 @@ class PedidoDetalleDialog extends ConsumerWidget {
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, color: Colors.grey, size: 20),
+          Icon(icon, color: Colors.grey, size: 16),
           const SizedBox(width: 8),
-          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
           ),
         ],

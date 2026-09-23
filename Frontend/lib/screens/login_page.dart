@@ -174,7 +174,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 animate: showBorderGlow,
                 duration: const Duration(milliseconds: 600),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 750),
+                  constraints: const BoxConstraints(maxWidth: 650),
                   child: AnimatedBuilder(
                     animation: _animationController,
                     builder: (context, child) {
@@ -217,7 +217,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                 flex: 1,
                                 child: Container(
                                   color: AppColors.white,
-                                  padding: const EdgeInsets.all(30),
+                                  padding: const EdgeInsets.all(20),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -225,7 +225,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                       Text(
                                         appName[0].toUpperCase(),
                                         style: TextStyle(
-                                          fontSize: 140,
+                                          fontSize: 100,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.primary,
                                           fontFamily: 'Serif',
@@ -260,8 +260,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
                               flex: 1,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 40,
-                                  vertical: 50,
+                                  horizontal: 24,
+                                  vertical: 32,
                                 ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -271,20 +271,20 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                   children: [
                                     Text(
                                       '¡Bienvenido!',
-                                      style: textTheme.headlineMedium?.copyWith(
+                                      style: textTheme.headlineSmall?.copyWith(
                                         fontWeight: FontWeight.w900,
                                         color: AppColors.azulOscuro,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 4),
                                     Text(
                                       'Inicia sesión para continuar',
-                                      style: textTheme.bodyLarge?.copyWith(
+                                      style: textTheme.bodyMedium?.copyWith(
                                         color: Colors.grey.shade600,
                                       ),
                                     ),
 
-                                    const SizedBox(height: 30),
+                                    const SizedBox(height: 20),
 
                                     /// 👤 SELECTOR DE PERFIL (SLIDER / TABS)
                                     SingleChildScrollView(
@@ -311,8 +311,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                                   ),
                                                   padding:
                                                       const EdgeInsets.symmetric(
-                                                        horizontal: 16,
-                                                        vertical: 10,
+                                                        horizontal: 12,
+                                                        vertical: 8,
                                                       ),
                                                   decoration: BoxDecoration(
                                                     color: isSelected
@@ -379,7 +379,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                       ),
                                     ),
 
-                                    const SizedBox(height: 40),
+                                    const SizedBox(height: 24),
 
                                     // USER FIELD
                                     textFieldWidgetUI(
@@ -408,11 +408,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                       onEditingComplete: iniciarSeccion,
                                     ),
 
-                                    const SizedBox(height: 40),
+                                    const SizedBox(height: 24),
 
                                     // LOGIN BUTTON
                                     CustomButton(
-                                      width: 250,
+                                      width: double.infinity,
                                       title: 'INGRESAR',
                                       isLoading: isLoading,
                                       onPressed: iniciarSeccion,

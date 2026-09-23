@@ -80,23 +80,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/cxc/{id}/pagar', [CxcController::class, 'registrarPago']);
     Route::get('/cxc/pagos/historial', [CxcController::class, 'historialPagos']);
 
-    Route::get('/clientes', [ClienteController::class, 'index'])
-        ->middleware('permission:ver_clientes');
+    // Route::get('/clientes', [ClienteController::class, 'index'])
+    //     ->middleware('permission:ver_clientes');
 
     // Route::post('/clientes', [ClienteController::class, 'store'])
     //     ->middleware('permission:crear_clientes');
 
- Route::post('/clientes', [ClienteController::class, 'store'])
-        ->middleware('permission:crear_clientes');
+//   Route::post('/clientes', [ClienteController::class, 'store'])
+//         ->middleware('permission:crear_clientes');
 
-    Route::get('/clientes/{id}', [ClienteController::class, 'show'])
-        ->middleware('permission:ver_clientes');
+//     Route::get('/clientes/{id}', [ClienteController::class, 'show'])
+//         ->middleware('permission:ver_clientes');
 
-    Route::put('/clientes/{id}', [ClienteController::class, 'update'])
-        ->middleware('permission:editar_clientes');
+//     Route::put('/clientes/{id}', [ClienteController::class, 'update'])
+//         ->middleware('permission:editar_clientes');
 
-    Route::delete('/clientes/{id}', [ClienteController::class, 'destroy'])
-        ->middleware('permission:eliminar_clientes');
+//     Route::delete('/clientes/{id}', [ClienteController::class, 'destroy'])
+//         ->middleware('permission:eliminar_clientes');
 
     // ================= FACTURAS =================
 
@@ -258,3 +258,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
+// ================= MODULOS API V2 =================
+Route::prefix('v2')->group(function () {
+    require base_path('app/Modules/Auth/Routes/api.php');
+    require base_path('app/Modules/Cliente/Routes/api.php');
+});

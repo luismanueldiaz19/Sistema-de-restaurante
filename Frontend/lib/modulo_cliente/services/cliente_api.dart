@@ -7,7 +7,7 @@ import '../models/cliente.dart';
 class ClienteApi {
   final ApiService api = ApiService();
 
-  final String baseUrl = "$hostName/api/clientes";
+  final String baseUrl = "$hostName/api/v2/clientes";
 
   /// 🔥 GET TODOS LOS CLIENTES (Paginated)
   Future<Map<String, dynamic>> fetchClients(
@@ -36,10 +36,12 @@ class ClienteApi {
           .cast<Cliente>()
           .toList();
 
+      final meta = body['meta'] ?? {};
+
       return {
         'clientes': clientes,
-        'current_page': body['current_page'] ?? 1,
-        'last_page': body['last_page'] ?? 1,
+        'current_page': meta['current_page'] ?? body['current_page'] ?? 1,
+        'last_page': meta['last_page'] ?? body['last_page'] ?? 1,
       };
     } else {
       return {'clientes': <Cliente>[], 'current_page': 1, 'last_page': 1};

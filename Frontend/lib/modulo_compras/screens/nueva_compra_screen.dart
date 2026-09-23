@@ -121,7 +121,7 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
         title: const Text(
           'Registro de Compras',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
@@ -140,18 +140,18 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
             children: [
               // PANEL IZQUIERDO: FORMULARIO CONFIGURACION
               SizedBox(
-                width: 360,
+                width: 260,
                 child: Container(
-                  margin: const EdgeInsets.all(24),
-                  padding: const EdgeInsets.all(24),
+                  margin: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -166,28 +166,28 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
 
               // PANEL DERECHO: CARRITO Y TOTALES
               SizedBox(
-                width: isTablet ? 340 : 400,
+                width: isTablet ? 300 : 400,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 16, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
                   child: Column(
                     children: [
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
+                            borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
                           child: const CompraCarritoLista(),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 8),
                       CompraPanelTotales(onGuardar: _guardarCompra),
                     ],
                   ),

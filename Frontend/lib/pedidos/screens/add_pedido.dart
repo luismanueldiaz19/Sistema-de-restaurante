@@ -171,14 +171,14 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
       message: tooltip ?? '',
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(50),
         child: Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: color, size: 22),
+          child: Icon(icon, color: color, size: 18),
         ),
       ),
     );
@@ -198,7 +198,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
         title: const Text(
           'Crear Nuevo Pedido',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 16,
             fontWeight: FontWeight.w900,
             color: AppColors.secondary,
           ),
@@ -220,19 +220,19 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
             children: [
               // PANEL IZQUIERDO: CONFIGURACIÓN
               SizedBox(
-                width: 320,
+                width: 260,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(8),
                   child: Container(
-                    padding: const EdgeInsets.all(28),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
@@ -243,17 +243,17 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                           children: [
                             Container(
                               width: 4,
-                              height: 20,
+                              height: 16,
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                             const Text(
                               'DATOS DEL CLIENTE',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.secondary,
                                 letterSpacing: 1.2,
@@ -261,48 +261,48 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 12),
 
                         const _Label(text: 'NOMBRE *'),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         _buildTextField(
                           controller: _nombreController,
                           hintText: 'Ej. Juan Pérez',
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         const _Label(text: 'TELÉFONO'),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         _buildTextField(
                           controller: _telefonoController,
                           hintText: 'Ej. 809-555-5555',
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         const _Label(text: 'DIRECCIÓN'),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         _buildTextField(
                           controller: _direccionController,
                           hintText: 'Ej. Calle Principal #123',
                           maxLines: 2,
                         ),
 
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Container(
                               width: 4,
-                              height: 20,
+                              height: 16,
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                             const Text(
                               'DETALLES DEL PEDIDO',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.secondary,
                                 letterSpacing: 1.2,
@@ -310,15 +310,15 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 12),
 
                         const _Label(text: 'TIPO DE ENTREGA'),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                             color: AppColors.light,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: Colors.grey.shade100),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -327,10 +327,15 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                               isExpanded: true,
                               decoration: const InputDecoration(
                                 border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                               ),
                               icon: const Icon(
                                 Icons.keyboard_arrow_down,
                                 color: Colors.grey,
+                                size: 16,
                               ),
                               items: ['Delivery', 'Recoger'].map((
                                 String value,
@@ -354,10 +359,10 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
 
                         const _Label(text: 'NOTAS ADICIONALES'),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         _buildTextField(
                           controller: _notaController,
                           hintText: 'Ej. Sin cebolla, etc.',
@@ -375,15 +380,15 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                   children: [
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                        margin: const EdgeInsets.fromLTRB(0, 8, 8, 8),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(32),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
@@ -396,9 +401,9 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
 
               // PANEL DERECHO: CARRITO Y TOTALES
               SizedBox(
-                width: 400,
+                width: 300,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 24, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
                   child: Column(
                     children: [
                       Expanded(
@@ -406,12 +411,12 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                           clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
+                            borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
@@ -422,7 +427,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 8),
                       PanelTotales(
                         totales: pedState.totales,
                         isLoading: pedState.isLoading,
@@ -462,22 +467,24 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(8),
           child: Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
                     color: AppColors.light,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
+                    style: const TextStyle(fontSize: 14),
                     decoration: const InputDecoration(
                       hintText: 'Buscar producto por nombre...',
                       border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.grey),
+                      hintStyle: TextStyle(fontSize: 13),
+                      icon: Icon(Icons.search, color: Colors.grey, size: 16),
                     ),
                   ),
                 ),
@@ -487,13 +494,18 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
         ),
         Expanded(
           child: filteredProducts.isEmpty
-              ? const Center(child: Text("No se encontraron productos"))
+              ? const Center(
+                  child: Text(
+                    "No se encontraron productos",
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                )
               : GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 250,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
+                    maxCrossAxisExtent: 140,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
                     childAspectRatio: 0.85,
                   ),
                   itemCount: filteredProducts.length,
@@ -518,17 +530,17 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -541,20 +553,20 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.05),
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(24),
+                    top: Radius.circular(8),
                   ),
                 ),
                 child: Center(
                   child: Icon(
                     Icons.fastfood_outlined,
-                    size: 48,
+                    size: 32,
                     color: AppColors.primary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -564,10 +576,10 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 11,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Expanded(
@@ -579,7 +591,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w900,
-                              fontSize: 16,
+                              fontSize: 13,
                             ),
                           ),
                         ),
@@ -598,7 +610,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                           'S: --',
                           style: const TextStyle(
                             color: AppColors.success,
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -620,10 +632,10 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
     int maxLines = 1,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.light,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: TextFormField(
@@ -633,6 +645,8 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
         decoration: InputDecoration(
           hintText: hintText,
           border: InputBorder.none,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
         ),
       ),
     );
@@ -648,9 +662,9 @@ class _Label extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: FontWeight.bold,
-        color: Colors.grey.shade400,
+        color: Colors.grey.shade500,
         letterSpacing: 0.5,
       ),
     );

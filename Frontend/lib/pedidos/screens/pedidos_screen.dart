@@ -38,7 +38,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
       appBar: AppBar(
         title: const Text(
           'Gestión de Pedidos',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.primary,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -65,7 +65,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.add, size: 28),
+            icon: const Icon(Icons.add, size: 22),
             tooltip: 'Crear Pedido',
             onPressed: () async {
               final result = await Navigator.push(
@@ -95,7 +95,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             return const Center(
               child: Text(
                 'No hay pedidos para esta fecha',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
+                style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             );
           }
@@ -141,43 +141,47 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
   ) {
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.all(8),
+        margin: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
           ],
         ),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.05),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
+                border: Border(bottom: BorderSide(color: color.withValues(alpha: 0.1))),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.list_alt, color: color),
+                  Icon(Icons.list_alt, color: color, size: 16),
                   const SizedBox(width: 8),
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: color,
                     ),
                   ),
                   const Spacer(),
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundColor: color,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: Text(
                       '${pedidos.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -185,7 +189,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 itemCount: pedidos.length,
                 itemBuilder: (context, index) {
                   final pedido = pedidos[index];
@@ -205,9 +209,12 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
     Color statusColor,
   ) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 6),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: InkWell(
         onTap: () {
           showDialog(
@@ -215,9 +222,9 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
             builder: (ctx) => PedidoDetalleDialog(pedido: pedido),
           );
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -226,40 +233,41 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                      horizontal: 8,
+                      vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(20),
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       '# ${pedido.secuenciaDiaria}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
                       ),
                     ),
                   ),
                   Text(
                     formatCurrency(pedido.total),
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.person, size: 16, color: Colors.grey),
+                  const Icon(Icons.person, size: 14, color: Colors.grey),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       pedido.clienteNombre,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -271,17 +279,17 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 children: [
                   const Icon(
                     Icons.delivery_dining,
-                    size: 16,
+                    size: 14,
                     color: Colors.grey,
                   ),
                   const SizedBox(width: 4),
-                  Text(pedido.tipoEntrega),
+                  Text(pedido.tipoEntrega, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  const Spacer(),
+                  Text(
+                    '${pedido.detalles.length} art.',
+                    style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${pedido.detalles.length} artículos',
-                style: const TextStyle(color: Colors.grey, fontSize: 13),
               ),
             ],
           ),

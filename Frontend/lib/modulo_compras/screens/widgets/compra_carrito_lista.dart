@@ -16,35 +16,35 @@ class CompraCarritoLista extends ConsumerWidget {
     if (detalles.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(12.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.light,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.shopping_cart_outlined,
-                  size: 36,
+                  size: 32,
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               const Text(
                 'Carrito Vacío',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.secondary,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               const Text(
                 'Agregue productos desde el catálogo',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(color: Colors.grey, fontSize: 11),
               ),
             ],
           ),
@@ -55,17 +55,18 @@ class CompraCarritoLista extends ConsumerWidget {
     return Column(
       children: [
         const Padding(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(12),
           child: Row(
             children: [
               Icon(
                 Icons.shopping_cart_checkout_outlined,
                 color: AppColors.primary,
+                size: 20,
               ),
-              SizedBox(width: 10),
+              SizedBox(width: 8),
               Text(
                 'Detalle de Compra',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -76,18 +77,18 @@ class CompraCarritoLista extends ConsumerWidget {
           child: ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(8),
             itemCount: detalles.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (ctx, i) {
               final d = detalles[i];
               final totalItem = d.total;
 
               return Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: Row(
@@ -102,15 +103,15 @@ class CompraCarritoLista extends ConsumerWidget {
                                 'Gasto sin descripción',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 13,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             'Cant: ${d.cantidad} x ${formatCurrency(d.costoUnitarioConItbis)}',
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
                           if (d.impuestoMonto > 0)
@@ -118,7 +119,7 @@ class CompraCarritoLista extends ConsumerWidget {
                               '+ Impuesto: ${formatCurrency(d.impuestoMonto)}',
                               style: const TextStyle(
                                 color: AppColors.danger,
-                                fontSize: 11,
+                                fontSize: 10,
                               ),
                             ),
                         ],
@@ -132,13 +133,14 @@ class CompraCarritoLista extends ConsumerWidget {
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             color: AppColors.primary,
+                            fontSize: 13,
                           ),
                         ),
                         IconButton(
                           icon: const Icon(
                             Icons.delete_outline,
                             color: Colors.redAccent,
-                            size: 20,
+                            size: 18,
                           ),
                           onPressed: () => formNotifier.removeDetalle(i),
                           padding: EdgeInsets.zero,

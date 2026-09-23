@@ -52,22 +52,24 @@ class _CompraCatalogoProductosState
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(8),
           child: Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: AppColors.light,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: const InputDecoration(
-                      hintText: 'Buscar producto por nombre o código...',
+                      hintText: 'Buscar producto...',
+                      hintStyle: TextStyle(fontSize: 13),
                       border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.grey),
+                      icon: Icon(Icons.search, color: Colors.grey, size: 20),
                     ),
                   ),
                 ),
@@ -79,12 +81,12 @@ class _CompraCatalogoProductosState
           child: filteredProducts.isEmpty
               ? _buildEmptyState()
               : GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 220,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
-                    childAspectRatio: 0.85,
+                    maxCrossAxisExtent: 160,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.95,
                   ),
                   itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
@@ -100,11 +102,11 @@ class _CompraCatalogoProductosState
   Widget _buildProductCard(Producto prod) {
     return InkWell(
       onTap: () => _showProductModal(prod),
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
@@ -123,20 +125,20 @@ class _CompraCatalogoProductosState
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.05),
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(24),
+                    top: Radius.circular(16),
                   ),
                 ),
                 child: Center(
                   child: Icon(
                     Icons.inventory_2_outlined,
-                    size: 48,
+                    size: 36,
                     color: AppColors.primary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -146,16 +148,16 @@ class _CompraCatalogoProductosState
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
-                    'Costo Ref: ${formatCurrency(prod.costo ?? 0)}',
+                    'Ref: ${formatCurrency(prod.costo ?? 0)}',
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w900,
-                      fontSize: 13,
+                      fontSize: 12,
                     ),
                   ),
                 ],

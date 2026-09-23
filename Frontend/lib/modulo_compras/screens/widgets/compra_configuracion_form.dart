@@ -107,14 +107,14 @@ class _CompraConfiguracionFormState
                     flex: 3,
                     child: _buildProveedor(formState, provState, formNotifier),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     flex: 2,
                     child: _buildTipoCompra(formState, formNotifier),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               if (esInformal)
                 _buildAvisoInformal()
               else
@@ -122,16 +122,16 @@ class _CompraConfiguracionFormState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: _buildNCF(formNotifier)),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(child: _buildNumFactura(formNotifier)),
                   ],
                 ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(child: _buildFechaCompra(formState, formNotifier)),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: formState.tipoCompra == 'CREDITO'
                         ? _buildVencimiento(formState, formNotifier)
@@ -139,7 +139,7 @@ class _CompraConfiguracionFormState
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               CustomTextField(
                 controller: notasCtrl,
                 label: 'Notas (Opcional)',
@@ -200,18 +200,18 @@ class _CompraConfiguracionFormState
         );
         if (prov != null) formNotifier.setProveedor(prov.id.toString());
       },
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade300),
         ),
         child: Row(
           children: [
-            const Icon(Icons.business, color: AppColors.primary),
-            const SizedBox(width: 12),
+            const Icon(Icons.business, color: AppColors.primary, size: 20),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 formState.proveedorId != null
@@ -228,14 +228,14 @@ class _CompraConfiguracionFormState
                     : 'Seleccionar Proveedor',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 13,
                   color: Colors.black87,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            const Icon(Icons.arrow_drop_down, color: Colors.grey, size: 20),
           ],
         ),
       ),
@@ -265,14 +265,14 @@ class _CompraConfiguracionFormState
               message: 'Generar número temporal',
               child: InkWell(
                 onTap: _autoGenerarNumFactura,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  height: 47,
-                  width: 47,
-                  margin: const EdgeInsets.only(top: 8),
+                  height: 42,
+                  width: 42,
+                  margin: const EdgeInsets.only(top: 6),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: AppColors.primary.withValues(alpha: 0.25),
                       width: 1.2,
@@ -281,7 +281,7 @@ class _CompraConfiguracionFormState
                   child: const Icon(
                     Icons.auto_fix_high_rounded,
                     color: AppColors.primary,
-                    size: 22,
+                    size: 18,
                   ),
                 ),
               ),
@@ -327,16 +327,16 @@ class _CompraConfiguracionFormState
 
   Widget _buildAvisoInformal() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.orange.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: const Row(
         children: [
-          Icon(Icons.receipt_long, color: Colors.orange, size: 20),
-          SizedBox(width: 8),
+          Icon(Icons.receipt_long, color: Colors.orange, size: 16),
+          SizedBox(width: 6),
           Expanded(
             child: Text(
               'Proveedor Informal (E41)',
@@ -352,12 +352,14 @@ class _CompraConfiguracionFormState
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: 'Tipo',
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         filled: true,
@@ -378,25 +380,27 @@ class _CompraConfiguracionFormState
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.grey.shade300),
       ),
       child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        visualDensity: VisualDensity.compact,
+        dense: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: const Text(
           'Fecha Compra',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
         subtitle: Text(
           formState.fechaCompra.toLocal().toString().split(' ')[0],
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
         trailing: const Icon(
           Icons.calendar_today,
-          size: 18,
+          size: 16,
           color: AppColors.primary,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         onTap: () async {
           final date = await showDatePicker(
             context: context,
@@ -414,22 +418,24 @@ class _CompraConfiguracionFormState
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: Colors.grey.shade300),
       ),
       child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        visualDensity: VisualDensity.compact,
+        dense: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: const Text(
           'Vencimiento',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(fontSize: 11, color: Colors.grey),
         ),
         subtitle: Text(
           formState.fechaVencimiento?.toLocal().toString().split(' ')[0] ??
               'Seleccionar',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
-        trailing: const Icon(Icons.event, size: 18, color: Colors.orange),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        trailing: const Icon(Icons.event, size: 16, color: Colors.orange),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         onTap: () async {
           final date = await showDatePicker(
             context: context,
@@ -455,8 +461,10 @@ class _CompraConfiguracionFormState
     return DropdownButtonFormField<int>(
       decoration: InputDecoration(
         labelText: 'Método de Pago',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade300)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade300)),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
         filled: true,
         fillColor: Colors.white,
       ),

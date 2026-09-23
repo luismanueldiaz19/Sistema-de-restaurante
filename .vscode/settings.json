@@ -4,5 +4,12 @@
     "ANTHROPIC_API_KEY": "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",
     "ANTHROPIC_AUTH_TOKEN": "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",
     "ANTHROPIC_MODEL": "qwen/qwen3-coder:free"
-  }
+  },
+  "python-envs.pythonProjects": [
+    {
+      "path": "Backend/database/migrations",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
 }

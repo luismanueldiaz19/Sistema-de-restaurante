@@ -253,9 +253,16 @@ class _DgiiDashboardScreenState extends ConsumerState<DgiiDashboardScreen> {
                     const SizedBox(height: 8),
                     TextButton.icon(
                       onPressed: () => _exportReport('606'),
-                      icon: const Icon(Icons.download_rounded, size: 16, color: Colors.grey),
-                      label: const Text('Exportar Directo', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    )
+                      icon: const Icon(
+                        Icons.download_rounded,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      label: const Text(
+                        'Exportar Directo',
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -280,9 +287,16 @@ class _DgiiDashboardScreenState extends ConsumerState<DgiiDashboardScreen> {
                     const SizedBox(height: 8),
                     TextButton.icon(
                       onPressed: () => _exportReport('607'),
-                      icon: const Icon(Icons.download_rounded, size: 16, color: Colors.grey),
-                      label: const Text('Exportar Directo', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    )
+                      icon: const Icon(
+                        Icons.download_rounded,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      label: const Text(
+                        'Exportar Directo',
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -313,7 +327,8 @@ class _DgiiDashboardScreenState extends ConsumerState<DgiiDashboardScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => DgiiPreviewScreen(tipoReporte: type, mes: mes, anio: anio),
+        builder: (_) =>
+            DgiiPreviewScreen(tipoReporte: type, mes: mes, anio: anio),
       ),
     );
   }
@@ -355,11 +370,11 @@ class _DgiiDashboardScreenState extends ConsumerState<DgiiDashboardScreen> {
         separatorBuilder: (_, __) => const Divider(),
         itemBuilder: (context, index) {
           final p = state.pagos[index];
-          final monto = (p['monto_pagado'] as num).toDouble();
+          final monto = double.tryParse(p['monto_pagado'].toString()) ?? 0.0;
 
           return ListTile(
             leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
               child: const Icon(Icons.receipt_long, color: AppColors.primary),
             ),
             title: Text(
