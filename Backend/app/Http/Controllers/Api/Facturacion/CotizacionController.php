@@ -149,8 +149,27 @@ class CotizacionController extends Controller
             $query->where('cliente_id', $request->cliente_id);
         }
 
-        if ($request->filled('estado')) {
+        if ($request->filled('estado') && $request->estado !== 'todos') {
             $query->where('estado', $request->estado);
+        } else {
+            // No mostrar canceladas por defecto
+            $query->where('estado', '!=', 'cancelado');
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            // Extract numbers if search contains something like "COT-1045"
+            $idSearch = preg_replace('/[^0-9]/', '', $search);
+
+            $query->where(function ($q) use ($search, $idSearch) {
+                if (!empty($idSearch)) {
+                    $q->where('id', $idSearch);
+                }
+                $q->orWhereHas('cliente', function ($q2) use ($search) {
+                    $q2->where('nombre', 'LIKE', "%{$search}%")
+                       ->orWhere('rnc_cedula', 'LIKE', "%{$search}%");
+                });
+            });
         }
 
         $resumenQuery = clone $query;

@@ -59,11 +59,11 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
       backgroundColor: Colors.grey.shade50,
       body: Center(
         child: Container(
-          width: 380,
-          padding: const EdgeInsets.all(32),
+          width: 320,
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -78,25 +78,25 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
             children: [
               const Icon(
                 Icons.account_balance_wallet_rounded,
-                size: 60,
+                size: 48,
                 color: AppColors.primary,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               const Text(
                 'APERTURA DE CAJA',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w900,
                   color: AppColors.azulOscuro,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               const Text(
                 'Inicia tu jornada laboral registrando el monto base.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+                style: TextStyle(color: Colors.grey, fontSize: 11),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               if (_loadingData)
                 const CircularProgressIndicator()
@@ -132,41 +132,64 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
                 const SizedBox(height: 16),
 
                 // Monto Inicial
-                textFieldWidgetUI(
-                  label: 'Monto Inicial (Fondo de Caja)',
-                  hintText: '0.00',
+                TextFormField(
                   controller: _montoController,
                   keyboardType: TextInputType.number,
-                  prefixIcon: Icons.account_balance_wallet_rounded,
-                  width: double.infinity,
+                  decoration: InputDecoration(
+                    labelText: 'Monto Inicial (Fondo de Caja)',
+                    hintText: '0.00',
+                    labelStyle: const TextStyle(fontSize: 12),
+                    prefixIcon: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    isDense: true,
+                  ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 20),
 
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 40,
                   child: ElevatedButton(
                     onPressed: cajaState.isLoading ? null : _confirmarApertura,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       elevation: 4,
                     ),
                     child: cajaState.isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text(
                             'ABRIR CAJA Y EMPEZAR',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 13,
                             ),
                           ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text(
@@ -174,6 +197,7 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
                     style: TextStyle(
                       color: Colors.grey,
                       fontWeight: FontWeight.bold,
+                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -198,13 +222,14 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primary),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+        labelStyle: const TextStyle(fontSize: 12),
+        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         filled: true,
         fillColor: Colors.grey.shade50,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+          horizontal: 12,
+          vertical: 10,
         ),
         isDense: true,
       ),

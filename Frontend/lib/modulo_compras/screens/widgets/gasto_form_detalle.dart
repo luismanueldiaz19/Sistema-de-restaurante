@@ -124,16 +124,16 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
         .toList();
 
     return Container(
-      margin: const EdgeInsets.only(top: 24, bottom: 24),
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.only(top: 16, bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -143,37 +143,37 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
           children: [
             const Text(
               'Detalle del Gasto',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
             // Selector de Cuenta
             const Text(
               'Cuenta Contable de Gasto',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF616161),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             DropdownButtonFormField<int>(
               initialValue: _selectedCuentaId,
               isExpanded: true,
               decoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey.shade200),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey.shade200),
                 ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 15,
+                  horizontal: 12,
+                  vertical: 8,
                 ),
               ),
               items: cuentasGastos.map((c) {
@@ -181,7 +181,7 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
                   value: c.id,
                   child: Text(
                     '${c.codigo} - ${c.nombre}',
-                    style: const TextStyle(fontSize: 14),
+                    style: const TextStyle(fontSize: 12),
                   ),
                 );
               }).toList(),
@@ -191,7 +191,7 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // Descripción
             CustomTextField(
@@ -200,7 +200,7 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
               hintText: 'Ej. Pago de luz eléctrica agosto',
               prefixIcon: Icons.description_outlined,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // Montos
             Row(
@@ -235,18 +235,18 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 40,
               child: ElevatedButton.icon(
                 onPressed: _agregarGasto,
-                icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
                 label: const Text(
                   'Agregar Gasto al Detalle',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -254,7 +254,7 @@ class _GastoFormDetalleState extends ConsumerState<GastoFormDetalle> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),

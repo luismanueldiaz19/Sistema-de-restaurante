@@ -354,7 +354,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   Widget _buildCurrentScreen(AuthState auth) {
     if (_selectedIndex == 0) {
       return Padding(
-        padding: const EdgeInsets.all(25),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -491,7 +491,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           const Text(
                             'Información de Caja',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 15,
                               fontWeight: FontWeight.w800,
                               color: AppColors.azulOscuro,
                               letterSpacing: -0.5,
@@ -502,23 +502,27 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                               onPressed: () => _handleCierreCaja(context, ref),
                               icon: const Icon(
                                 Icons.lock_clock_rounded,
-                                size: 16,
+                                size: 14,
                               ),
-                              label: const Text('CERRAR CAJA'),
+                              label: const Text(
+                                'CERRAR CAJA',
+                                style: TextStyle(fontSize: 11),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.redAccent,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
+                                  horizontal: 12,
+                                  vertical: 8,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 10),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         physics: const BouncingScrollPhysics(),
@@ -534,7 +538,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                   ? Icons.lock_open_rounded
                                   : Icons.lock_rounded,
                               color: isCajaAbierta ? Colors.green : Colors.grey,
-                              width: 280,
+                              width: 220,
                             ),
                             const SizedBox(width: 20),
                             if (isCajaAbierta) ...[
@@ -544,7 +548,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                 subtitle: 'Base en efectivo',
                                 icon: Icons.account_balance_wallet_rounded,
                                 color: Colors.blue,
-                                width: 280,
+                                width: 220,
                               ),
                               const SizedBox(width: 20),
                               _buildInfoCard(
@@ -553,7 +557,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                 subtitle: 'Sesión ID: #${session['id']}',
                                 icon: Icons.person_rounded,
                                 color: Colors.orange,
-                                width: 280,
+                                width: 220,
                               ),
                             ] else
                               _buildInfoCard(
@@ -562,7 +566,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                                 subtitle: 'Inicie turno para facturar',
                                 icon: Icons.info_outline,
                                 color: Colors.red,
-                                width: 280,
+                                width: 220,
                               ),
                           ],
                         ),
@@ -596,10 +600,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     return FadeInRight(
       child: Container(
         width: width,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -618,34 +622,34 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey.shade600,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, size: 18, color: color),
+                  child: Icon(icon, size: 16, color: color),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               value,
               style: const TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.w900,
                 color: AppColors.azulOscuro,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               subtitle,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/dashboard_button.dart';
 
 class DashboardButtonsSection extends ConsumerWidget {
@@ -51,8 +52,9 @@ class DashboardButtonsSection extends ConsumerWidget {
       //     color: Colors.indigo,
       //     onTap: () => onAction('reportes'),
       //   ),
-      if (!isCajero && (auth.hasPermission('ver_inventario') ||
-          auth.hasPermission('ver_productos')))
+      if (!isCajero &&
+          (auth.hasPermission('ver_inventario') ||
+              auth.hasPermission('ver_productos')))
         DashboardButton(
           title: 'Productos',
           icon: Icons.fastfood_rounded,
@@ -120,22 +122,8 @@ class DashboardButtonsSection extends ConsumerWidget {
 
             print(width);
 
-            // Ajuste de columnas (Breakpoints para mejor diseño responsivo)
-            int crossAxisCount =
-                2; // Por defecto para móviles pequeños (< 380px)
-            if (width >= 1300) {
-              crossAxisCount = 7; // Desktop grande
-            } else if (width >= 1100) {
-              crossAxisCount = 6; // Desktop normal / Tablet horizontal
-            } else if (width >= 900) {
-              crossAxisCount = 5; // Desktop normal / Tablet horizontal
-            } else if (width >= 700) {
-              crossAxisCount = 4; // Tablet pequeña
-            } else if (width >= 650) {
-              crossAxisCount = 4; // Phablets / Móviles en horizontal
-            } else if (width >= 380) {
-              crossAxisCount = 3; // Móviles estándar/grandes
-            }
+            // Ajuste de columnas usando la nueva clase ResponsiveUtils
+            int crossAxisCount = ResponsiveUtils.getGridCrossAxisCount(width);
 
             return GridView.builder(
               shrinkWrap: true,
@@ -143,9 +131,9 @@ class DashboardButtonsSection extends ConsumerWidget {
               itemCount: items.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-                childAspectRatio: 1.05, // 👈 Más cuadrado para el nuevo diseño
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 1.1, // 👈 Más cuadrado para el nuevo diseño
               ),
               itemBuilder: (context, index) => items[index],
             );

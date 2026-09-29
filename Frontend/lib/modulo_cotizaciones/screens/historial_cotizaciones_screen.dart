@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,8 +7,11 @@ import '../models/cotizacion_model.dart';
 import '../providers/cotizacion_historial_provider.dart';
 import '../services/cotizacion_service.dart';
 import '../../utils/helpers.dart';
+import '../../utils/normalize.dart';
 import '../../palletes/app_colors.dart';
 import '../../utils/constants.dart';
+import '../../widgets/custom_date_range_picker.dart';
+import '../../widgets/custom_filter_dropdown.dart';
 import 'widgets/cotizacion_list_item.dart';
 import 'widgets/cotizacion_detalle_panel.dart';
 
@@ -23,18 +27,51 @@ class _HistorialCotizacionesScreenState
     extends ConsumerState<HistorialCotizacionesScreen> {
   Cotizacion? _selectedCotizacion;
   bool _isDetailLoading = false;
-  String _selectedDateFilter = 'Todos'; // Estado para el chip seleccionado
+  String _selectedDateFilter = 'Últimos 30 días';
+  String _searchQuery = "";
+  String _selectedEstadoFilter = 'todos';
   final CotizacionService _service = CotizacionService();
+  final ScrollController _scrollController = ScrollController();
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = ref.read(authProvider);
-      ref
-          .read(cotizacionHistorialProvider.notifier)
-          .fetchHistorial(auth.token!);
+      _setInitialFilters();
     });
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final auth = ref.read(authProvider);
+      ref.read(cotizacionHistorialProvider.notifier).loadMore(auth.token!);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _setInitialFilters() {
+    final now = DateTime.now();
+    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+    final auth = ref.read(authProvider);
+
+    final newFilters = {
+      'fecha_desde': thirtyDaysAgo.toIso8601String().split('T')[0],
+      'fecha_hasta': now.toIso8601String().split('T')[0],
+      'estado': _selectedEstadoFilter,
+    };
+
+    ref
+        .read(cotizacionHistorialProvider.notifier)
+        .updateFilters(auth.token!, newFilters, replace: true);
   }
 
   Future<void> _cambiarEstado(String id, String estado) async {
@@ -137,7 +174,7 @@ class _HistorialCotizacionesScreenState
               : state.error != null
               ? Center(child: Text(state.error!))
               : Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -146,20 +183,41 @@ class _HistorialCotizacionesScreenState
                         flex: isTablet ? 4 : 1,
                         child: Column(
                           children: [
-                            _buildDateFilters(),
-                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(child: _buildDateFilters()),
+                                const SizedBox(width: 8),
+                                _buildEstadoDropdown(),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
                             _buildResumenTarjetas(state),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 12),
+                            _buildSearchBar(),
+                            const SizedBox(height: 12),
                             Expanded(
-                              child: state.historial.isEmpty
+                              child: state.historial.isEmpty && !state.isLoading
                                   ? const Center(
                                       child: Text('No hay cotizaciones'),
                                     )
                                   : ListView.separated(
-                                      itemCount: state.historial.length,
+                                      controller: _scrollController,
+                                      itemCount:
+                                          state.historial.length +
+                                          (state.isFetchingMore ? 1 : 0),
                                       separatorBuilder: (_, __) =>
-                                          const SizedBox(height: 12),
+                                          const SizedBox(height: 8),
                                       itemBuilder: (context, index) {
+                                        if (index == state.historial.length) {
+                                          return const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Center(
+                                              child: CircularProgressIndicator(
+                                                color: AppColors.primary,
+                                              ),
+                                            ),
+                                          );
+                                        }
                                         final cotizacion =
                                             state.historial[index];
                                         final isSelected =
@@ -186,7 +244,7 @@ class _HistorialCotizacionesScreenState
                         ),
                       ),
 
-                      if (isTablet) const SizedBox(width: 24),
+                      if (isTablet) const SizedBox(width: 16),
 
                       // DERECHA: DETALLES (PANEL)
                       if (isTablet)
@@ -212,10 +270,10 @@ class _HistorialCotizacionesScreenState
       children: [
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primary.withValues(alpha: 0.1),
@@ -227,7 +285,7 @@ class _HistorialCotizacionesScreenState
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
@@ -235,10 +293,10 @@ class _HistorialCotizacionesScreenState
                   child: const Icon(
                     Icons.monetization_on,
                     color: AppColors.primary,
-                    size: 28,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -246,15 +304,15 @@ class _HistorialCotizacionesScreenState
                       'Total Cotizado Aprobado',
                       style: TextStyle(
                         color: Colors.grey.shade600,
-                        fontSize: 13,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       formatCurrency(totales['total'] ?? 0),
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.w900,
                         color: AppColors.secondary,
                       ),
@@ -274,43 +332,21 @@ class _HistorialCotizacionesScreenState
       'Todos',
       'Hoy',
       'Últimos 7 días',
+      'Últimos 30 días',
       'Este mes',
       'Mes pasado',
       'Este año',
+      'Personalizado',
     ];
 
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final label = filters[index];
-          final isSelected = _selectedDateFilter == label;
-          return ChoiceChip(
-            label: Text(label),
-            selected: isSelected,
-            selectedColor: AppColors.primary,
-            labelStyle: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey.shade700,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-            backgroundColor: Colors.white,
-            side: BorderSide(
-              color: isSelected ? AppColors.primary : Colors.grey.shade300,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            onSelected: (selected) {
-              if (selected) {
-                _applyDateFilter(label);
-              }
-            },
-          );
-        },
-      ),
+    return CustomFilterDropdown<String>(
+      value: _selectedDateFilter,
+      items: filters.map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
+      onChanged: (val) {
+        if (val != null && val != 'Personalizado') {
+          _applyDateFilter(val);
+        }
+      },
     );
   }
 
@@ -333,6 +369,13 @@ class _HistorialCotizacionesScreenState
         final sevenDaysAgo = now.subtract(const Duration(days: 7));
         newFilters = {
           'fecha_desde': sevenDaysAgo.toIso8601String().split('T')[0],
+          'fecha_hasta': now.toIso8601String().split('T')[0],
+        };
+        break;
+      case 'Últimos 30 días':
+        final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+        newFilters = {
+          'fecha_desde': thirtyDaysAgo.toIso8601String().split('T')[0],
           'fecha_hasta': now.toIso8601String().split('T')[0],
         };
         break;
@@ -375,9 +418,120 @@ class _HistorialCotizacionesScreenState
       ref.read(cotizacionHistorialProvider.notifier).clearFilters(auth.token!);
     } else {
       // Actualizamos los filtros de fecha y sobreescribimos los anteriores.
-      ref
-          .read(cotizacionHistorialProvider.notifier)
-          .updateFilters(auth.token!, newFilters, replace: true);
+      ref.read(cotizacionHistorialProvider.notifier).updateFilters(
+        auth.token!,
+        {...newFilters, 'estado': _selectedEstadoFilter},
+        replace: true,
+      );
     }
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      setState(() {
+        _searchQuery = query;
+        _selectedCotizacion = null;
+      });
+      final auth = ref.read(authProvider);
+      ref.read(cotizacionHistorialProvider.notifier).updateFilters(
+        auth.token!,
+        {'search': query},
+      );
+    });
+  }
+
+  Widget _buildEstadoDropdown() {
+    return CustomFilterDropdown<String>(
+      value: _selectedEstadoFilter,
+      items: const [
+        DropdownMenuItem(value: 'todos', child: Text('Estados: Todos')),
+        DropdownMenuItem(value: 'pendiente', child: Text('Pendientes')),
+        DropdownMenuItem(value: 'aprobado', child: Text('Aprobadas')),
+        DropdownMenuItem(value: 'cancelado', child: Text('Canceladas')),
+      ],
+      onChanged: (val) {
+        if (val != null) {
+          setState(() {
+            _selectedEstadoFilter = val;
+            _selectedCotizacion = null;
+          });
+          final auth = ref.read(authProvider);
+          ref.read(cotizacionHistorialProvider.notifier).updateFilters(
+            auth.token!,
+            {'estado': val},
+          );
+        }
+      },
+    );
+  }
+
+  void _applyCustomDateFilter(DateTime start, DateTime end) {
+    setState(() {
+      _selectedDateFilter = 'Personalizado';
+      _selectedCotizacion = null;
+    });
+    final auth = ref.read(authProvider);
+    final newFilters = {
+      'fecha_desde': start.toIso8601String().split('T')[0],
+      'fecha_hasta': end.toIso8601String().split('T')[0],
+    };
+    ref
+        .read(cotizacionHistorialProvider.notifier)
+        .updateFilters(auth.token!, newFilters, replace: true);
+  }
+
+  List<Cotizacion> _getFilteredList(List<Cotizacion> historial) {
+    if (_searchQuery.isEmpty) return historial;
+    final query = TextNormalizer.normalizar(_searchQuery.toLowerCase());
+    return historial.where((c) {
+      final idMatch = c.id.toString().contains(query);
+      final nombreMatch = TextNormalizer.normalizar(
+        c.cliente?.nombre?.toLowerCase() ?? "",
+      ).contains(query);
+      return idMatch || nombreMatch;
+    }).toList();
+  }
+
+  Widget _buildSearchBar() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search, color: Colors.grey.shade400, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    onChanged: _onSearchChanged,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por # de cotización o cliente...',
+                      border: InputBorder.none,
+                      hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        CustomDateRangePicker(
+          isPersonalizado: _selectedDateFilter == 'Personalizado',
+          onDateRangeSelected: _applyCustomDateFilter,
+        ),
+      ],
+    );
   }
 }

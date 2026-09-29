@@ -34,7 +34,7 @@ class CompraCarritoLista extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Carrito Vacío',
+                'Detalle Vacío',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -43,7 +43,7 @@ class CompraCarritoLista extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Agregue productos desde el catálogo',
+                'Agregue detalles a la lista',
                 style: TextStyle(color: Colors.grey, fontSize: 11),
               ),
             ],

@@ -23,12 +23,12 @@ class CotizacionListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.grey.shade200,
             width: isSelected ? 2 : 1,
@@ -42,24 +42,24 @@ class CotizacionListItem extends StatelessWidget {
               children: [
                 Text(
                   'Cotización #${cotizacion.id.toString().padLeft(6, '0')}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 _buildEstadoBadge(cotizacion.estado ?? 'pendiente'),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'Cliente: ${cotizacion.cliente?.nombre ?? 'Genérico'}',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Text(
               'Fecha: ${cotizacion.fechaEmision != null ? cotizacion.fechaEmision!.toString().split(' ')[0] : ''}',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -68,11 +68,11 @@ class CotizacionListItem extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     color: AppColors.secondary,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.grey),
+                  icon: const Icon(Icons.more_vert, color: Colors.grey, size: 20),
                   onSelected: (val) {
                     if (val == 'pdf') {
                       onPdfTap();
@@ -109,10 +109,10 @@ class CotizacionListItem extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         estado.toUpperCase(),

@@ -95,7 +95,7 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
         children: [
           // CABECERA
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.05),
               borderRadius: const BorderRadius.vertical(
@@ -108,9 +108,9 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                 const Icon(
                   Icons.receipt_long,
                   color: AppColors.primary,
-                  size: 28,
+                  size: 20,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,13 +120,13 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           color: AppColors.secondary,
-                          fontSize: 18,
+                          fontSize: 14,
                         ),
                       ),
                       Text(
                         'Factura Nº ${compra?.numeroFacturaProveedor ?? "N/A"}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 11,
                           color: Colors.grey.shade600,
                         ),
                       ),
@@ -140,31 +140,31 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
           // DETALLES DE LA FACTURA
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Fecha: ${compra?.fechaCompra.toLocal().toString().split(' ')[0] ?? ''}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
                     ),
                     Text(
                       'NCF: ${compra?.ncf ?? 'N/A'}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
                     ),
                   ],
                 ),
-                const Divider(height: 32),
+                const Divider(height: 16),
                 const Text(
                   'PRODUCTOS ADQUIRIDOS:',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: Colors.grey,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 if (compra?.detalles == null || compra!.detalles.isEmpty)
                   const Text('No hay detalles para mostrar.')
                 else
@@ -185,13 +185,13 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                                       'Desconocido',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                    fontSize: 12,
                                   ),
                                 ),
                                 Text(
                                   '${d.cantidad} x ${formatCurrency(d.costoUnitario)}',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 10,
                                     color: Colors.grey.shade600,
                                   ),
                                 ),
@@ -206,6 +206,7 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.secondary,
+                                fontSize: 12,
                               ),
                             ),
                           ),
@@ -213,17 +214,31 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                       ),
                     );
                   }).toList(),
-                const Divider(height: 32),
+                const Divider(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Subtotal:',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Colors.grey, fontSize: 11),
                     ),
                     Text(
                       formatCurrency(compra?.subtotal ?? 0),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Impuestos:',
+                      style: TextStyle(color: Colors.grey, fontSize: 11),
+                    ),
+                    Text(
+                      formatCurrency(compra?.impuestos ?? 0),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
                     ),
                   ],
                 ),
@@ -232,31 +247,17 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Impuestos:',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    Text(
-                      formatCurrency(compra?.impuestos ?? 0),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
                       'TOTAL FACTURA:',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 16,
+                        fontSize: 12,
                       ),
                     ),
                     Text(
                       formatCurrency(compra?.total ?? 0),
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 20,
+                        fontSize: 16,
                         color: AppColors.primary,
                       ),
                     ),
@@ -268,7 +269,7 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
 
           // FORMULARIO DE PAGO
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.grey.shade50,
               borderRadius: const BorderRadius.vertical(
@@ -283,20 +284,20 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                   'Registrar Pago',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    fontSize: 16,
+                    fontSize: 14,
                     color: AppColors.secondary,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
+                    vertical: 8,
+                    horizontal: 12,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.orange.shade100),
                   ),
                   child: Row(
@@ -306,7 +307,7 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                         'BALANCE PENDIENTE',
                         style: TextStyle(
                           color: Colors.orange,
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -315,7 +316,7 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                         style: TextStyle(
                           color: Colors.orange.shade900,
                           fontWeight: FontWeight.w900,
-                          fontSize: 20,
+                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -373,10 +374,10 @@ class _CxpDetalleYPagoPanelState extends ConsumerState<CxpDetalleYPagoPanel> {
                   label: 'Referencia (Opcional)',
                   prefixIcon: Icons.receipt_long,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 40,
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.check_circle_outline, size: 20),
                     label: const Text(

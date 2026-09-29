@@ -107,7 +107,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
         final isTablet = constraints.maxWidth > 800;
 
         return Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(16.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -118,15 +118,15 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                   children: [
                     // Resumen
                     Container(
-                      margin: const EdgeInsets.only(bottom: 24),
-                      padding: const EdgeInsets.all(24),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Colors.green.shade700, Colors.teal.shade800],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.green.withValues(alpha: 0.3),
@@ -138,7 +138,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
@@ -146,10 +146,10 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                             child: const Icon(
                               Icons.account_balance_wallet_outlined,
                               color: Colors.white,
-                              size: 40,
+                              size: 28,
                             ),
                           ),
-                          const SizedBox(width: 20),
+                          const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -157,14 +157,14 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                 'Total por Cobrar',
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                               ),
                               Text(
                                 formatCurrency(totalCobrar),
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 32,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -212,14 +212,14 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                 );
                               }
                             },
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(12),
                             child: Container(
-                              margin: const EdgeInsets.only(bottom: 16),
+                              margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? Colors.green.withValues(alpha: 0.05)
                                     : Colors.white,
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isSelected
                                       ? Colors.green
@@ -230,7 +230,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                 ),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -241,18 +241,18 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                         Row(
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.all(10),
+                                              padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 color: Colors.green.withValues(
                                                   alpha: 0.1,
                                                 ),
                                                 borderRadius:
-                                                    BorderRadius.circular(12),
+                                                    BorderRadius.circular(8),
                                               ),
                                               child: const Icon(
                                                 Icons.receipt_long,
                                                 color: Colors.green,
-                                                size: 20,
+                                                size: 16,
                                               ),
                                             ),
                                             const SizedBox(width: 12),
@@ -265,14 +265,14 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                                       'Cliente Desconocido',
                                                   style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
+                                                    fontSize: 14,
                                                   ),
                                                 ),
                                                 Text(
                                                   'Factura NCF ${cxc.factura?['ncf'] ?? 'N/A'}',
                                                   style: TextStyle(
                                                     color: Colors.grey.shade500,
-                                                    fontSize: 13,
+                                                    fontSize: 11,
                                                   ),
                                                 ),
                                               ],
@@ -282,26 +282,26 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                         if (isVencida)
                                           Container(
                                             padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
+                                              horizontal: 8,
                                               vertical: 4,
                                             ),
                                             decoration: BoxDecoration(
                                               color: Colors.red.shade50,
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                                  BorderRadius.circular(6),
                                             ),
                                             child: const Text(
                                               'VENCIDA',
                                               style: TextStyle(
                                                 color: Colors.red,
-                                                fontSize: 10,
+                                                fontSize: 9,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ),
                                       ],
                                     ),
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 12),
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -314,7 +314,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                               'Vencimiento',
                                               style: TextStyle(
                                                 color: Colors.grey.shade400,
-                                                fontSize: 12,
+                                                fontSize: 10,
                                               ),
                                             ),
                                             Text(
@@ -328,6 +328,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                                     ? Colors.red
                                                     : Colors.black87,
                                                 fontWeight: FontWeight.bold,
+                                                fontSize: 12,
                                               ),
                                             ),
                                           ],
@@ -340,7 +341,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                               'Balance',
                                               style: TextStyle(
                                                 color: Colors.grey.shade400,
-                                                fontSize: 12,
+                                                fontSize: 10,
                                               ),
                                             ),
                                             Text(
@@ -350,7 +351,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                               style: const TextStyle(
                                                 color: Colors.green,
                                                 fontWeight: FontWeight.w900,
-                                                fontSize: 18,
+                                                fontSize: 16,
                                               ),
                                             ),
                                           ],

@@ -5,6 +5,8 @@ import '../../utils/helpers.dart';
 import '../../providers/auth_provider.dart';
 import '../providers/facturacion_historial_provider.dart';
 import '../../model/factura.dart';
+import '../../widgets/custom_date_range_picker.dart';
+import '../../widgets/custom_filter_dropdown.dart';
 
 class HistorialVentasScreen extends ConsumerStatefulWidget {
   const HistorialVentasScreen({super.key});
@@ -18,6 +20,7 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
   final _fechaDesdeController = TextEditingController();
   final _fechaHastaController = TextEditingController();
   final _searchController = TextEditingController();
+  String _selectedDateFilter = 'Todos';
 
   @override
   void initState() {
@@ -300,52 +303,56 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
   }
 
   Widget _buildQuickFilters(String? token) {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: ['Hoy', 'Ayer', 'Este Mes', 'Este Año'].map((filtro) {
-        return ActionChip(
-          padding: const EdgeInsets.all(4),
-          label: Text(
-            filtro,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: AppColors.secondary,
-            ),
-          ),
-          backgroundColor: Colors.white,
-          side: BorderSide(color: Colors.grey.shade300),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-          onPressed: () {
-            if (token == null) return;
-            final now = DateTime.now();
-            String fechaDesde = '';
-            String fechaHasta =
-                "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final filters = [
+      'Todos',
+      'Hoy',
+      'Ayer',
+      'Este Mes',
+      'Este Año',
+      'Personalizado',
+    ];
 
-            if (filtro == 'Hoy') {
-              fechaDesde = fechaHasta;
-            } else if (filtro == 'Ayer') {
-              final ayer = now.subtract(const Duration(days: 1));
-              fechaDesde =
-                  "${ayer.year}-${ayer.month.toString().padLeft(2, '0')}-${ayer.day.toString().padLeft(2, '0')}";
-              fechaHasta = fechaDesde;
-            } else if (filtro == 'Este Mes') {
-              fechaDesde =
-                  "${now.year}-${now.month.toString().padLeft(2, '0')}-01";
-            } else if (filtro == 'Este Año') {
-              fechaDesde = "${now.year}-01-01";
-            }
-            _fechaDesdeController.text = fechaDesde;
-            _fechaHastaController.text = fechaHasta;
-            ref.read(facturacionHistorialProvider.notifier).updateFilters(
-              token,
-              {'fecha_desde': fechaDesde, 'fecha_hasta': fechaHasta},
-            );
-          },
-        );
-      }).toList(),
+    return CustomFilterDropdown<String>(
+      value: _selectedDateFilter,
+      items: filters
+          .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+          .toList(),
+      onChanged: (val) {
+        if (val != null && val != 'Personalizado') {
+          setState(() {
+            _selectedDateFilter = val;
+          });
+          if (token == null) return;
+          final now = DateTime.now();
+          String fechaDesde = '';
+          String fechaHasta =
+              "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+          if (val == 'Hoy') {
+            fechaDesde = fechaHasta;
+          } else if (val == 'Ayer') {
+            final ayer = now.subtract(const Duration(days: 1));
+            fechaDesde =
+                "${ayer.year}-${ayer.month.toString().padLeft(2, '0')}-${ayer.day.toString().padLeft(2, '0')}";
+            fechaHasta = fechaDesde;
+          } else if (val == 'Este Mes') {
+            fechaDesde =
+                "${now.year}-${now.month.toString().padLeft(2, '0')}-01";
+          } else if (val == 'Este Año') {
+            fechaDesde = "${now.year}-01-01";
+          } else if (val == 'Todos') {
+            fechaDesde = '';
+            fechaHasta = '';
+          }
+
+          _fechaDesdeController.text = fechaDesde;
+          _fechaHastaController.text = fechaHasta;
+          ref.read(facturacionHistorialProvider.notifier).updateFilters(token, {
+            'fecha_desde': fechaDesde,
+            'fecha_hasta': fechaHasta,
+          });
+        }
+      },
     );
   }
 
@@ -353,82 +360,65 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _compactDatePicker(
-                'Desde',
-                _fechaDesdeController,
+        CustomDateRangePicker(
+          width: double.infinity,
+          text:
+              _fechaDesdeController.text.isNotEmpty &&
+                  _fechaHastaController.text.isNotEmpty
+              ? '${_fechaDesdeController.text} a ${_fechaHastaController.text}'
+              : 'Seleccionar fechas',
+          isPersonalizado: _selectedDateFilter == 'Personalizado',
+          onDateRangeSelected: (start, end) {
+            if (token != null) {
+              setState(() {
+                _selectedDateFilter = 'Personalizado';
+              });
+              final startStr =
+                  "${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}";
+              final endStr =
+                  "${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}";
+              _fechaDesdeController.text = startStr;
+              _fechaHastaController.text = endStr;
+              ref.read(facturacionHistorialProvider.notifier).updateFilters(
                 token,
-                'fecha_desde',
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _compactDatePicker(
-                'Hasta',
-                _fechaHastaController,
-                token,
-                'fecha_hasta',
-              ),
-            ),
-          ],
+                {'fecha_desde': startStr, 'fecha_hasta': endStr},
+              );
+            }
+          },
         ),
         const SizedBox(height: 8),
-        Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: state.filters['estado'],
-              hint: const Text(
-                'Estado',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              isExpanded: true,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.secondary,
-                fontWeight: FontWeight.bold,
-              ),
-              dropdownColor: Colors.white,
-              icon: const Icon(
-                Icons.arrow_drop_down,
-                color: Colors.grey,
-                size: 18,
-              ),
-              items: const [
-                DropdownMenuItem(value: null, child: Text('Todos')),
-                DropdownMenuItem(value: 'pendiente', child: Text('Pendiente')),
-                DropdownMenuItem(value: 'pagada', child: Text('Pagada')),
-                DropdownMenuItem(value: 'anulada', child: Text('Anulada')),
-              ],
-              onChanged: (val) {
-                if (token != null) {
-                  if (val == null) {
-                    final newFilters = Map<String, String>.from(state.filters);
-                    newFilters.remove('estado');
-                    ref
-                        .read(facturacionHistorialProvider.notifier)
-                        .updateFilters(token, newFilters, replace: true);
-                  } else {
-                    ref
-                        .read(facturacionHistorialProvider.notifier)
-                        .updateFilters(token, {'estado': val});
-                  }
-                }
-              },
-            ),
-          ),
+        CustomFilterDropdown<String?>(
+          value: state.filters['estado'],
+          items: const [
+            DropdownMenuItem(value: null, child: Text('Estado: Todos')),
+            DropdownMenuItem(value: 'pendiente', child: Text('Pendientes')),
+            DropdownMenuItem(value: 'pagada', child: Text('Pagadas')),
+            DropdownMenuItem(value: 'anulada', child: Text('Anuladas')),
+          ],
+          onChanged: (val) {
+            if (token != null) {
+              if (val == null) {
+                final newFilters = Map<String, String>.from(state.filters);
+                newFilters.remove('estado');
+                ref
+                    .read(facturacionHistorialProvider.notifier)
+                    .updateFilters(token, newFilters, replace: true);
+              } else {
+                ref.read(facturacionHistorialProvider.notifier).updateFilters(
+                  token,
+                  {'estado': val},
+                );
+              }
+            }
+          },
         ),
         const SizedBox(height: 12),
         ElevatedButton.icon(
           onPressed: () {
             if (token != null) {
+              setState(() {
+                _selectedDateFilter = 'Todos';
+              });
               _fechaDesdeController.clear();
               _fechaHastaController.clear();
               _searchController.clear();

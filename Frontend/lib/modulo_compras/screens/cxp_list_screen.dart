@@ -5,6 +5,8 @@ import '../providers/cxp_provider.dart';
 import '../models/cxp.dart';
 import '../../utils/helpers.dart';
 import 'widgets/cxp_detalle_pago_panel.dart';
+import '../../widgets/custom_date_range_picker.dart';
+import '../../widgets/custom_filter_dropdown.dart';
 
 class CxpListScreen extends ConsumerStatefulWidget {
   const CxpListScreen({super.key});
@@ -15,6 +17,10 @@ class CxpListScreen extends ConsumerStatefulWidget {
 
 class _CxpListScreenState extends ConsumerState<CxpListScreen> {
   CuentaPorPagar? _selectedCxp;
+  String _searchQuery = '';
+  String _selectedDateFilter = 'Todos';
+  String _selectedEstadoFilter = 'pendientes';
+  DateTimeRange? _selectedDateRange;
 
   @override
   void initState() {
@@ -66,10 +72,49 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
   }
 
   Widget _buildDashboard(List<CuentaPorPagar> cxps) {
-    final pendientes = cxps.where((c) => c.balancePendiente > 0).toList();
-    final totalDeuda = pendientes.fold(0.0, (sum, c) => sum + c.balancePendiente);
+    // 1. Filtrar
+    var filtrados = cxps.where((c) {
+      // Estado
+      if (_selectedEstadoFilter == 'pendientes' && c.balancePendiente <= 0) return false;
+      if (_selectedEstadoFilter == 'pagadas' && c.balancePendiente > 0) return false;
+      
+      // Fecha
+      final fecha = c.fechaVencimiento;
+      final now = DateTime.now();
+      if (_selectedDateFilter == 'Hoy') {
+         if (fecha.year != now.year || fecha.month != now.month || fecha.day != now.day) return false;
+      } else if (_selectedDateFilter == 'Últimos 7 días') {
+         if (fecha.isBefore(now.subtract(const Duration(days: 7)))) return false;
+      } else if (_selectedDateFilter == 'Últimos 30 días') {
+         if (fecha.isBefore(now.subtract(const Duration(days: 30)))) return false;
+      } else if (_selectedDateFilter == 'Este mes') {
+         if (fecha.year != now.year || fecha.month != now.month) return false;
+      } else if (_selectedDateFilter == 'Mes pasado') {
+         final mesPasado = DateTime(now.year, now.month - 1);
+         if (fecha.year != mesPasado.year || fecha.month != mesPasado.month) return false;
+      } else if (_selectedDateFilter == 'Este año') {
+         if (fecha.year != now.year) return false;
+      } else if (_selectedDateFilter == 'Personalizado' && _selectedDateRange != null) {
+         if (fecha.isBefore(_selectedDateRange!.start) || fecha.isAfter(_selectedDateRange!.end.add(const Duration(days: 1)))) return false;
+      }
 
-    if (pendientes.isEmpty) {
+      // Busqueda
+      if (_searchQuery.isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        final prov = (c.proveedor?.nombre ?? '').toLowerCase();
+        final fact = (c.compra?.numeroFacturaProveedor ?? '').toLowerCase();
+        if (!prov.contains(q) && !fact.contains(q)) return false;
+      }
+
+      return true;
+    }).toList();
+
+    // Ordenar por fecha (más reciente)
+    filtrados.sort((a, b) => b.fechaVencimiento.compareTo(a.fechaVencimiento));
+
+    final totalDeuda = filtrados.where((c) => c.balancePendiente > 0).fold(0.0, (sum, c) => sum + c.balancePendiente);
+
+    if (filtrados.isEmpty && _searchQuery.isEmpty && _selectedDateFilter == 'Todos' && _selectedEstadoFilter == 'pendientes') {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -105,27 +150,27 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                   children: [
                     // Resumen
                     Container(
-                      margin: const EdgeInsets.only(bottom: 24),
-                      padding: const EdgeInsets.all(24),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [AppColors.primary, AppColors.secondary],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.primary.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
                           ),
                         ],
                       ),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               shape: BoxShape.circle,
@@ -133,10 +178,10 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                             child: const Icon(
                               Icons.account_balance_wallet_outlined,
                               color: Colors.white,
-                              size: 40,
+                              size: 28,
                             ),
                           ),
-                          const SizedBox(width: 20),
+                          const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -144,14 +189,14 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                                 'Deuda Total Pendiente',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.8),
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                               ),
                               Text(
                                 formatCurrency(totalDeuda),
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 32,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -161,12 +206,103 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                       ),
                     ),
 
+                    // FILTROS
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Icon(Icons.search, color: Colors.grey, size: 18),
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _searchQuery = val;
+                                        });
+                                      },
+                                      style: const TextStyle(fontSize: 13),
+                                      decoration: InputDecoration(
+                                        hintText: 'Buscar por proveedor o factura...',
+                                        border: InputBorder.none,
+                                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                                        isDense: true,
+                                        contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          CustomDateRangePicker(
+                            isPersonalizado: _selectedDateFilter == 'Personalizado',
+                            onDateRangeSelected: (start, end) {
+                              setState(() {
+                                _selectedDateFilter = 'Personalizado';
+                                _selectedDateRange = DateTimeRange(start: start, end: end);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          CustomFilterDropdown<String>(
+                            value: _selectedDateFilter,
+                            items: [
+                              'Todos', 'Hoy', 'Últimos 7 días', 'Últimos 30 días', 
+                              'Este mes', 'Mes pasado', 'Este año', 'Personalizado'
+                            ].map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
+                            onChanged: (val) {
+                              if (val != null && val != 'Personalizado') {
+                                setState(() {
+                                  _selectedDateFilter = val;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          CustomFilterDropdown<String>(
+                            value: _selectedEstadoFilter,
+                            items: const [
+                              DropdownMenuItem(value: 'todos', child: Text('Estado: Todos')),
+                              DropdownMenuItem(value: 'pendientes', child: Text('Pendientes')),
+                              DropdownMenuItem(value: 'pagadas', child: Text('Pagadas')),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() {
+                                  _selectedEstadoFilter = val;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
                     // Lista de facturas
                     Expanded(
                       child: ListView.builder(
-                        itemCount: pendientes.length,
+                        itemCount: filtrados.length,
                         itemBuilder: (context, index) {
-                          final cxp = pendientes[index];
+                          final cxp = filtrados[index];
                           final isVencida = cxp.fechaVencimiento.isBefore(DateTime.now());
                           final isSelected = _selectedCxp?.id == cxp.id;
 
@@ -199,10 +335,10 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                             },
                             borderRadius: BorderRadius.circular(20),
                             child: Container(
-                              margin: const EdgeInsets.only(bottom: 16),
+                              margin: const EdgeInsets.only(bottom: 8),
                               decoration: BoxDecoration(
                                 color: isSelected ? AppColors.primary.withOpacity(0.05) : Colors.white,
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isSelected
                                       ? AppColors.primary
@@ -213,7 +349,7 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                                 ),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -223,28 +359,28 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                                         Row(
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.all(10),
+                                              padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 color: AppColors.primary.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius: BorderRadius.circular(8),
                                               ),
                                               child: const Icon(
                                                 Icons.receipt_long,
                                                 color: AppColors.primary,
-                                                size: 20,
+                                                size: 16,
                                               ),
                                             ),
-                                            const SizedBox(width: 12),
+                                            const SizedBox(width: 8),
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   cxp.proveedor?.nombre ?? 'Proveedor Desconocido',
-                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                                 ),
                                                 Text(
                                                   'Factura Nº ${cxp.compra?.numeroFacturaProveedor ?? 'N/A'}',
-                                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
                                                 ),
                                               ],
                                             ),
@@ -252,31 +388,32 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                                         ),
                                         if (isVencida)
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
                                               color: Colors.red.shade50,
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: const Text(
                                               'VENCIDA',
-                                              style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                                              style: TextStyle(color: Colors.red, fontSize: 9, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                       ],
                                     ),
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 12),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('Vencimiento', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                                            Text('Vencimiento', style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
                                             Text(
                                               cxp.fechaVencimiento.toLocal().toString().split(' ')[0],
                                               style: TextStyle(
                                                 color: isVencida ? Colors.red : Colors.black87,
                                                 fontWeight: FontWeight.bold,
+                                                fontSize: 12,
                                               ),
                                             ),
                                           ],
@@ -284,13 +421,13 @@ class _CxpListScreenState extends ConsumerState<CxpListScreen> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.end,
                                           children: [
-                                            Text('Balance', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                                            Text('Balance', style: TextStyle(color: Colors.grey.shade400, fontSize: 10)),
                                             Text(
                                               formatCurrency(cxp.balancePendiente),
                                               style: const TextStyle(
                                                 color: AppColors.danger,
                                                 fontWeight: FontWeight.w900,
-                                                fontSize: 18,
+                                                fontSize: 14,
                                               ),
                                             ),
                                           ],

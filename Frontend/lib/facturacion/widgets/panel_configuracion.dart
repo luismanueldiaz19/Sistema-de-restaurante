@@ -105,20 +105,45 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           const SizedBox(height: 8),
           InkWell(
             onTap: widget.onSelectCliente,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.light,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade100),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: widget.cliente == null
+                      ? Colors.grey.shade300
+                      : AppColors.primary.withValues(alpha: 0.3),
+                ),
+                boxShadow: [
+                  if (widget.cliente != null)
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                ],
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.person_outline,
-                    color: AppColors.primary,
-                    size: 24,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: widget.cliente == null
+                          ? Colors.grey.shade100
+                          : AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      widget.cliente == null
+                          ? Icons.person_add_alt_1_outlined
+                          : Icons.person,
+                      color: widget.cliente == null
+                          ? Colors.grey.shade500
+                          : AppColors.primary,
+                      size: 18,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -127,29 +152,34 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
                       children: [
                         Text(
                           widget.cliente?.nombre ?? 'Seleccionar Cliente',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontWeight: FontWeight.w900,
-                            fontSize: 14,
+                            fontSize: 13,
                             color: widget.cliente == null
-                                ? Colors.grey
+                                ? Colors.grey.shade600
                                 : AppColors.secondary,
                           ),
                         ),
-                        if (widget.cliente != null)
+                        if (widget.cliente != null) ...[
+                          const SizedBox(height: 2),
                           Text(
                             widget.cliente!.rncCedula ?? 'Sin identificación',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
+                        ],
                       ],
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.keyboard_arrow_right,
-                    color: Colors.grey,
-                    size: 24,
+                    color: Colors.grey.shade400,
+                    size: 20,
                   ),
                 ],
               ),
@@ -187,9 +217,9 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: AppColors.light,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade100),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
               ),
               child: TextFormField(
                 key: ValueKey(widget.cliente?.id),
@@ -216,9 +246,9 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: AppColors.light,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade100),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
             ),
             child: TextFormField(
               controller: _notaController,
@@ -243,9 +273,9 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: AppColors.light,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade100),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButtonFormField<Comprobante>(
@@ -295,23 +325,23 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.light,
+            color: isSelected ? AppColors.primary : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? AppColors.primary : Colors.grey.shade100,
+              color: isSelected ? AppColors.primary : Colors.grey.shade300,
             ),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey,
+              color: isSelected ? Colors.white : Colors.grey.shade700,
               fontWeight: FontWeight.bold,
-              fontSize: 13,
+              fontSize: 12,
             ),
           ),
         ),

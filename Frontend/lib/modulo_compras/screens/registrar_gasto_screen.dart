@@ -132,61 +132,64 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // PANEL IZQUIERDO: FORMULARIO CONFIGURACION Y GASTO
-              Expanded(
+              // ⚙️ PANEL IZQUIERDO: CONFIGURACION (320px)
+              SizedBox(
+                width: 320,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 24, right: 24),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
                   child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(top: 24),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
                           ),
-                          child: const CompraConfiguracionForm(isCompact: true),
-                        ),
-
-                        GastoFormDetalle(),
-                      ],
+                        ],
+                      ),
+                      // Usamos isCompact: false para que los campos se apilen verticalmente
+                      // y quepan bien en una columna de 320px.
+                      child: const CompraConfiguracionForm(isCompact: false),
                     ),
                   ),
                 ),
               ),
 
-              // PANEL DERECHO: CARRITO Y TOTALES
-              SizedBox(
-                width: 380,
-
+              // 📝 PANEL CENTRAL: GASTO
+              Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 24, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+                  child: SingleChildScrollView(child: GastoFormDetalle()),
+                ),
+              ),
+
+              // 🛒 PANEL DERECHO: CARRITO Y TOTALES (320px)
+              SizedBox(
+                width: 320,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 16, 16, 16),
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
+                            borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
                               ),
                             ],
                           ),
                           child: const CompraCarritoLista(),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         CompraPanelTotales(
                           onGuardar: _guardarCompra,
                           textoBoton: 'REGISTRAR GASTO',

@@ -27,11 +27,12 @@ const String logoApp = 'assets/logo.jpeg';
 
 // http://lwadersoft.site/api/login
 const hostName = 'http://127.0.0.1:8000';
+// http://127.0.0.1:8000
 
 // const pathHost = 'lwader/backend/';
 //const pathHost = 'ultimate_php/backend/';
-
 const String logoSinFondo = 'assets/logo_sin_fondo.png';
+const String logoFactura = "assets/logo.jpeg";
 // const String vertical = "imagen/vertical.png";
 const double kwidth = 250;
 

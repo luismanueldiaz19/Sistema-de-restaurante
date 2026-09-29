@@ -26,30 +26,30 @@ class CarritoLista extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.light,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.shopping_basket_outlined,
-                size: 64,
+                size: 40,
                 color: Colors.grey.shade300,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               'Carrito Vacío',
               style: TextStyle(
                 color: AppColors.secondary.withOpacity(0.5),
-                fontSize: 22,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               'Agrega productos del catálogo',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
             ),
           ],
         ),

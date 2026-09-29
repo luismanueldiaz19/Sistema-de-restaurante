@@ -93,7 +93,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -106,17 +106,17 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
         children: [
           // CABECERA
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.green.withOpacity(0.05),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
+                top: Radius.circular(16),
               ),
               border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.receipt_long, color: Colors.green, size: 28),
+                const Icon(Icons.receipt_long, color: Colors.green, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -126,13 +126,13 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                         cxc.cliente?['nombre'] ?? 'Cliente Desconocido',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 14,
                         ),
                       ),
                       Text(
                         'Factura NCF ${factura?['ncf'] ?? "N/A"}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 11,
                           color: Colors.grey.shade600,
                         ),
                       ),
@@ -141,8 +141,8 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 10,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: cxc.estado == 'PENDIENTE'
@@ -157,7 +157,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                           ? Colors.red
                           : Colors.orange,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 10,
                     ),
                   ),
                 ),
@@ -168,18 +168,18 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
           // DETALLE PRODUCTOS (Scrollable)
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               children: [
                 const Text(
                   'Detalle de la Venta',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 if (factura != null && factura['detalles'] != null)
                   ...List.generate(factura['detalles'].length, (index) {
                     final d = factura['detalles'][index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
+                      padding: const EdgeInsets.only(bottom: 6.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -193,13 +193,13 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                                       'Desconocido',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                    fontSize: 12,
                                   ),
                                 ),
                                 Text(
                                   '${d['cantidad']} x ${formatCurrency(double.tryParse(d['precio'].toString()) ?? 0)}',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 10,
                                     color: Colors.grey.shade600,
                                   ),
                                 ),
@@ -210,16 +210,16 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                             formatCurrency(
                               double.tryParse(d['total'].toString()) ?? 0,
                             ),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                           ),
                         ],
                       ),
                     );
                   })
                 else
-                  const Text('No hay detalles disponibles'),
+                  const Text('No hay detalles disponibles', style: TextStyle(fontSize: 12)),
 
-                const Divider(height: 32),
+                const Divider(height: 24),
 
                 // Resumen Totales
                 Row(
@@ -227,7 +227,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                   children: [
                     const Text(
                       'Subtotal:',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
                       formatCurrency(
@@ -236,28 +236,28 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                             ) ??
                             0,
                       ),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Impuestos:',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
                       formatCurrency(
                         double.tryParse(factura?['itbis']?.toString() ?? '0') ??
                             0,
                       ),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -265,7 +265,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       'TOTAL FACTURA:',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                     ),
                     Text(
@@ -275,7 +275,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       ),
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 18,
+                        fontSize: 16,
                         color: Colors.green.shade700,
                       ),
                     ),
@@ -287,11 +287,11 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
 
           // FORMULARIO DE COBRO
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.grey.shade50,
               borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(24),
+                bottom: Radius.circular(16),
               ),
               border: Border(top: BorderSide(color: Colors.grey.shade200)),
             ),
@@ -302,19 +302,19 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                   'Registrar Cobro',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    fontSize: 16,
+                    fontSize: 14,
                     color: AppColors.secondary,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
+                    vertical: 8,
+                    horizontal: 12,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.green.shade200),
                   ),
                   child: Row(
@@ -324,7 +324,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                         'BALANCE PENDIENTE',
                         style: TextStyle(
                           color: Colors.green,
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -333,13 +333,13 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                         style: TextStyle(
                           color: Colors.green.shade800,
                           fontWeight: FontWeight.w900,
-                          fontSize: 20,
+                          fontSize: 16,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -350,7 +350,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                         keyboardType: TextInputType.number,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Consumer(
                         builder: (context, ref, child) {
@@ -373,19 +373,21 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                             decoration: InputDecoration(
                               labelText: 'Método',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               filled: true,
                               fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
+                                vertical: 10,
                               ),
+                              isDense: true,
                             ),
                             value: _metodoPagoSeleccionado,
                             items: metodoProv.metodos.map((metodo) {
                               return DropdownMenuItem<MetodoPago>(
                                 value: metodo,
-                                child: Text(metodo.nombre),
+                                child: Text(metodo.nombre, style: const TextStyle(fontSize: 12)),
                               );
                             }).toList(),
                             onChanged: (val) =>
@@ -396,27 +398,27 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 CustomTextField(
                   controller: _refCtrl,
                   label: 'Referencia (Opcional)',
                   prefixIcon: Icons.receipt_long,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 40,
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle_outline, size: 20),
+                    icon: const Icon(Icons.check_circle_outline, size: 18),
                     label: const Text(
                       'CONFIRMAR COBRO',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green.shade700,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     onPressed: () async {

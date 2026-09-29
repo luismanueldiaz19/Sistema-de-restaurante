@@ -60,11 +60,11 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
     final isDesktop = size.width > 900;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: isDesktop ? 900 : size.width * 0.9,
         height: size.height * 0.85,
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             // Header
@@ -77,7 +77,7 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                     const Text(
                       'Arqueo de Caja',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 22,
                         fontWeight: FontWeight.w900,
                         color: AppColors.secondary,
                         letterSpacing: -1,
@@ -87,18 +87,18 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                       'Desglose de efectivo en Pesos Dominicanos (RD\$)',
                       style: TextStyle(
                         color: Colors.grey.shade600,
-                        fontSize: 14,
+                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded, size: 20),
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
 
             Expanded(
               child: Row(
@@ -113,14 +113,14 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                         Expanded(
                           flex: 3,
                           child: Container(
-                            padding: const EdgeInsets.only(right: 24),
+                            padding: const EdgeInsets.only(right: 16),
                             child: GridView.builder(
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: 2,
-                                    childAspectRatio: 2.8,
-                                    crossAxisSpacing: 16,
-                                    mainAxisSpacing: 16,
+                                    childAspectRatio: 3.2,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
                                   ),
                               itemCount: _denominaciones.length,
                               itemBuilder: (context, index) {
@@ -135,10 +135,10 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                         Expanded(
                           flex: 2,
                           child: Container(
-                            padding: const EdgeInsets.all(24),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppColors.light,
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.grey.shade200),
                             ),
                             child: SingleChildScrollView(
@@ -225,10 +225,10 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 32),
+                                  const SizedBox(height: 24),
                                   SizedBox(
                                     width: double.infinity,
-                                    height: 60,
+                                    height: 48,
                                     child: ElevatedButton(
                                       onPressed: _finalizarArqueo,
                                       style: ElevatedButton.styleFrom(
@@ -236,7 +236,7 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
-                                            16,
+                                            12,
                                           ),
                                         ),
                                       ),
@@ -244,7 +244,7 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                                         'CERRAR CAJA AHORA',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                          fontSize: 14,
                                         ),
                                       ),
                                     ),
@@ -293,10 +293,10 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorBillete.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
@@ -309,40 +309,40 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 35,
+            width: 40,
+            height: 25,
             decoration: BoxDecoration(
               color: colorBillete.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(color: colorBillete.withOpacity(0.3)),
             ),
             child: Center(
               child: Text(
                 valor.toString(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: colorBillete,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           const Text(
             'x',
-            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _controllers[valor],
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               decoration: InputDecoration(
                 hintText: '0',
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(vertical: 2),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.grey.shade200),
                 ),
@@ -353,12 +353,12 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
               onChanged: (_) => _calcularTotal(),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Text(
             '= \$${((int.tryParse(_controllers[valor]!.text) ?? 0) * valor).toStringAsFixed(0)}',
             style: const TextStyle(
               fontWeight: FontWeight.w900,
-              fontSize: 14,
+              fontSize: 12,
               color: AppColors.secondary,
             ),
           ),
@@ -379,7 +379,7 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.bold,
             color: Colors.grey,
             letterSpacing: 1,
@@ -389,7 +389,7 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
         Text(
           value,
           style: TextStyle(
-            fontSize: isMain ? 32 : 24,
+            fontSize: isMain ? 24 : 18,
             fontWeight: FontWeight.w900,
             color: color,
           ),
@@ -404,10 +404,10 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
         : (_diferencia > 0 ? Colors.blue : Colors.red);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
@@ -419,8 +419,9 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                       ? Icons.add_circle_rounded
                       : Icons.warning_rounded),
             color: color,
+            size: 20,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -429,7 +430,7 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
                     ? 'CUADRE PERFECTO'
                     : (_diferencia > 0 ? 'SOBRANTE' : 'FALTANTE'),
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
@@ -437,7 +438,7 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
               Text(
                 '\$${_diferencia.abs().toStringAsFixed(2)}',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w900,
                   color: color,
                 ),
