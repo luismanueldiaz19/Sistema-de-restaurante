@@ -11,5 +11,6 @@
       "envManager": "ms-python.python:venv",
       "packageManager": "ms-python.python:pip"
     }
-  ]
+  ],
+  "cmake.sourceDirectory": "C:/Users/luism/Desktop/lwader_soft/Sistema-de-restaurante/Frontend/windows"
 }

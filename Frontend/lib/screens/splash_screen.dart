@@ -92,7 +92,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         children: [
           // 1. Background Image
           Positioned.fill(
-            child: Image.asset(backgroundCafeteria, fit: BoxFit.cover),
+            child: Image.asset(backgroundFoodFast, fit: BoxFit.cover),
           ),
           // 2. Overlay
           Positioned.fill(

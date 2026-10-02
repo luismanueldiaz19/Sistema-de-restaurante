@@ -160,7 +160,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         children: [
           // 1. Background Image
           Positioned.fill(
-            child: Image.asset(backgroundCafeteria, fit: BoxFit.cover),
+            child: Image.asset(backgroundFoodFast, fit: BoxFit.cover),
           ),
           // 2. Overlay for readability
           Positioned.fill(
