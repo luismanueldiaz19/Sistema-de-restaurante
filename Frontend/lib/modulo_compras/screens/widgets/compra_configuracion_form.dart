@@ -269,7 +269,7 @@ class _CompraConfiguracionFormState
                 child: Container(
                   height: 42,
                   width: 42,
-                  margin: const EdgeInsets.only(top: 6),
+                  margin: const EdgeInsets.only(top: 18),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),

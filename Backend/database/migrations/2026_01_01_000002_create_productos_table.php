@@ -46,8 +46,13 @@ return new class extends Migration
             $table->decimal('stock_actual', 15, 2)->default(0);
             $table->decimal('stock_minimo', 15, 2)->default(0);
 
+            // COMPRAS
+            $table->string('presentacion_compra_por_defecto')->nullable();
+            $table->decimal('factor_compra_por_defecto', 10, 4)->nullable();
+
             // PRECIOS
             $table->decimal('precio_venta', 15, 2)->default(0);
+            $table->decimal('precio_compra', 15, 2)->default(0);
             $table->decimal('costo', 15, 2)->default(0);
 
             // IMPUESTOS

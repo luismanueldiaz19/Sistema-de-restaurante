@@ -12,8 +12,11 @@ class NuevaCompraDetalleItem {
   final String? productoNombre;
   final int? cuentaContableId;
   final String? descripcionGasto;
+  final String presentacion;
+  final double factorConversion;
   final double cantidad;
   final double costoUnitario;
+  final double impuestoTasa;
   final double impuestoMonto;
 
   NuevaCompraDetalleItem({
@@ -21,13 +24,16 @@ class NuevaCompraDetalleItem {
     this.productoNombre,
     this.cuentaContableId,
     this.descripcionGasto,
+    this.presentacion = 'Unidad',
+    this.factorConversion = 1.0,
     required this.cantidad,
     required this.costoUnitario,
+    this.impuestoTasa = 0.0,
     required this.impuestoMonto,
   });
 
-  double get subtotal => cantidad * costoUnitario;
-  double get total => subtotal + impuestoMonto;
+  double get total => cantidad * costoUnitario;
+  double get subtotal => total - impuestoMonto;
 
   double get costoUnitarioConItbis {
     if (cantidad <= 0) return costoUnitario;
@@ -40,8 +46,11 @@ class NuevaCompraDetalleItem {
       'producto_nombre': productoNombre,
       'cuenta_contable_id': cuentaContableId,
       'descripcion': descripcionGasto ?? productoNombre,
+      'presentacion': presentacion,
+      'factor_conversion': factorConversion,
       'cantidad': cantidad,
       'costo_unitario': costoUnitario,
+      'impuesto_tasa': impuestoTasa,
       'impuesto_monto': impuestoMonto,
     };
   }
@@ -123,6 +132,12 @@ class NuevaCompraFormNotifier extends StateNotifier<NuevaCompraFormState> {
 
   void addDetalle(NuevaCompraDetalleItem detalle) {
     state = state.copyWith(detalles: [...state.detalles, detalle]);
+  }
+
+  void updateDetalle(int index, NuevaCompraDetalleItem detalle) {
+    final newList = List<NuevaCompraDetalleItem>.from(state.detalles);
+    newList[index] = detalle;
+    state = state.copyWith(detalles: newList);
   }
 
   void removeDetalle(int index) {

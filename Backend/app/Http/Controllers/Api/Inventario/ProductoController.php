@@ -69,8 +69,10 @@ class ProductoController extends Controller
             'stock_minimo'    => 'nullable|numeric',
             'cuenta_ingreso_id'=> 'nullable|integer',
             'cuenta_inventario_id'=> 'nullable|integer',
-            'cuenta_costo_id' => 'nullable|integer',
+            'cuenta_gasto_id' => 'nullable|integer',
             'activo'          => 'nullable|boolean',
+            'presentacion_compra_por_defecto' => 'nullable|string|max:100',
+            'factor_compra_por_defecto' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -130,8 +132,10 @@ class ProductoController extends Controller
             'stock_minimo'    => 'nullable|numeric',
             'cuenta_ingreso_id'=> 'nullable|integer',
             'cuenta_inventario_id'=> 'nullable|integer',
-            'cuenta_costo_id' => 'nullable|integer',
+            'cuenta_gasto_id' => 'nullable|integer',
             'activo'          => 'nullable|boolean',
+            'presentacion_compra_por_defecto' => 'nullable|string|max:100',
+            'factor_compra_por_defecto' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {

@@ -254,10 +254,18 @@ class _AperturaCajaPageState extends ConsumerState<AperturaCajaPage> {
 
     final error = ref.read(cajaProvider).errorMessage;
     if (errorMsg != null) {
-      showToast(
-        context,
-        error ?? 'Error al abrir la caja',
-        bgColor: Colors.red,
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('No se pudo abrir la caja'),
+          content: Text(error ?? 'Error desconocido al abrir la caja.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('ENTENDIDO'),
+            ),
+          ],
+        ),
       );
     }
   }

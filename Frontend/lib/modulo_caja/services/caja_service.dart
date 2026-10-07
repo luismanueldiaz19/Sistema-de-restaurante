@@ -33,17 +33,16 @@ class CajaService {
     String? comentario,
   }) async {
     try {
-      final response = await _api.post(
-        "$_baseUrl/cerrar",
-        {
-          "monto_final_fisico": montoFisico,
-          "desglose": desglose,
-          "comentario": comentario,
-        },
-        token: token,
-      );
+      final response = await _api.post("$_baseUrl/cerrar", {
+        "monto_final_fisico": montoFisico,
+        "desglose": desglose,
+        "comentario": comentario,
+      }, token: token);
       final data = jsonDecode(response.body);
-      return {"success": response.statusCode == 200, "message": data['message']};
+      return {
+        "success": response.statusCode == 200,
+        "message": data['message'],
+      };
     } catch (e) {
       return {"success": false, "message": e.toString()};
     }
@@ -56,20 +55,16 @@ class CajaService {
     required double montoInicial,
   }) async {
     try {
-      final response = await _api.post(
-        "$_baseUrl/abrir",
-        {
-          "caja_id": cajaId,
-          "turno_id": turnoId,
-          "monto_inicial": montoInicial,
-        },
-        token: token,
-      );
+      final response = await _api.post("$apiUrl/cajas/abrir", {
+        "caja_id": cajaId,
+        "turno_id": turnoId,
+        "monto_inicial": montoInicial,
+      }, token: token);
       final data = jsonDecode(response.body);
       return {
         "success": response.statusCode == 200 || response.statusCode == 201,
         "data": data['data'],
-        "message": data['message']
+        "message": data['message'],
       };
     } catch (e) {
       return {"success": false, "message": e.toString()};
@@ -103,10 +98,14 @@ class CajaService {
     try {
       String query = '';
       if (filters != null && filters.isNotEmpty) {
-        query = '?' + filters.entries.map((e) => '${e.key}=${e.value}').join('&');
+        query =
+            '?' + filters.entries.map((e) => '${e.key}=${e.value}').join('&');
       }
 
-      final response = await _api.get("$_baseUrl/historial$query", token: token);
+      final response = await _api.get(
+        "$_baseUrl/historial$query",
+        token: token,
+      );
       final data = jsonDecode(response.body);
       return {"success": response.statusCode == 200, "data": data['data']};
     } catch (e) {

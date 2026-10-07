@@ -20,6 +20,7 @@ class Producto extends Model
         'tipo_producto',
         'tipo_contable',
         'precio_venta',
+        'precio_compra',
         'costo',
         'maneja_inventario',
         'stock_actual',
@@ -29,11 +30,13 @@ class Producto extends Model
         'cuenta_costo_id',
         'cuenta_gasto_id',
         'activo',
-        
+        'presentacion_compra_por_defecto',
+        'factor_compra_por_defecto',
     ];
 
     protected $casts = [
         'precio_venta' => 'double',
+        'precio_compra' => 'double',
         'costo' => 'double',
         'maneja_inventario' => 'boolean',
         'stock_actual' => 'double',

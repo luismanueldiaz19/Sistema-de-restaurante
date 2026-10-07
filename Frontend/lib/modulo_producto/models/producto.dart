@@ -33,11 +33,15 @@ class Producto {
   final String? tipoContable;
 
   final double? precioVenta;
+  final double? precioCompra;
   final double? costo;
 
   final bool? manejaInventario;
   final double? stockActual;
   final double? stockMinimo;
+
+  final String? presentacionCompraPorDefecto;
+  final double? factorCompraPorDefecto;
 
   final int? cuentaIngresoId;
   final int? cuentaInventarioId;
@@ -68,10 +72,13 @@ class Producto {
     this.tipoProducto,
     this.tipoContable,
     this.precioVenta,
+    this.precioCompra,
     this.costo,
     this.manejaInventario,
     this.stockActual,
     this.stockMinimo,
+    this.presentacionCompraPorDefecto,
+    this.factorCompraPorDefecto,
     this.cuentaIngresoId,
     this.cuentaInventarioId,
     this.cuentaCostoId,
@@ -117,11 +124,14 @@ class Producto {
     tipoProducto: json["tipo_producto"] ?? 'PRODUCTO',
     tipoContable: json["tipo_contable"] ?? 'INVENTARIO',
     precioVenta: json["precio_venta"]?.toDouble(),
+    precioCompra: json["precio_compra"]?.toDouble(),
     costo: json["costo"]?.toDouble(),
     manejaInventario:
         json["maneja_inventario"] == 1 || json["maneja_inventario"] == true,
     stockActual: json["stock_actual"]?.toDouble(),
     stockMinimo: json["stock_minimo"]?.toDouble(),
+    presentacionCompraPorDefecto: json["presentacion_compra_por_defecto"],
+    factorCompraPorDefecto: json["factor_compra_por_defecto"]?.toDouble(),
     cuentaIngresoId: json["cuenta_ingreso_id"],
     cuentaInventarioId: json["cuenta_inventario_id"],
     cuentaCostoId: json["cuenta_costo_id"],
@@ -151,10 +161,13 @@ class Producto {
     "tipo_producto": tipoProducto,
     "tipo_contable": tipoContable,
     "precio_venta": precioVenta,
+    "precio_compra": precioCompra,
     "costo": costo,
     "maneja_inventario": manejaInventario,
     "stock_actual": stockActual,
     "stock_minimo": stockMinimo,
+    "presentacion_compra_por_defecto": presentacionCompraPorDefecto,
+    "factor_compra_por_defecto": factorCompraPorDefecto,
     "cuenta_ingreso_id": cuentaIngresoId,
     "cuenta_inventario_id": cuentaInventarioId,
     "cuenta_costo_id": cuentaCostoId,

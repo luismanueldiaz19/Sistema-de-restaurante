@@ -6,12 +6,10 @@ use App\Http\Controllers\Api\Facturacion\FacturaController;
 use App\Http\Controllers\Api\Facturacion\NcfSecuenciaController;
 use App\Http\Controllers\Api\Finanzas\CajaController;
 use App\Http\Controllers\Api\Inventario\ProductoController;
-use App\Http\Controllers\Api\Facturacion\CotizacionController;
 use App\Http\Controllers\Api\Compras\OrdenCompraController;
 use App\Http\Controllers\Api\RRHH\NominaController;
 use App\Http\Controllers\Api\RRHH\EmpleadoController;
 use App\Http\Controllers\Api\Compras\ProveedorController;
-use App\Http\Controllers\Api\Compras\CompraController;
 use App\Http\Controllers\Api\Finanzas\CxpController;
 use App\Http\Controllers\Api\Finanzas\CxcController;
 use App\Http\Controllers\Api\Impuestos\DgiiController;
@@ -49,7 +47,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf']);
-Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf']);
+// Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf']); // Migrado a V2
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
@@ -71,7 +69,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Compras Module
     Route::apiResource('proveedores', ProveedorController::class);
-    Route::apiResource('compras', CompraController::class)->except(['update', 'destroy']);
+    
+    // Route::apiResource('compras', CompraController::class)->except(['update', 'destroy']);
     Route::get('/cxp', [CxpController::class, 'index']);
     Route::post('/cxp/{id}/pagar', [CxpController::class, 'registrarPago']);
     Route::get('/cxp/pagos/historial', [CxpController::class, 'historialPagos']);
@@ -157,29 +156,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/cajas', [CajaController::class, 'index']);
     Route::get('/turnos', [CajaController::class, 'turnos']);
     Route::get('/caja/estado', [CajaController::class, 'estadoActual']);
-    Route::post('/caja/abrir', [CajaController::class, 'abrir']);
+    // Route::post('/caja/abrir', [CajaController::class, 'abrir']); // Migrado a v2
     Route::get('/caja/resumen', [CajaController::class, 'resumen']);
     Route::post('/caja/cerrar', [CajaController::class, 'cerrar']);
     Route::get('/caja/historial', [CajaController::class, 'historial']);
 
-    // ================= PRODUCTOS =================
-    Route::get('/productos', [ProductoController::class, 'index'])
-        ->middleware('permission:ver_productos');
+    // ================= PRODUCTOS (Migrado a V2) =================
 
-    Route::post('/productos/import', [ProductoController::class, 'import'])
-        ->middleware('permission:crear_productos');
-
-    Route::get('/productos/{id}', [ProductoController::class, 'show'])
-        ->middleware('permission:ver_productos');
-
-    Route::post('/productos', [ProductoController::class, 'store'])
-        ->middleware('permission:crear_productos');
-
-    Route::put('/productos/{id}', [ProductoController::class, 'update'])
-        ->middleware('permission:editar_productos');
-
-    Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])
-        ->middleware('permission:eliminar_productos');
 
     // ================= INGREDIENTES (Eliminados, unificados en Productos) =================
     Route::get('/recetas', [RecetaController::class, 'index'])
@@ -242,8 +225,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dgii/exportar-607', [DgiiController::class, 'exportar607']);
 
     // ================= COTIZACIONES =================
-    Route::apiResource('cotizaciones', CotizacionController::class);
-    Route::patch('cotizaciones/{id}/estado', [CotizacionController::class, 'updateStatus']);
+    // Route::apiResource('cotizaciones', CotizacionController::class); // Migrado a V2
+    // Route::patch('cotizaciones/{id}/estado', [CotizacionController::class, 'updateStatus']); // Migrado a V2
 
     // ================= ORDENES DE COMPRA =================
     Route::apiResource('ordenes-compras', OrdenCompraController::class);
@@ -262,4 +245,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::prefix('v2')->group(function () {
     require base_path('app/Modules/Auth/Routes/api.php');
     require base_path('app/Modules/Cliente/Routes/api.php');
+    require base_path('app/Modules/Producto/Routes/api.php');
+    require base_path('app/Modules/Caja/Routes/api.php');
+    require base_path('app/Modules/Cotizacion/Routes/api.php');
+    require base_path('app/Modules/Compra/Routes/api.php');
 });

@@ -13,9 +13,9 @@ class UnidadMedidaModel {
 
   factory UnidadMedidaModel.fromJson(Map<String, dynamic> json) {
     return UnidadMedidaModel(
-      id: json['id'],
-      nombre: json['nombre'],
-      abreviatura: json['abreviatura'],
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      nombre: json['nombre']?.toString() ?? '',
+      abreviatura: json['abreviatura']?.toString(),
       activo: json['activo'] == 1 || json['activo'] == true,
     );
   }

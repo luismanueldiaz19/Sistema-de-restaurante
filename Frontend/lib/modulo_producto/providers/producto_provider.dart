@@ -25,6 +25,7 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
       final response = await _api.fetchProductos(
         token,
         page: page,
+        perPage: state.perPage,
         search: state.searchQuery,
         categoriaId: state.categoriaId,
         marcaId: state.marcaId,
@@ -61,6 +62,11 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
 
   void setTipoProductoFilter(String? tipo, String token) {
     state = state.copyWith(tipoProducto: tipo ?? ''); // '' means clear
+    loadProductos(token, page: 1, silent: true, search: '');
+  }
+
+  void setPerPage(int itemsPerPage, String token) {
+    state = state.copyWith(perPage: itemsPerPage);
     loadProductos(token, page: 1, silent: true, search: '');
   }
 

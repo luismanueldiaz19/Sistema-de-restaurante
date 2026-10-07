@@ -16,3 +16,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/d/{token}', [\App\Modules\Shared\Http\Controllers\DocumentLinkController::class, 'show']);

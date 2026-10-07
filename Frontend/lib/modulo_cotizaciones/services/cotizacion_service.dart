@@ -8,7 +8,7 @@ import 'package:sistema_restaurante/model/company.dart';
 
 class CotizacionService {
   final ApiService _api = ApiService();
-  final String _baseUrl = "$hostName/api";
+  final String _baseUrl = apiUrl;
 
   Future<Map<String, dynamic>> crearCotizacion({
     required Cliente cliente,

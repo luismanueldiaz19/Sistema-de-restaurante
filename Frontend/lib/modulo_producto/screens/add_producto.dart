@@ -7,6 +7,8 @@ import '../../widgets/custom_text_field.dart';
 import '../models/producto.dart';
 import '../providers/producto_provider.dart';
 import '../providers/catalogo_provider.dart';
+import '../enums/tipo_producto_enum.dart';
+import '../enums/tipo_contable_enum.dart';
 
 class AddProductoDialog extends ConsumerStatefulWidget {
   final Producto? producto;
@@ -23,8 +25,11 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
   final codigoCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final precioCtrl = TextEditingController(text: '0');
+  final precioCompraCtrl = TextEditingController(text: '0');
   final costoCtrl = TextEditingController(text: '0');
   final stockMinimoCtrl = TextEditingController(text: '0');
+  final presentacionCompraCtrl = TextEditingController(text: '');
+  final factorCompraCtrl = TextEditingController(text: '1.0');
 
   final cuentaIngresosCtrl = TextEditingController(text: '');
   final cuentaInventarioCtrl = TextEditingController(text: '');
@@ -61,8 +66,11 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       codigoCtrl.text = p.codigo ?? '';
       descCtrl.text = p.descripcion ?? '';
       precioCtrl.text = p.precioVenta?.toString() ?? '0';
+      precioCompraCtrl.text = p.precioCompra?.toString() ?? '0';
       costoCtrl.text = p.costo?.toString() ?? '0';
       stockMinimoCtrl.text = p.stockMinimo?.toString() ?? '0';
+      presentacionCompraCtrl.text = p.presentacionCompraPorDefecto ?? '';
+      factorCompraCtrl.text = p.factorCompraPorDefecto?.toString() ?? '1.0';
 
       cuentaIngresosCtrl.text = p.cuentaIngresoId?.toString() ?? '';
       cuentaInventarioCtrl.text = p.cuentaInventarioId?.toString() ?? '';
@@ -109,18 +117,18 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
     });
   }
 
-  String get _margenGanancia {
-    final precio = double.tryParse(precioCtrl.text) ?? 0;
-    final costo = double.tryParse(costoCtrl.text) ?? 0;
+  // String get _margenGanancia {
+  //   final precio = double.tryParse(precioCtrl.text) ?? 0;
+  //   final costo = double.tryParse(costoCtrl.text) ?? 0;
 
-    if (precio <= 0) return '';
-    if (costo == 0 && precio > 0) return ' (100% Margen)';
-    if (precio > 0) {
-      final margen = ((precio - costo) / precio) * 100;
-      return ' (${margen.toStringAsFixed(1)}% Margen)';
-    }
-    return '';
-  }
+  //   if (precio <= 0) return '';
+  //   if (costo == 0 && precio > 0) return ' (100% Margen)';
+  //   if (precio > 0) {
+  //     final margen = ((precio - costo) / precio) * 100;
+  //     return ' (${margen.toStringAsFixed(1)}% Margen)';
+  //   }
+  //   return '';
+  // }
 
   void _mostrarCalculadoraCosto() {
     final calcCtrl = TextEditingController();
@@ -258,24 +266,14 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                       child: _buildDropdown(
                         label: 'Tipo de Producto',
                         value: tipoProducto,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'PRODUCTO',
-                            child: Text('PRODUCTO'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'SERVICIO',
-                            child: Text('SERVICIO'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'COMBO',
-                            child: Text('COMBO / PLATO'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'MATERIA_PRIMA',
-                            child: Text('MATERIA PRIMA'),
-                          ),
-                        ],
+                        items: TipoProductoEnum.values
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.value,
+                                child: Text(e.label),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (val) {
                           setState(() {
                             tipoProducto = val as String;
@@ -294,24 +292,14 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                       child: _buildDropdown(
                         label: 'Tipo Contable',
                         value: tipoContable,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'INVENTARIO',
-                            child: Text('INVENTARIO'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'GASTO',
-                            child: Text('GASTO'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'SERVICIO',
-                            child: Text('SERVICIO'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'ACTIVO_FIJO',
-                            child: Text('ACTIVO_FIJO'),
-                          ),
-                        ],
+                        items: TipoContableEnum.values
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.value,
+                                child: Text(e.label),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (val) =>
                             setState(() => tipoContable = val as String),
                       ),
@@ -400,6 +388,26 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     const SizedBox(width: 15),
                     Expanded(
                       child: CustomTextField(
+                        controller: precioCompraCtrl,
+                        label: 'Precio de Compra',
+                        prefixIcon: Icons.local_offer_outlined,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ],
+                        enabled: isAdmin,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: CustomTextField(
                         controller: costoCtrl,
                         label: 'Costo Sin ITBIS',
                         prefixIcon: Icons.shopping_cart_outlined,
@@ -443,7 +451,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
                 const SizedBox(height: 16),
                 const Text(
-                  'INVENTARIO Y CONTROL',
+                  'INVENTARIO Y COMPRAS',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blueGrey,
@@ -451,6 +459,28 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                   ),
                 ),
                 const Divider(),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: presentacionCompraCtrl,
+                        label: 'Presentación de Compra (Defecto)',
+                        hintText: 'Ej: Fardo, Caja, Saco',
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: CustomTextField(
+                        controller: factorCompraCtrl,
+                        label: 'Factor de Compra',
+                        hintText: 'Ej: 12, 24',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
                 Row(
                   children: [
@@ -584,9 +614,12 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       "tipo_producto": tipoProducto,
       "tipo_contable": tipoContable,
       "precio_venta": double.tryParse(precioCtrl.text) ?? 0,
+      "precio_compra": double.tryParse(precioCompraCtrl.text) ?? 0,
       "costo": double.tryParse(costoCtrl.text) ?? 0,
       "maneja_inventario": manejaInventario,
       "stock_minimo": double.tryParse(stockMinimoCtrl.text) ?? 0,
+      "presentacion_compra_por_defecto": presentacionCompraCtrl.text.trim(),
+      "factor_compra_por_defecto": double.tryParse(factorCompraCtrl.text) ?? 1.0,
       "activo": activo,
     };
 
@@ -603,6 +636,16 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
     if (success && mounted) {
       Navigator.pop(context, true);
+    } else if (mounted) {
+      final errorMsg =
+          ref.read(productoProvider).error ?? 'Ocurrió un error al guardar';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg.replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 }

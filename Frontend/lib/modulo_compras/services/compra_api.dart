@@ -3,7 +3,7 @@ import '../../utils/constants.dart';
 import '../../services/api_services.dart';
 
 class CompraApi {
-  final String baseUrl = "$hostName/api/compras";
+  final String baseUrl = "$hostName/api/v2/compras";
 
   Future<List<dynamic>> getAll(String token, {String? fechaDesde, String? fechaHasta}) async {
     final api = ApiService();

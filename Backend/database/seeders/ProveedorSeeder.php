@@ -13,8 +13,11 @@ class ProveedorSeeder extends Seeder
      *
      * @return void
      */
-    public function run(): void
-    {
+    public function run(): void {
+
+
+
+        
         Proveedor::create([
             'nombre' => 'Distribuidora Formal SRL (Ejemplo)',
             'rnc' => '130123456',

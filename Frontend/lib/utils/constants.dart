@@ -27,6 +27,7 @@ const String logoApp = 'assets/logo.jpeg';
 
 // http://lwadersoft.site/api/login
 const hostName = 'http://127.0.0.1:8000';
+const apiUrl = '$hostName/api/v2';
 // http://127.0.0.1:8000
 
 // const pathHost = 'lwader/backend/';

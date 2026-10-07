@@ -13,9 +13,9 @@ class ImpuestoModel {
 
   factory ImpuestoModel.fromJson(Map<String, dynamic> json) {
     return ImpuestoModel(
-      id: json['id'],
-      nombre: json['nombre'],
-      tasa: double.tryParse(json['tasa'].toString()) ?? 0.0,
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      nombre: json['nombre']?.toString() ?? '',
+      tasa: double.tryParse(json['tasa']?.toString() ?? '0') ?? 0.0,
       activo: json['activo'] == 1 || json['activo'] == true,
     );
   }

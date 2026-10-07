@@ -8,8 +8,7 @@ import '../providers/nueva_compra_form_provider.dart';
 import '../../facturacion/providers/metodo_pago_provider.dart';
 
 import 'widgets/compra_configuracion_form.dart';
-import 'widgets/compra_catalogo_productos.dart';
-import 'widgets/compra_carrito_lista.dart';
+import 'widgets/compra_detalle_data_grid.dart';
 import 'widgets/compra_panel_totales.dart';
 
 class NuevaCompraScreen extends ConsumerStatefulWidget {
@@ -140,7 +139,7 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
             children: [
               // PANEL IZQUIERDO: FORMULARIO CONFIGURACION
               SizedBox(
-                width: 260,
+                width: 300,
                 child: Container(
                   margin: const EdgeInsets.all(8),
                   padding: const EdgeInsets.all(8),
@@ -161,32 +160,13 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                 ),
               ),
 
-              // PANEL CENTRAL: CATÁLOGO PRODUCTOS
-              const Expanded(child: CompraCatalogoProductos()),
-
-              // PANEL DERECHO: CARRITO Y TOTALES
-              SizedBox(
-                width: isTablet ? 300 : 400,
+              // PANEL CENTRAL/DERECHO: DATAGRID FACTURA
+              Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
                   child: Column(
                     children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.02),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const CompraCarritoLista(),
-                        ),
-                      ),
+                      const Expanded(child: CompraDetalleDataGrid()),
                       const SizedBox(height: 8),
                       CompraPanelTotales(onGuardar: _guardarCompra),
                     ],
@@ -217,17 +197,8 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                   child: const CompraConfiguracionForm(),
                 ),
                 SizedBox(
-                  height: 400, // Alto fijo para catálogo en móvil
-                  child: const CompraCatalogoProductos(),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  height: 300,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: const CompraCarritoLista(),
+                  height: 500, // Alto fijo para el DataGrid en móvil
+                  child: const CompraDetalleDataGrid(),
                 ),
               ],
             ),
