@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sistema_restaurante/modulo_producto/providers/producto_state.dart';
 import '../../modulo_cliente/models/cliente.dart';
 import '../../modulo_cliente/providers/cliente_admin_provider.dart';
 import '../../modulo_producto/models/producto.dart';
 import '../../modulo_producto/providers/producto_provider.dart';
+import '../../modulo_producto/providers/producto_state.dart';
 import '../../utils/helpers.dart';
 import '../../model/company.dart';
 import '../../providers/auth_provider.dart';

@@ -1,29 +1,17 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Modules\Contabilidad\Services;
 
 use App\Models\AsientoContable;
 use App\Models\AsientoDetalle;
 use App\Models\ConfiguracionContable;
 use App\Accounting\AsientoStrategyFactory;
+use App\Modules\Contabilidad\Exceptions\ContabilidadException;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 class ContabilidadService
 {
-    /**
-     * Registrar un asiento contable automático basado en las configuraciones contables activas.
-     *
-     * @param  string  $tipoTransaccion  ('venta_efectivo', 'venta_credito', 'compra_inventario', 'pago_nomina')
-     * @param  float   $subtotal
-     * @param  float   $itbis
-     * @param  float   $total
-     * @param  string  $referencia
-     * @param  string  $glosa
-     * @param  int|null $usuarioId
-     * @return AsientoContable|null
-     * @throws Exception
-     */
     public function registrarAsientoAuto(
         string $tipoTransaccion,
         float $subtotal,
@@ -78,7 +66,7 @@ class ContabilidadService
 
             // 6. Validar que la partida doble cuadre perfectamente (Double Entry checking)
             if (abs($totalDebito - $totalCredito) > 0.05) {
-                throw new Exception("Inconsistencia contable: El asiento no cuadra (Débito: $totalDebito, Crédito: $totalCredito).");
+                throw new ContabilidadException("Inconsistencia contable: El asiento no cuadra (Débito: $totalDebito, Crédito: $totalCredito).");
             }
 
             return $asiento->load('detalles.cuenta');

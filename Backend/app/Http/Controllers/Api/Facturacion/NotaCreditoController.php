@@ -9,7 +9,7 @@ use App\Models\NotaCredito;
 use App\Models\NotaCreditoDetalle;
 use App\Models\Producto;
 use App\Models\MovimientoInventario;
-use App\Services\ContabilidadService;
+use App\Modules\Contabilidad\Services\ContabilidadService;
 use Illuminate\Support\Facades\DB;
 use App\Traits\HasIdempotency;
 use Barryvdh\DomPDF\Facade\Pdf;

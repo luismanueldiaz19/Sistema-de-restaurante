@@ -14,9 +14,10 @@ use App\Models\CuentaPorPagar;
 use App\Models\PagoCompra;
 use App\Models\Producto;
 use App\Models\Proveedor;
-use App\Services\ContabilidadService;
+use App\Modules\Contabilidad\Services\ContabilidadService;
 use App\Services\BankService;
 use Illuminate\Support\Facades\DB;
+use App\Models\MetodoPago;
 
 class CompraService
 {
@@ -188,6 +189,47 @@ class CompraService
                 // Log and continue
             }
             */
+
+            // --- NUEVA INTEGRACIÓN CXP, BANCOS Y CONTABILIDAD ---
+            if ($dto->tipo_compra === CompraTipoEnum::CREDITO) {
+                // Registrar CxP sólo para compras a CRÉDITO
+                $cxp = CuentaPorPagar::create([
+                    'proveedor_id'      => $dto->proveedor_id,
+                    'compra_id'         => $compra->id,
+                    'monto_original'    => $total,
+                    'balance_pendiente' => $total,
+                    'fecha_vencimiento' => $dto->fecha_vencimiento ?? $dto->fecha_compra,
+                    'estado'            => 'PENDIENTE',
+                ]);
+            } else {
+                // Es CONTADO: Registrar transacción bancaria inmediata si aplica
+                if ($dto->metodo_pago_id) {
+                    $metodo = \App\Models\MetodoPago::find($dto->metodo_pago_id);
+                    if ($metodo && $metodo->bank_account_id && $this->bankService) {
+                        $this->bankService->registrarTransaccion(
+                            $metodo->bank_account_id,
+                            'withdrawal',
+                            (float) $total,
+                            $dto->referencia_pago ?? null,
+                            "Pago inmediato Factura Prov. {$dto->numero_factura_proveedor}"
+                        );
+                    }
+                }
+            }
+
+            // Asiento contable (se asume que registrarAsientoCompra maneja la lógica contado/crédito internamente)
+            try {
+                if ($this->contabilidadService) {
+                    $asientoId = $this->contabilidadService->registrarAsientoCompra($compra->id);
+                    if ($asientoId) {
+                        $compra->asiento_id = $asientoId;
+                        $compra->save();
+                    }
+                }
+            } catch (\Exception $e) {
+                // Log and continue
+            }
+            // ----------------------------------------------------
 
             $compra->load('detalles');
             return $compra->toArray();

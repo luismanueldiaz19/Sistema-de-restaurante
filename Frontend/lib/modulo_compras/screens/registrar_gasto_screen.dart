@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sistema_restaurante/facturacion/providers/metodo_pago_provider.dart';
 import '../providers/compras_provider.dart';
 import '../providers/proveedores_provider.dart';
 import '../../modulo_producto/providers/producto_provider.dart';
 import '../../utils/helpers.dart';
 import '../providers/nueva_compra_form_provider.dart';
-import '../../../facturacion/providers/metodo_pago_provider.dart';
-
 import 'widgets/compra_configuracion_form.dart';
 import 'widgets/gasto_form_detalle.dart';
 import 'widgets/compra_carrito_lista.dart';
@@ -32,7 +31,7 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
             .read(productoProvider.notifier)
             .loadProductos(token, silent: true, search: '');
       }
-      ref.read(metodoPagoProvider).fetchMetodosActivos();
+      ref.read(metodoPagoProvider.notifier).fetchMetodosActivos();
       // Resetear el formulario al entrar
       ref.read(nuevaCompraFormProvider.notifier).clearForm();
     });

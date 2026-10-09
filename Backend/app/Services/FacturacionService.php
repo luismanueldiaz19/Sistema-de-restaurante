@@ -11,6 +11,7 @@ use App\Models\PagoCxc;
 use App\Models\Producto;
 use App\Models\MetodoPago;
 use Exception;
+use App\Modules\Contabilidad\Services\ContabilidadService;
 
 class FacturacionService {
     protected $inventoryService;

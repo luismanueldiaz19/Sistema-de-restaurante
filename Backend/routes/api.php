@@ -71,13 +71,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('proveedores', ProveedorController::class);
     
     // Route::apiResource('compras', CompraController::class)->except(['update', 'destroy']);
-    Route::get('/cxp', [CxpController::class, 'index']);
-    Route::post('/cxp/{id}/pagar', [CxpController::class, 'registrarPago']);
-    Route::get('/cxp/pagos/historial', [CxpController::class, 'historialPagos']);
 
-    Route::get('/cxc', [CxcController::class, 'index']);
-    Route::post('/cxc/{id}/pagar', [CxcController::class, 'registrarPago']);
-    Route::get('/cxc/pagos/historial', [CxcController::class, 'historialPagos']);
+
 
     // Route::get('/clientes', [ClienteController::class, 'index'])
     //     ->middleware('permission:ver_clientes');
@@ -249,4 +244,7 @@ Route::prefix('v2')->group(function () {
     require base_path('app/Modules/Caja/Routes/api.php');
     require base_path('app/Modules/Cotizacion/Routes/api.php');
     require base_path('app/Modules/Compra/Routes/api.php');
+    require base_path('app/Modules/CuentaPorPagar/Routes/api.php');
+    require base_path('app/Modules/CuentaPorCobrar/Routes/api.php');
+    require base_path('app/Modules/Pago/Routes/api.php');
 });

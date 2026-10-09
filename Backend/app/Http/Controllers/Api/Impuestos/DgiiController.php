@@ -8,7 +8,7 @@ use App\Models\PagoDgii;
 use App\Models\CatalogoCuenta;
 use App\Models\Compra;
 use App\Models\Factura;
-use App\Services\ContabilidadService;
+use App\Modules\Contabilidad\Services\ContabilidadService;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\ConfiguracionContable;
