@@ -171,7 +171,7 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
                     Text('Total en Notas de Crédito', style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     Text(
-                      formatCurrency(totales['total'] ?? 0),
+                      FormatterNumber.formatCurrency(totales['total'] ?? 0),
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.secondary),
                     ),
                   ],

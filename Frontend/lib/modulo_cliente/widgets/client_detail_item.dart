@@ -30,10 +30,10 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: _isHovered ? Colors.white : const Color(0xFFF9FAFC),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _isHovered
                 ? AppColors.azulOscuro.withValues(alpha: 0.3)
@@ -59,7 +59,7 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: widget.isHighlight
                     ? Colors.green.withValues(alpha: 0.1)
@@ -71,10 +71,10 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
               child: Icon(
                 widget.icon,
                 color: widget.isHighlight ? Colors.green : AppColors.azulOscuro,
-                size: 16,
+                size: 14,
               ),
             ),
-            const SizedBox(width: 15),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,16 +83,16 @@ class _ClientDetailItemState extends State<ClientDetailItem> {
                     widget.label,
                     style: TextStyle(
                       color: Colors.grey.shade600,
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     widget.value,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: widget.isHighlight ? 13 : 11,
+                      fontSize: widget.isHighlight ? 12 : 11,
                       color: widget.isHighlight
                           ? Colors.green.shade700
                           : Colors.black87,

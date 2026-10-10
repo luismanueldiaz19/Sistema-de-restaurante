@@ -28,7 +28,7 @@ class MovimientoInventario {
         id: json['id'],
         productoId: json['producto_id'],
         tipo: json['tipo'],
-        cantidad: parseDouble(json['cantidad']),
+        cantidad: FormatterNumber.parseDouble(json['cantidad']),
         referencia: json['referencia'],
         fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha']) : null,
         createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,

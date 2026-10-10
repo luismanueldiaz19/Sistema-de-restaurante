@@ -175,9 +175,10 @@ class MenuBuilder {
         ),
 
       // 3. INVENTARIO
-      if (!isCajero && (auth.hasPermission('ver_inventario') ||
-          auth.hasPermission('ver_productos') ||
-          isAdmin))
+      if (!isCajero &&
+          (auth.hasPermission('ver_inventario') ||
+              auth.hasPermission('ver_productos') ||
+              isAdmin))
         SidebarItem(
           title: 'Inventario',
           icon: Icons.inventory_2_outlined,
@@ -257,9 +258,10 @@ class MenuBuilder {
         ),
 
       // 4. COMPRAS
-      if (!isCajero && (auth.hasPermission('ver_compras') ||
-          auth.hasPermission('ver_proveedores') ||
-          isAdmin))
+      if (!isCajero &&
+          (auth.hasPermission('ver_compras') ||
+              auth.hasPermission('ver_proveedores') ||
+              isAdmin))
         SidebarItem(
           title: 'Compras',
           icon: Icons.shopping_bag_outlined,
@@ -272,26 +274,26 @@ class MenuBuilder {
                   MaterialPageRoute(builder: (_) => const NuevaCompraScreen()),
                 ),
               ),
-            if (auth.hasPermission('ver_compras') || isAdmin)
-              SidebarSubItem(
-                title: 'Nueva O. Compra',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CrearOrdenCompraScreen(),
-                  ),
-                ),
-              ),
-            if (auth.hasPermission('ver_compras') || isAdmin)
-              SidebarSubItem(
-                title: 'Órdenes de Compra',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HistorialOrdenesCompraScreen(),
-                  ),
-                ),
-              ),
+            // if (auth.hasPermission('ver_compras') || isAdmin)
+            //   SidebarSubItem(
+            //     title: 'Nueva O. Compra',
+            //     onTap: () => Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (_) => const CrearOrdenCompraScreen(),
+            //       ),
+            //     ),
+            //   ),
+            // if (auth.hasPermission('ver_compras') || isAdmin)
+            //   SidebarSubItem(
+            //     title: 'Órdenes de Compra',
+            //     onTap: () => Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (_) => const HistorialOrdenesCompraScreen(),
+            //       ),
+            //     ),
+            //   ),
             if (auth.hasPermission('ver_compras') || isAdmin)
               SidebarSubItem(
                 title: 'Historial de Compras',
@@ -367,7 +369,8 @@ class MenuBuilder {
                   );
                 },
               ),
-            if (!isCajero && (auth.hasPermission('ver_cxc') || isAdmin || isContador))
+            if (!isCajero &&
+                (auth.hasPermission('ver_cxc') || isAdmin || isContador))
               SidebarSubItem(
                 title: 'Cuentas por Cobrar',
                 onTap: () {
@@ -377,7 +380,8 @@ class MenuBuilder {
                   );
                 },
               ),
-            if (!isCajero && (auth.hasPermission('ver_cxc') || isAdmin || isContador))
+            if (!isCajero &&
+                (auth.hasPermission('ver_cxc') || isAdmin || isContador))
               SidebarSubItem(
                 title: 'Historial de Cobros',
                 onTap: () {
@@ -389,7 +393,8 @@ class MenuBuilder {
                   );
                 },
               ),
-            if (!isCajero && (auth.hasPermission('ver_gastos') || isAdmin || isContador))
+            if (!isCajero &&
+                (auth.hasPermission('ver_gastos') || isAdmin || isContador))
               SidebarSubItem(
                 title: 'Gastos',
                 onTap: () {
@@ -462,10 +467,11 @@ class MenuBuilder {
         ),
 
       // 7. RRHH
-      if (!isCajero && (isAdmin ||
-          isContador ||
-          isAuxContable ||
-          auth.hasPermission('ver_nomina')))
+      if (!isCajero &&
+          (isAdmin ||
+              isContador ||
+              isAuxContable ||
+              auth.hasPermission('ver_nomina')))
         SidebarItem(
           title: 'RRHH',
           icon: Icons.people_outline,
@@ -527,7 +533,8 @@ class MenuBuilder {
         ),
 
       // 9. REPORTES
-      if (!isCajero && (auth.hasPermission('ver_reportes') || isAdmin || isContador))
+      if (!isCajero &&
+          (auth.hasPermission('ver_reportes') || isAdmin || isContador))
         SidebarItem(
           title: 'Reportes',
           icon: Icons.bar_chart_outlined,

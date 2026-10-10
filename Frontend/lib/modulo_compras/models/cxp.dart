@@ -28,11 +28,15 @@ class CuentaPorPagar {
     return CuentaPorPagar(
       id: json['id'],
       proveedorId: json['proveedor_id'],
-      proveedor: json['proveedor'] != null ? Proveedor.fromJson(json['proveedor']) : null,
+      proveedor: json['proveedor'] != null
+          ? Proveedor.fromJson(json['proveedor'])
+          : null,
       compraId: json['compra_id'],
       compra: json['compra'] != null ? Compra.fromJson(json['compra']) : null,
-      montoOriginal: double.tryParse(json['monto_original']?.toString() ?? '0') ?? 0.0,
-      balancePendiente: double.tryParse(json['balance_pendiente']?.toString() ?? '0') ?? 0.0,
+      montoOriginal:
+          double.tryParse(json['monto_original']?.toString() ?? '0') ?? 0.0,
+      balancePendiente:
+          double.tryParse(json['balance_pendiente']?.toString() ?? '0') ?? 0.0,
       fechaVencimiento: DateTime.parse(json['fecha_vencimiento']),
       estado: json['estado'] ?? 'PENDIENTE',
     );

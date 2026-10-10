@@ -91,12 +91,12 @@ class _ArqueoCajaPageState extends ConsumerState<ArqueoCajaPage> {
           ),
           _infoItem(
             'APERTURA',
-            formatFechaHora(DateTime.parse(sesion['fecha_apertura'])),
+            FormatterNumber.formatFechaHora(DateTime.parse(sesion['fecha_apertura'])),
             Icons.calendar_today_rounded,
           ),
           _infoItem(
             'FONDO',
-            formatCurrency(double.parse(sesion['monto_inicial'].toString())),
+            FormatterNumber.formatCurrency(double.parse(sesion['monto_inicial'].toString())),
             Icons.account_balance_wallet_rounded,
           ),
         ],
@@ -181,9 +181,9 @@ class _ArqueoCajaPageState extends ConsumerState<ArqueoCajaPage> {
       ),
       child: Column(
         children: [
-          _resumenFila('Esperado:', formatCurrency(esperado)),
+          _resumenFila('Esperado:', FormatterNumber.formatCurrency(esperado)),
           const Divider(height: 32),
-          _resumenFila('Contado:', formatCurrency(montoFisico)),
+          _resumenFila('Contado:', FormatterNumber.formatCurrency(montoFisico)),
           const Divider(height: 32),
           Text(
             diferencia == 0
@@ -197,7 +197,7 @@ class _ArqueoCajaPageState extends ConsumerState<ArqueoCajaPage> {
             ),
           ),
           Text(
-            formatCurrency(diferencia),
+            FormatterNumber.formatCurrency(diferencia),
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w900,

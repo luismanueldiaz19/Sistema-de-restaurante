@@ -38,7 +38,11 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
       appBar: AppBar(
         title: const Text(
           'Gestión de Pedidos',
-          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: AppColors.primary,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -146,7 +150,11 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Column(
@@ -158,7 +166,9 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
-                border: Border(bottom: BorderSide(color: color.withValues(alpha: 0.1))),
+                border: Border(
+                  bottom: BorderSide(color: color.withValues(alpha: 0.1)),
+                ),
               ),
               child: Row(
                 children: [
@@ -174,14 +184,21 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '${pedidos.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -250,7 +267,7 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                     ),
                   ),
                   Text(
-                    formatCurrency(pedido.total),
+                    FormatterNumber.formatCurrency(pedido.total),
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 13,
@@ -267,7 +284,10 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                   Expanded(
                     child: Text(
                       pedido.clienteNombre,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -283,11 +303,18 @@ class _PedidosScreenState extends ConsumerState<PedidosScreen> {
                     color: Colors.grey,
                   ),
                   const SizedBox(width: 4),
-                  Text(pedido.tipoEntrega, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  Text(
+                    pedido.tipoEntrega,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
                   const Spacer(),
                   Text(
                     '${pedido.detalles.length} art.',
-                    style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),

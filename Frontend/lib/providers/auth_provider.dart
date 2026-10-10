@@ -100,6 +100,34 @@ class Auth extends _$Auth {
     }
   }
 
+  /// ✅ VERIFICAR SESIÓN CONTRA EL BACKEND
+  Future<bool> verifySession() async {
+    await loadSession();
+    if (!state.isAuthenticated || state.token == null) {
+      return false;
+    }
+
+    try {
+      // Hacer una petición rápida para verificar que el token es válido
+      final response = await _authService.api.get(
+        '${_authService.baseUrl}/caja/estado',
+        token: state.token,
+        checkUnauthorized: false,
+      );
+      
+      if (response.statusCode == 200) {
+        return true;
+      }
+    } catch (e) {
+      // Si hay error de red ignoramos o cerramos sesión,
+      // por ahora asumimos que si falla la validación hay que limpiar.
+    }
+    
+    // Si llegamos aquí, el token expiró o es inválido en el backend.
+    await logout();
+    return false;
+  }
+
   /// 🚪 LOGOUT
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();

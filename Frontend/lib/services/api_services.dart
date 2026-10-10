@@ -27,8 +27,8 @@ class ApiService {
     bool checkUnauthorized = true,
   }) {
     if (!checkUnauthorized) return;
-    if (response.statusCode == 401) {
-      // 🔥 TOKEN EXPIRADO O INVÁLIDO
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      // 🔥 TOKEN EXPIRADO O INVÁLIDO O PERMISOS DENEGADOS
       if (onUnauthorized != null) {
         onUnauthorized!();
       }

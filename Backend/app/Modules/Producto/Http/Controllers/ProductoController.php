@@ -25,7 +25,7 @@ class ProductoController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = (int) $request->input('per_page', 300);
         $filters = [
             'search' => $request->input('search'),
             'categoria_id' => $request->input('categoria_id'),
@@ -38,6 +38,24 @@ class ProductoController extends Controller
         return $this->successResponse(
             data: ProductoResource::collection($productos)->response()->getData(true),
             message: 'Productos obtenidos exitosamente'
+        );
+    }
+
+    public function paraCompras(Request $request): JsonResponse
+    {
+        $perPage = (int) $request->input('per_page', 300);
+        $filters = [
+            'search' => $request->input('search'),
+            'categoria_id' => $request->input('categoria_id'),
+            'marca_id' => $request->input('marca_id'),
+            'exclude_tipo_producto' => ['PLATO', 'COMBO', 'SERVICIO'],
+        ];
+
+        $productos = $this->productoService->getAll($perPage, $filters);
+
+        return $this->successResponse(
+            data: ProductoResource::collection($productos)->response()->getData(true),
+            message: 'Productos para compras obtenidos exitosamente'
         );
     }
 

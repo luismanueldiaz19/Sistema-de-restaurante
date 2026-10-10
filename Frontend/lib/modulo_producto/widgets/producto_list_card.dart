@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/producto.dart';
 import '../../palletes/app_colors.dart';
+import '../../utils/get_initials.dart';
 
 class ProductoListCard extends StatelessWidget {
   final Producto producto;
@@ -33,13 +34,6 @@ class ProductoListCard extends StatelessWidget {
     ];
     final hash = name.codeUnits.fold(0, (prev, curr) => prev + curr);
     return colors[hash % colors.length];
-  }
-
-  String _getInitials(String? name) {
-    if (name == null || name.trim().isEmpty) return "P";
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length == 1) return parts[0].substring(0, 1).toUpperCase();
-    return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
   }
 
   @override
@@ -80,7 +74,7 @@ class ProductoListCard extends StatelessWidget {
                           backgroundColor: cardColor,
                           radius: 18,
                           child: Text(
-                            _getInitials(producto.nombre),
+                            InitialsHelper.getInitials(producto.nombre, defaultChar: "P"),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,

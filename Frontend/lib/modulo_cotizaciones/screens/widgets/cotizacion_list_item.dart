@@ -64,7 +64,7 @@ class CotizacionListItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  formatCurrency(double.tryParse(cotizacion.total ?? '0') ?? 0),
+                  FormatterNumber.formatCurrency(double.tryParse(cotizacion.total ?? '0') ?? 0),
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     color: AppColors.secondary,

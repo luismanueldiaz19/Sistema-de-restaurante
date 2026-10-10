@@ -310,7 +310,7 @@ class _HistorialCotizacionesScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      formatCurrency(totales['total'] ?? 0),
+                      FormatterNumber.formatCurrency(totales['total'] ?? 0),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
@@ -341,7 +341,9 @@ class _HistorialCotizacionesScreenState
 
     return CustomFilterDropdown<String>(
       value: _selectedDateFilter,
-      items: filters.map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
+      items: filters
+          .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+          .toList(),
       onChanged: (val) {
         if (val != null && val != 'Personalizado') {
           _applyDateFilter(val);
@@ -516,7 +518,10 @@ class _HistorialCotizacionesScreenState
                     decoration: InputDecoration(
                       hintText: 'Buscar por # de cotización o cliente...',
                       border: InputBorder.none,
-                      hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                      hintStyle: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade400,
+                      ),
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 11),
                     ),

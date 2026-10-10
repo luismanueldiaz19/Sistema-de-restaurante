@@ -23,7 +23,19 @@ class EloquentProductoRepository implements ProductoRepositoryInterface
         }
 
         if (!empty($filters['tipo_producto'])) {
-            $query->where('tipo_producto', $filters['tipo_producto']);
+            if (is_array($filters['tipo_producto'])) {
+                $query->whereIn('tipo_producto', $filters['tipo_producto']);
+            } else {
+                $query->where('tipo_producto', $filters['tipo_producto']);
+            }
+        }
+
+        if (!empty($filters['exclude_tipo_producto'])) {
+            if (is_array($filters['exclude_tipo_producto'])) {
+                $query->whereNotIn('tipo_producto', $filters['exclude_tipo_producto']);
+            } else {
+                $query->where('tipo_producto', '!=', $filters['exclude_tipo_producto']);
+            }
         }
 
         if (!empty($filters['search'])) {

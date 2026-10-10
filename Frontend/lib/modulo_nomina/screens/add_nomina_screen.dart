@@ -321,7 +321,7 @@ class _AddNominaDialogState extends ConsumerState<AddNominaDialog> {
                   ),
                   DataCell(
                     Text(
-                      formatCurrency(
+                      FormatterNumber.formatCurrency(
                         d.salarioBruto -
                             d.horasExtras -
                             d.incentivos -
@@ -343,25 +343,25 @@ class _AddNominaDialogState extends ConsumerState<AddNominaDialog> {
                   ),
                   DataCell(
                     Text(
-                      formatCurrency(d.afpEmpleado),
+                      FormatterNumber.formatCurrency(d.afpEmpleado),
                       style: const TextStyle(color: Colors.redAccent),
                     ),
                   ),
                   DataCell(
                     Text(
-                      formatCurrency(d.sfsEmpleado),
+                      FormatterNumber.formatCurrency(d.sfsEmpleado),
                       style: const TextStyle(color: Colors.redAccent),
                     ),
                   ),
                   DataCell(
                     Text(
-                      formatCurrency(d.isrRetencion),
+                      FormatterNumber.formatCurrency(d.isrRetencion),
                       style: const TextStyle(color: Colors.redAccent),
                     ),
                   ),
                   DataCell(
                     Text(
-                      formatCurrency(d.salarioNeto),
+                      FormatterNumber.formatCurrency(d.salarioNeto),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.success,
@@ -426,7 +426,7 @@ class _AddNominaDialogState extends ConsumerState<AddNominaDialog> {
                 ),
               ),
               Text(
-                formatCurrency(totalNeto),
+                FormatterNumber.formatCurrency(totalNeto),
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,

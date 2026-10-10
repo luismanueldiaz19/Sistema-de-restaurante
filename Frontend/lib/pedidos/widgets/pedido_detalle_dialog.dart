@@ -140,7 +140,7 @@ class PedidoDetalleDialog extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(child: Text(det.nombreProducto, style: const TextStyle(fontSize: 13))),
-                                Text(formatCurrency(det.subtotal), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                Text(FormatterNumber.formatCurrency(det.subtotal), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
@@ -159,7 +159,7 @@ class PedidoDetalleDialog extends ConsumerWidget {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          formatCurrency(pedido.total),
+                          FormatterNumber.formatCurrency(pedido.total),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,

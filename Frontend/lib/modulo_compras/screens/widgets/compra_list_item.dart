@@ -72,7 +72,7 @@ class CompraListItem extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              formatCurrency(compra.total),
+              FormatterNumber.formatCurrency(compra.total),
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: AppColors.secondary,

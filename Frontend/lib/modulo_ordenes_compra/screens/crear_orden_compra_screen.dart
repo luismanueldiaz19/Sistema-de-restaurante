@@ -523,7 +523,7 @@ class _CrearOrdenCompraScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    formatCurrency(prod.precioVenta ?? 0),
+                    FormatterNumber.formatCurrency(prod.precioVenta ?? 0),
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w900,

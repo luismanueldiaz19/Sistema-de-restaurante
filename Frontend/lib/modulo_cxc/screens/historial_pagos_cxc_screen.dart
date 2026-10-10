@@ -228,7 +228,7 @@ class _HistorialPagosCxcScreenState
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      formatCurrency(p.montoPagado),
+                      FormatterNumber.formatCurrency(p.montoPagado),
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 18,

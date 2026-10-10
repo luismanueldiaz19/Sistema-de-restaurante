@@ -51,7 +51,7 @@ class CompraPanelTotales extends ConsumerWidget {
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               Text(
-                formatCurrency(formState.total),
+                FormatterNumber.formatCurrency(formState.total),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
@@ -105,7 +105,7 @@ class CompraPanelTotales extends ConsumerWidget {
       children: [
         Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
         Text(
-          formatCurrency(amount),
+          FormatterNumber.formatCurrency(amount),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
       ],

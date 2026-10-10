@@ -57,19 +57,19 @@ class PanelTotales extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildRow('Subtotal', formatCurrency(totales.subtotal)),
+          _buildRow('Subtotal', FormatterNumber.formatCurrency(totales.subtotal)),
           const SizedBox(height: 12),
           _buildRow(
             'Descuento',
-            '- ${formatCurrency(totales.descuento)}',
+            '- ${FormatterNumber.formatCurrency(totales.descuento)}',
             isNegative: true,
           ),
           const SizedBox(height: 12),
-          _buildRow(_itbisLabel, formatCurrency(totales.itbis)),
+          _buildRow(_itbisLabel, FormatterNumber.formatCurrency(totales.itbis)),
           const Divider(height: 32, color: Colors.white24, thickness: 1),
           _buildRow(
             'TOTAL A PAGAR',
-            formatCurrency(totales.total),
+            FormatterNumber.formatCurrency(totales.total),
             isTotal: true,
           ),
           const SizedBox(height: 8),

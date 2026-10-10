@@ -128,10 +128,10 @@ class _MayorGeneralScreenState extends ConsumerState<MayorGeneralScreen> {
                               DataCell(Text(c['codigo'].toString(), style: const TextStyle(fontWeight: FontWeight.bold))),
                               DataCell(Text(c['nombre'].toString())),
                               DataCell(Text(c['tipo'].toString())),
-                              DataCell(Text(formatCurrency(double.tryParse(c['total_debito'].toString()) ?? 0))),
-                              DataCell(Text(formatCurrency(double.tryParse(c['total_credito'].toString()) ?? 0))),
+                              DataCell(Text(FormatterNumber.formatCurrency(double.tryParse(c['total_debito'].toString()) ?? 0))),
+                              DataCell(Text(FormatterNumber.formatCurrency(double.tryParse(c['total_credito'].toString()) ?? 0))),
                               DataCell(Text(
-                                formatCurrency(double.tryParse(c['balance'].toString()) ?? 0),
+                                FormatterNumber.formatCurrency(double.tryParse(c['balance'].toString()) ?? 0),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: (double.tryParse(c['balance'].toString()) ?? 0) < 0 ? Colors.red : Colors.green,

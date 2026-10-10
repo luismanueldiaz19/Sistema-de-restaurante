@@ -10,6 +10,12 @@ final productoProvider = StateNotifierProvider<ProductoNotifier, ProductoState>(
   },
 );
 
+final productosCompraProvider = StateNotifierProvider<ProductosCompraNotifier, ProductoState>(
+  (ref) {
+    return ProductosCompraNotifier();
+  },
+);
+
 class ProductoNotifier extends StateNotifier<ProductoState> {
   ProductoNotifier() : super(ProductoState());
 
@@ -141,5 +147,44 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
       state = state.copyWith(isLoading: false, error: e.toString());
       throw e;
     }
+  }
+}
+
+class ProductosCompraNotifier extends StateNotifier<ProductoState> {
+  ProductosCompraNotifier() : super(ProductoState());
+
+  final _api = ProductoApi();
+  
+  Future<void> loadProductosCompras(
+    String token, {
+    int page = 1,
+    bool silent = false,
+    required String search,
+  }) async {
+    if (!silent) state = state.copyWith(isLoading: true);
+    try {
+      final response = await _api.fetchProductosCompras(
+        token,
+        page: page,
+        perPage: state.perPage,
+        search: state.searchQuery,
+      );
+      final List<Producto> resultados = response['productos'];
+
+      state = state.copyWith(
+        productos: resultados,
+        isLoading: false,
+        currentPage: response['currentPage'],
+        totalPages: response['totalPages'],
+        totalRecords: response['totalRecords'],
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void searchProductos(String query, String token) {
+    state = state.copyWith(searchQuery: query);
+    loadProductosCompras(token, page: 1, silent: true, search: '');
   }
 }

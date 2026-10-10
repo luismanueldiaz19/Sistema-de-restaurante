@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Modules\Producto\Http\Controllers\ProductoController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('productos-compras', [ProductoController::class, 'paraCompras']);
     Route::post('productos/import', [ProductoController::class, 'import']);
     Route::apiResource('productos', ProductoController::class);
 });

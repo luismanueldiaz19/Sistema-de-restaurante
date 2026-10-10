@@ -92,7 +92,7 @@ class _EmpleadoTile extends ConsumerWidget {
           ),
         ),
         subtitle: Text(
-          '${empleado.cargo ?? "Sin cargo"} • ${formatCurrency(empleado.salarioBase)}',
+          '${empleado.cargo ?? "Sin cargo"} • ${FormatterNumber.formatCurrency(empleado.salarioBase)}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

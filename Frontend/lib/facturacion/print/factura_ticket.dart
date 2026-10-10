@@ -61,7 +61,7 @@
 //                 ),
 //               ),
 //               pw.Text(
-//                 'FECHA: ${formatFechaHora(factura.fechaEmision ?? DateTime.now())}',
+//                 'FECHA: ${FormatterNumber.formatFechaHora(factura.fechaEmision ?? DateTime.now())}',
 //                 style: const pw.TextStyle(fontSize: 7),
 //               ),
 //               pw.Text(
@@ -125,7 +125,7 @@
 //                       ),
 //                       pw.SizedBox(width: 5),
 //                       pw.Text(
-//                         formatCurrency(d.total ?? 0.0),
+//                         FormatterNumber.formatCurrency(d.total ?? 0.0),
 //                         style: const pw.TextStyle(fontSize: 7),
 //                       ),
 //                     ],
@@ -141,7 +141,7 @@
 //                 children: [
 //                   pw.Text('SUBTOTAL:', style: const pw.TextStyle(fontSize: 8)),
 //                   pw.Text(
-//                     formatCurrency(double.parse(factura.subtotal ?? '0')),
+//                     FormatterNumber.formatCurrency(double.parse(factura.subtotal ?? '0')),
 //                     style: const pw.TextStyle(fontSize: 8),
 //                   ),
 //                 ],
@@ -154,7 +154,7 @@
 //                     style: const pw.TextStyle(fontSize: 8),
 //                   ),
 //                   pw.Text(
-//                     formatCurrency(double.parse(factura.itbis ?? '0')),
+//                     FormatterNumber.formatCurrency(double.parse(factura.itbis ?? '0')),
 //                     style: const pw.TextStyle(fontSize: 8),
 //                   ),
 //                 ],
@@ -165,7 +165,7 @@
 //                   children: [
 //                     pw.Text('DESC.:', style: const pw.TextStyle(fontSize: 8)),
 //                     pw.Text(
-//                       '-${formatCurrency(double.parse(factura.descuentoTotal ?? '0'))}',
+//                       '-${FormatterNumber.formatCurrency(double.parse(factura.descuentoTotal ?? '0'))}',
 //                       style: const pw.TextStyle(fontSize: 8),
 //                     ),
 //                   ],
@@ -182,7 +182,7 @@
 //                     ),
 //                   ),
 //                   pw.Text(
-//                     formatCurrency(double.parse(factura.total ?? '0')),
+//                     FormatterNumber.formatCurrency(double.parse(factura.total ?? '0')),
 //                     style: pw.TextStyle(
 //                       fontWeight: pw.FontWeight.bold,
 //                       fontSize: 10,

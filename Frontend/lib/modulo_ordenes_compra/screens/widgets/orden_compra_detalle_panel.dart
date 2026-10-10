@@ -292,7 +292,7 @@ class OrdenCompraDetallePanel extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      formatCurrency(
+                      FormatterNumber.formatCurrency(
                         double.tryParse(ordenCompra!.total ?? '0') ?? 0,
                       ),
                       style: const TextStyle(
@@ -403,7 +403,7 @@ class OrdenCompraDetallePanel extends StatelessWidget {
             ),
           ),
           Text(
-            formatCurrency(double.tryParse(item.total ?? '0') ?? 0),
+            FormatterNumber.formatCurrency(double.tryParse(item.total ?? '0') ?? 0),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
@@ -424,7 +424,7 @@ class OrdenCompraDetallePanel extends StatelessWidget {
           style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
         ),
         Text(
-          '${isDiscount ? '- ' : ''}${formatCurrency(amount)}',
+          '${isDiscount ? '- ' : ''}${FormatterNumber.formatCurrency(amount)}',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 14,

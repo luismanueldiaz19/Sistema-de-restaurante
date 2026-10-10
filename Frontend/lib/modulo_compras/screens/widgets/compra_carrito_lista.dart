@@ -108,7 +108,7 @@ class CompraCarritoLista extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Cant: ${d.cantidad} x ${formatCurrency(d.costoUnitarioConItbis)}',
+                            'Cant: ${d.cantidad} x ${FormatterNumber.formatCurrency(d.costoUnitarioConItbis)}',
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 11,
@@ -116,7 +116,7 @@ class CompraCarritoLista extends ConsumerWidget {
                           ),
                           if (d.impuestoMonto > 0)
                             Text(
-                              '+ Impuesto: ${formatCurrency(d.impuestoMonto)}',
+                              '+ Impuesto: ${FormatterNumber.formatCurrency(d.impuestoMonto)}',
                               style: const TextStyle(
                                 color: AppColors.danger,
                                 fontSize: 10,
@@ -129,7 +129,7 @@ class CompraCarritoLista extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          formatCurrency(totalItem),
+                          FormatterNumber.formatCurrency(totalItem),
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             color: AppColors.primary,

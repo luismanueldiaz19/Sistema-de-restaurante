@@ -53,13 +53,28 @@ class CuentaPorPagarController extends Controller
         }
     }
 
-    public function historialPagos(): JsonResponse
+    public function historialPagos(\Illuminate\Http\Request $request): JsonResponse
     {
-        $pagos = $this->cuentaPorPagarService->getHistorialPagos();
+        $filters = $request->all();
+        if (!empty($filters['search'])) {
+            $filters['search'] = $this->normalizarTexto($filters['search']);
+        }
+
+        $pagos = $this->cuentaPorPagarService->getHistorialPagos($filters);
 
         return $this->successResponse(
             data: $pagos,
             message: 'Historial de pagos de compras'
+        );
+    }
+
+    public function pagosPorCompra(int $compraId): JsonResponse
+    {
+        $pagos = $this->cuentaPorPagarService->getPagosPorCompra($compraId);
+
+        return $this->successResponse(
+            data: $pagos,
+            message: 'Pagos de la compra seleccionada'
         );
     }
 }

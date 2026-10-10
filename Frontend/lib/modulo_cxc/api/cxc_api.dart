@@ -5,14 +5,15 @@ import '../models/cxc.dart';
 import '../models/pago_cxc.dart';
 
 class CxcApi {
-  final String baseUrl = "$hostName/api/cxc";
+  final String baseUrl = "$apiUrl/cxc";
   final ApiService api = ApiService();
 
   Future<List<CuentaPorCobrar>> getCxcs(String token) async {
     final response = await api.get(baseUrl, token: token);
 
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      final List data = body['data'] ?? [];
       return data.map((json) => CuentaPorCobrar.fromJson(json)).toList();
     } else {
       throw Exception(

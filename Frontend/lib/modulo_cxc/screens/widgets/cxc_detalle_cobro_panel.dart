@@ -197,7 +197,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                                   ),
                                 ),
                                 Text(
-                                  '${d['cantidad']} x ${formatCurrency(double.tryParse(d['precio'].toString()) ?? 0)}',
+                                  '${d['cantidad']} x ${FormatterNumber.formatCurrency(double.tryParse(d['precio'].toString()) ?? 0)}',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.grey.shade600,
@@ -207,7 +207,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                             ),
                           ),
                           Text(
-                            formatCurrency(
+                            FormatterNumber.formatCurrency(
                               double.tryParse(d['total'].toString()) ?? 0,
                             ),
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -230,7 +230,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      formatCurrency(
+                      FormatterNumber.formatCurrency(
                         double.tryParse(
                               factura?['subtotal']?.toString() ?? '0',
                             ) ??
@@ -249,7 +249,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      formatCurrency(
+                      FormatterNumber.formatCurrency(
                         double.tryParse(factura?['itbis']?.toString() ?? '0') ??
                             0,
                       ),
@@ -269,7 +269,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                       ),
                     ),
                     Text(
-                      formatCurrency(
+                      FormatterNumber.formatCurrency(
                         double.tryParse(factura?['total']?.toString() ?? '0') ??
                             0,
                       ),
@@ -329,7 +329,7 @@ class _CxcDetalleCobroPanelState extends ConsumerState<CxcDetalleCobroPanel> {
                         ),
                       ),
                       Text(
-                        formatCurrency(cxc.balancePendiente),
+                        FormatterNumber.formatCurrency(cxc.balancePendiente),
                         style: TextStyle(
                           color: Colors.green.shade800,
                           fontWeight: FontWeight.w900,

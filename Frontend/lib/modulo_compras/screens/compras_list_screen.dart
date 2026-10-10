@@ -7,6 +7,7 @@ import '../providers/compras_provider.dart';
 import 'nueva_compra_screen.dart';
 import 'widgets/compra_list_item.dart';
 import 'widgets/compra_detalle_panel.dart';
+import 'widgets/filtros/compra_filtros.dart';
 
 class ComprasListScreen extends ConsumerStatefulWidget {
   const ComprasListScreen({super.key});
@@ -72,9 +73,6 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
           0,
         ).toString().split(' ')[0];
         break;
-      case 'Rango...':
-        _mostrarSelectorRangoFechas();
-        return; // No cargar hasta seleccionar rango
       default: // 'Todos'
         fechaDesde = null;
         fechaHasta = null;
@@ -106,38 +104,18 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
         .read(comprasProvider.notifier)
         .loadCompras(estado: estado, search: _searchCtrl.text);
   }
+  void _aplicarFiltroRango(DateTime start, DateTime end) {
+    setState(() {
+      _selectedDateFilter = 'Rango...';
+      _selectedCompra = null;
+    });
 
-  Future<void> _mostrarSelectorRangoFechas() async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: AppColors.primary,
-            colorScheme: const ColorScheme.light(primary: AppColors.primary),
-            buttonTheme: const ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
-            ),
-          ),
-          child: child!,
-        );
-      },
+    ref.read(comprasProvider.notifier).loadCompras(
+      fechaDesde: start.toString().split(' ')[0],
+      fechaHasta: end.toString().split(' ')[0],
+      search: _searchCtrl.text,
+      estado: _selectedStatus,
     );
-
-    if (picked != null) {
-      ref
-          .read(comprasProvider.notifier)
-          .loadCompras(
-            fechaDesde: picked.start.toString().split(' ')[0],
-            fechaHasta: picked.end.toString().split(' ')[0],
-          );
-    } else {
-      // Si cancela, volvemos a 'Todos'
-      setState(() => _selectedDateFilter = 'Todos');
-      ref.read(comprasProvider.notifier).loadCompras();
-    }
   }
 
   @override
@@ -215,7 +193,15 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildDateFilters(),
+                            CompraFiltros(
+                              searchCtrl: _searchCtrl,
+                              selectedStatus: _selectedStatus,
+                              selectedDateFilter: _selectedDateFilter,
+                              onSearchSubmitted: _aplicarFiltroSearch,
+                              onStatusChanged: _aplicarFiltroEstado,
+                              onDateFilterSelected: _aplicarFiltroFecha,
+                              onDateRangeSelected: _aplicarFiltroRango,
+                            ),
                             const SizedBox(height: 16),
                             _buildResumenTarjetas(state),
                             const SizedBox(height: 24),
@@ -286,105 +272,6 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
     );
   }
 
-  Widget _buildDateFilters() {
-    final filters = ['Todos', 'Hoy', 'Ayer', 'Este Mes', 'Rango...'];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _searchCtrl,
-                decoration: InputDecoration(
-                  hintText: 'Buscar factura, proveedor o NCF...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 0,
-                  ),
-                ),
-                onSubmitted: _aplicarFiltroSearch,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedStatus,
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'todos',
-                      child: Text('Todos los Estados'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'PENDIENTE',
-                      child: Text('Pendiente'),
-                    ),
-                    DropdownMenuItem(value: 'PAGADA', child: Text('Pagada')),
-                    DropdownMenuItem(value: 'ANULADA', child: Text('Anulada')),
-                  ],
-                  onChanged: _aplicarFiltroEstado,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: filters.map((filter) {
-              final isSelected = _selectedDateFilter == filter;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ChoiceChip(
-                  label: Text(filter),
-                  selected: isSelected,
-                  onSelected: (bool selected) {
-                    if (selected) {
-                      _aplicarFiltroFecha(filter);
-                    }
-                  },
-                  selectedColor: AppColors.primary.withOpacity(0.2),
-                  labelStyle: TextStyle(
-                    color: isSelected
-                        ? AppColors.primary
-                        : Colors.grey.shade700,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(
-                      color: isSelected
-                          ? AppColors.primary
-                          : Colors.grey.shade300,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildResumenTarjetas(ComprasState state) {
     return Row(
       children: [
@@ -429,7 +316,7 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
                         ),
                       ),
                       Text(
-                        formatCurrency(state.totales.totalGeneral),
+                        FormatterNumber.formatCurrency(state.totales.totalGeneral),
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
@@ -486,7 +373,7 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
                         ),
                       ),
                       Text(
-                        formatCurrency(state.totales.totalPagado),
+                        FormatterNumber.formatCurrency(state.totales.totalPagado),
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,

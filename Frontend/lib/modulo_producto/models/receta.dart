@@ -20,7 +20,7 @@ class Receta {
     id: json["id"],
     productoId: json["producto_id"],
     ingredienteProductoId: json["ingrediente_producto_id"],
-    cantidad: parseDouble(json["cantidad"]),
+    cantidad: FormatterNumber.parseDouble(json["cantidad"]),
     ingrediente: json["ingrediente"] == null ? null : Producto.fromJson(json["ingrediente"]),
   );
 

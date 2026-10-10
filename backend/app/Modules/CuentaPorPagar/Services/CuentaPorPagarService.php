@@ -44,6 +44,7 @@ class CuentaPorPagarService
             // Registrar el pago
             $pago = PagoCompra::create([
                 'cxp_id' => $cxp->id,
+                'compra_id' => $cxp->compra_id,
                 'monto_pagado' => $dto->monto_pagado,
                 'fecha_pago' => $dto->fecha_pago,
                 'metodo_pago_id' => $dto->metodo_pago_id,
@@ -56,7 +57,7 @@ class CuentaPorPagarService
             $nuevoBalance = $cxp->balance_pendiente - $dto->monto_pagado;
             
             $estado = 'PENDIENTE';
-            if ($nuevoBalance <= 0) {
+            if ($nuevoBalance <= 0) {   
                 $estado = 'PAGADA';
                 $nuevoBalance = 0;
             } elseif ($nuevoBalance < $cxp->monto_original) {
@@ -107,13 +108,53 @@ class CuentaPorPagarService
         });
     }
 
-    public function getHistorialPagos(): Collection
+    public function getHistorialPagos(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        return PagoCompra::with([
+        $query = PagoCompra::with([
             'cuentaPorPagar.proveedor',
             'cuentaPorPagar.compra',
             'cuentaOrigen',
+            'usuario',
+            'metodoPago'
+        ]);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                $q->whereHas('cuentaPorPagar.proveedor', function ($q2) use ($search) {
+                    $q2->where('nombre', 'LIKE', "%{$search}%");
+                })->orWhereHas('cuentaPorPagar.compra', function ($q2) use ($search) {
+                    $q2->where('numero_factura_proveedor', 'LIKE', "%{$search}%");
+                });
+            });
+        }
+
+        if (!empty($filters['fecha_inicio']) && !empty($filters['fecha_fin'])) {
+            $query->whereBetween('fecha_pago', [$filters['fecha_inicio'], $filters['fecha_fin']]);
+        } elseif (!empty($filters['fecha_inicio'])) {
+            $query->whereDate('fecha_pago', '>=', $filters['fecha_inicio']);
+        } elseif (!empty($filters['fecha_fin'])) {
+            $query->whereDate('fecha_pago', '<=', $filters['fecha_fin']);
+        }
+
+        if (!empty($filters['metodo_pago_id'])) {
+            $query->where('metodo_pago_id', $filters['metodo_pago_id']);
+        }
+
+        $perPage = $filters['per_page'] ?? 15;
+
+        return $query->orderBy('fecha_pago', 'desc')->paginate($perPage);
+    }
+
+    public function getPagosPorCompra(int $compraId): Collection
+    {
+        return PagoCompra::with([
+            'metodoPago',
+            'cuentaOrigen',
             'usuario'
-        ])->orderBy('fecha_pago', 'desc')->get();
+        ])
+        ->where('compra_id', $compraId)
+        ->orderBy('fecha_pago', 'desc')
+        ->get();
     }
 }

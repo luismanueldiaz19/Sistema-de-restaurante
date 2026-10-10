@@ -154,7 +154,7 @@ class CarritoLista extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          formatCurrency(item.precio),
+                          FormatterNumber.formatCurrency(item.precio),
                           style: TextStyle(
                             color: Colors.grey.shade400,
                             fontSize: 11,
@@ -237,7 +237,7 @@ class CarritoLista extends StatelessWidget {
                 ),
               ),
               Text(
-                formatCurrency(item.total),
+                FormatterNumber.formatCurrency(item.total),
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 14,

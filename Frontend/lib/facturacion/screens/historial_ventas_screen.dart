@@ -183,20 +183,20 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
           _denseTotalRow('Facturas', '${totales?['cantidad_facturas'] ?? 0}'),
           _denseTotalRow(
             'Total Vendido',
-            formatCurrency(
+            FormatterNumber.formatCurrency(
               double.parse((totales?['total_venta'] ?? 0).toString()),
             ),
             isPrimary: true,
           ),
           _denseTotalRow(
             'Total ITBIS',
-            formatCurrency(
+            FormatterNumber.formatCurrency(
               double.parse((totales?['total_itbis'] ?? 0).toString()),
             ),
           ),
           _denseTotalRow(
             'Descuentos',
-            formatCurrency(
+            FormatterNumber.formatCurrency(
               double.parse((totales?['total_descuento'] ?? 0).toString()),
             ),
           ),
@@ -214,7 +214,7 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
             ...porMetodo.map(
               (m) => _denseSubRow(
                 (m['metodo_pago'] as String).toUpperCase(),
-                formatCurrency(double.parse(m['total'].toString())),
+                FormatterNumber.formatCurrency(double.parse(m['total'].toString())),
               ),
             ),
           ],
@@ -568,7 +568,7 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
                           ),
                           DataCell(
                             Text(
-                              formatFechaHora(f.fechaEmision ?? DateTime.now()),
+                              FormatterNumber.formatFechaHora(f.fechaEmision ?? DateTime.now()),
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 11,
@@ -596,7 +596,7 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
                           ),
                           DataCell(
                             Text(
-                              formatCurrency(double.parse(f.total ?? '0')),
+                              FormatterNumber.formatCurrency(double.parse(f.total ?? '0')),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.secondary,
@@ -827,7 +827,7 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
                 _detalleItem('Tipo:', f.tipoFactura ?? 'N/A'),
                 _detalleItem(
                   'Fecha:',
-                  formatFechaHora(f.fechaEmision ?? DateTime.now()),
+                  FormatterNumber.formatFechaHora(f.fechaEmision ?? DateTime.now()),
                 ),
                 const Divider(height: 24),
                 const Text(
@@ -855,7 +855,7 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
                           ),
                         ),
                         Text(
-                          formatCurrency(d.total ?? 0.0),
+                          FormatterNumber.formatCurrency(d.total ?? 0.0),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -869,15 +869,15 @@ class _HistorialVentasScreenState extends ConsumerState<HistorialVentasScreen> {
                 const Divider(height: 24),
                 _detalleItem(
                   'Subtotal:',
-                  formatCurrency(double.parse(f.subtotal ?? '0')),
+                  FormatterNumber.formatCurrency(double.parse(f.subtotal ?? '0')),
                 ),
                 _detalleItem(
                   'ITBIS:',
-                  formatCurrency(double.parse(f.itbis ?? '0')),
+                  FormatterNumber.formatCurrency(double.parse(f.itbis ?? '0')),
                 ),
                 _detalleItem(
                   'Total:',
-                  formatCurrency(double.parse(f.total ?? '0')),
+                  FormatterNumber.formatCurrency(double.parse(f.total ?? '0')),
                   isTotal: true,
                 ),
               ],

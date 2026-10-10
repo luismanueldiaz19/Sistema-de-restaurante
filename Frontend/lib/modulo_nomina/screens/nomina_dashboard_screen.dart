@@ -112,7 +112,7 @@ class _NominaDashboardScreenState extends ConsumerState<NominaDashboardScreen> {
                       Expanded(
                         child: _SummaryCard(
                           title: 'Total Neto Mes',
-                          value: formatCurrency(totalCosto),
+                          value: FormatterNumber.formatCurrency(totalCosto),
                           icon: Icons.account_balance_wallet_outlined,
                           color: Colors.green,
                         ),
@@ -125,7 +125,7 @@ class _NominaDashboardScreenState extends ConsumerState<NominaDashboardScreen> {
                       Expanded(
                         child: _SummaryCard(
                           title: 'TSS a Pagar',
-                          value: formatCurrency(totalTSS),
+                          value: FormatterNumber.formatCurrency(totalTSS),
                           icon: Icons.security_outlined,
                           color: Colors.indigo,
                         ),
@@ -134,7 +134,7 @@ class _NominaDashboardScreenState extends ConsumerState<NominaDashboardScreen> {
                       Expanded(
                         child: _SummaryCard(
                           title: 'ISR Retenido',
-                          value: formatCurrency(totalISR),
+                          value: FormatterNumber.formatCurrency(totalISR),
                           icon: Icons.account_balance_outlined,
                           color: Colors.orange,
                         ),
@@ -295,7 +295,7 @@ class _NominaTile extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          'Total Neto: ${formatCurrency(nomina.totalNeto)} • Estado: ${nomina.estado}',
+          'Total Neto: ${FormatterNumber.formatCurrency(nomina.totalNeto)} • Estado: ${nomina.estado}',
           style: const TextStyle(fontSize: 12),
         ),
         trailing: const Icon(Icons.chevron_right),

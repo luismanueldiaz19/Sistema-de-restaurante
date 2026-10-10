@@ -136,7 +136,7 @@ class _AddProductoOrdenCompraDialogState
                   const Icon(Icons.history, color: Colors.orange, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Costo Anterior (Ref): ${formatCurrency(widget.producto.costo ?? 0)}',
+                    'Costo Anterior (Ref): ${FormatterNumber.formatCurrency(widget.producto.costo ?? 0)}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.orange.shade800,
@@ -207,7 +207,7 @@ class _AddProductoOrdenCompraDialogState
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  formatCurrency(total),
+                  FormatterNumber.formatCurrency(total),
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 18,

@@ -587,7 +587,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            formatCurrency(prod.precioVenta ?? 0),
+                            FormatterNumber.formatCurrency(prod.precioVenta ?? 0),
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w900,

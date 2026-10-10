@@ -65,7 +65,7 @@ class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen>
                 ),
               ),
               Text(
-                formatCurrency(balance),
+                FormatterNumber.formatCurrency(balance),
                 style: TextStyle(
                   fontWeight: esDetalle ? FontWeight.normal : FontWeight.bold,
                   color: balance < 0 ? Colors.red : (esDetalle ? Colors.black87 : AppColors.secondary),
@@ -105,7 +105,7 @@ class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                Text(formatCurrency(total), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                Text(FormatterNumber.formatCurrency(total), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
               ],
             ),
           ),
@@ -190,7 +190,7 @@ class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('UTILIDAD BRUTA (Ingresos - Costos)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.secondary)),
-                          Text(formatCurrency(utilidadBruta), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.secondary)),
+                          Text(FormatterNumber.formatCurrency(utilidadBruta), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.secondary)),
                         ],
                       ),
                     ),
@@ -219,7 +219,7 @@ class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen>
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)
                           ),
                           Text(
-                            formatCurrency(utilidadNeta), 
+                            FormatterNumber.formatCurrency(utilidadNeta), 
                             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)
                           ),
                         ],

@@ -4,6 +4,7 @@ import '../../providers/nueva_compra_form_provider.dart';
 import '../../../modulo_producto/providers/producto_provider.dart';
 import '../../../modulo_producto/models/producto.dart';
 import '../../../widgets/custom_text_field.dart';
+import 'compra_catalogo_productos.dart';
 
 class CompraDetalleDataGrid extends ConsumerStatefulWidget {
   const CompraDetalleDataGrid({super.key});
@@ -67,7 +68,7 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
   @override
   Widget build(BuildContext context) {
     final formState = ref.watch(nuevaCompraFormProvider);
-    final productos = ref.watch(productoProvider).productos;
+    final productos = ref.watch(productosCompraProvider).productos;
 
     return Container(
       margin: const EdgeInsets.all(8),
@@ -124,6 +125,29 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
                           Icons.search,
                           color: Colors.grey.shade500,
                         ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.list_alt),
+                          color: Theme.of(context).primaryColor,
+                          tooltip: 'Abrir catálogo de productos',
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => const Dialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                                child: SizedBox(
+                                  width: 600,
+                                  height: 450,
+
+                                  child: CompraCatalogoProductos(),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey.shade200),
@@ -165,126 +189,152 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
                 ),
               ),
             )
-          else ...[
-            // HEADERS
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
-              child: Row(
-                children: [
-                  const SizedBox(width: 40), // Spacing for delete icon
-                  const Expanded(
-                    flex: 3,
-                    child: Text(
-                      'Producto / Ítem',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.black54,
+          else
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(
+                        width: constraints.maxWidth > 900
+                            ? constraints.maxWidth
+                            : 900,
+                        child: Column(
+                          children: [
+                            // HEADERS
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 28,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 40,
+                                  ), // Spacing for delete icon
+                                  const Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Producto / Ítem',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Presentación',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      'Factor',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      'Cant',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Precio de Compra',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      'ITBIS',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Subtotal',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(height: 1, color: Colors.grey.shade200),
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: const EdgeInsets.all(16),
+                              itemCount: formState.detalles.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final item = formState.detalles[index];
+                                return _LineaCompraItem(
+                                  item: item,
+                                  index: index,
+                                  onUpdate: (updatedItem) {
+                                    ref
+                                        .read(nuevaCompraFormProvider.notifier)
+                                        .updateDetalle(index, updatedItem);
+                                  },
+                                  onDelete: () {
+                                    ref
+                                        .read(nuevaCompraFormProvider.notifier)
+                                        .removeDetalle(index);
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Presentación',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    flex: 1,
-                    child: Text(
-                      'Factor',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    flex: 1,
-                    child: Text(
-                      'Cant',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Precio de Compra',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    flex: 1,
-                    child: Text(
-                      'ITBIS',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Subtotal',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
-            Divider(height: 1, color: Colors.grey.shade200),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: formState.detalles.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final item = formState.detalles[index];
-                return _LineaCompraItem(
-                  item: item,
-                  index: index,
-                  onUpdate: (updatedItem) {
-                    ref
-                        .read(nuevaCompraFormProvider.notifier)
-                        .updateDetalle(index, updatedItem);
-                  },
-                  onDelete: () {
-                    ref
-                        .read(nuevaCompraFormProvider.notifier)
-                        .removeDetalle(index);
-                  },
-                );
-              },
-            ),
-          ],
         ],
       ),
     );

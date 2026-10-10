@@ -287,7 +287,7 @@ class _EmpleadoFormDialogState extends ConsumerState<EmpleadoFormDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Fecha de Ingreso', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                Text(formatFechaLatina(_fechaIngreso), style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(FormatterNumber.formatFechaLatina(_fechaIngreso), style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
           ],

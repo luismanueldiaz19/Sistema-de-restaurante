@@ -433,7 +433,7 @@ class _HistorialOrdenesCompraScreenState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      formatCurrency(totales['total'] ?? 0),
+                      FormatterNumber.formatCurrency(totales['total'] ?? 0),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,

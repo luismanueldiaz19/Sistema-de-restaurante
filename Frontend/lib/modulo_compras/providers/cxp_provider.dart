@@ -47,11 +47,11 @@ class CxpNotifier extends StateNotifier<CxpState> {
 
   Future<void> loadCxps() async {
     if (token == null) return;
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: '');
     try {
       final data = await api.getAll(token!);
       final list = data.map((e) => CuentaPorPagar.fromJson(e)).toList();
-      state = state.copyWith(isLoading: false, cxps: list);
+      state = state.copyWith(isLoading: false, cxps: list, error: '');
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -62,22 +62,33 @@ class CxpNotifier extends StateNotifier<CxpState> {
     if (token == null) return;
     try {
       final data = await api.getHistorialPagos(token!);
-      final pagos = data.map((e) => PagoCompra.fromJson(e as Map<String, dynamic>)).toList();
-      state = state.copyWith(isLoading: false, historialPagos: pagos);
+      final listData = data['data'] as List<dynamic>? ?? [];
+      final pagos = listData.map((e) => PagoCompra.fromJson(e as Map<String, dynamic>)).toList();
+      state = state.copyWith(isLoading: false, historialPagos: pagos, error: '');
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
-  Future<bool> registrarPago(int id, Map<String, dynamic> data) async {
-    if (token == null) return false;
+  Future<String?> registrarPago(int id, Map<String, dynamic> data) async {
+    if (token == null) return 'No auth token';
     try {
       await api.registrarPago(token!, id, data);
       await loadCxps();
-      return true;
+      return null;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
+      // Retorna el mensaje de error para mostrarlo en el Toast
+      return e.toString();
+    }
+  }
+
+  Future<List<PagoCompra>> getPagosPorCompra(int compraId) async {
+    if (token == null) return [];
+    try {
+      final data = await api.getPagosPorCompra(token!, compraId);
+      return data.map((e) => PagoCompra.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      return [];
     }
   }
 }

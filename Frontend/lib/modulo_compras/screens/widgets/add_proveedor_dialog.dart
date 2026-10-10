@@ -108,8 +108,8 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
-        width: 700,
-        padding: const EdgeInsets.all(32),
+        width: 500,
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -124,23 +124,25 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                     Text(
                       isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor',
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 18,
                         fontWeight: FontWeight.w900,
                         color: AppColors.secondary,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey),
+                      icon: const Icon(Icons.close, color: Colors.grey, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   'Ingrese los datos del proveedor para gestionar compras y cuentas por pagar.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
 
                 // 🔹 CAMPOS DEL FORMULARIO
                 Row(
@@ -155,7 +157,7 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                             value!.isEmpty ? 'Requerido' : null,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       flex: 1,
                       child: CustomTextField(
@@ -166,7 +168,7 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -176,7 +178,7 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                         prefixIcon: Icons.phone_outlined,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: CustomTextField(
                         controller: emailCtrl,
@@ -186,13 +188,13 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 CustomTextField(
                   controller: direccionCtrl,
                   label: 'Dirección Física (Opcional)',
                   prefixIcon: Icons.location_on_outlined,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.orange.withValues(alpha: 0.05),
@@ -200,13 +202,15 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                     border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                   ),
                   child: SwitchListTile(
+                    visualDensity: VisualDensity.compact,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                     title: const Text(
                       'Proveedor Informal (Sin NCF)',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     subtitle: const Text(
                       'Se retendrá el 100% del ITBIS y se generará un Comprobante de Compras E41.',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: 11),
                     ),
                     value: esInformal,
                     activeColor: Colors.orange,
@@ -217,7 +221,7 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                     },
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
 
                 // 🔹 BOTONES
                 Row(
@@ -226,19 +230,19 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
                       child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     ElevatedButton.icon(
                       onPressed: isLoading ? null : _guardar,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       icon: isLoading
@@ -247,10 +251,10 @@ class _AddProveedorDialogState extends ConsumerState<AddProveedorDialog> {
                               height: 20,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                          : const Icon(Icons.save),
+                          : const Icon(Icons.save, size: 18),
                       label: Text(
                         isEdit ? 'ACTUALIZAR PROVEEDOR' : 'CREAR PROVEEDOR',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ),
                   ],

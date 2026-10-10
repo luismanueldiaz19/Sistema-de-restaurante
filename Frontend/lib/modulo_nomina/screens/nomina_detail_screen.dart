@@ -124,28 +124,28 @@ class NominaDetailScreen extends ConsumerWidget {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
-                DataCell(Text(formatCurrency(d.salarioBruto))),
+                DataCell(Text(FormatterNumber.formatCurrency(d.salarioBruto))),
                 DataCell(
                   Text(
-                    formatCurrency(d.afpEmpleado),
+                    FormatterNumber.formatCurrency(d.afpEmpleado),
                     style: const TextStyle(color: Colors.redAccent),
                   ),
                 ),
                 DataCell(
                   Text(
-                    formatCurrency(d.sfsEmpleado),
+                    FormatterNumber.formatCurrency(d.sfsEmpleado),
                     style: const TextStyle(color: Colors.redAccent),
                   ),
                 ),
                 DataCell(
                   Text(
-                    formatCurrency(d.isrRetencion),
+                    FormatterNumber.formatCurrency(d.isrRetencion),
                     style: const TextStyle(color: Colors.redAccent),
                   ),
                 ),
                 DataCell(
                   Text(
-                    formatCurrency(d.salarioNeto),
+                    FormatterNumber.formatCurrency(d.salarioNeto),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColors.success,
@@ -196,19 +196,19 @@ class NominaDetailScreen extends ConsumerWidget {
           children: [
             _FooterItem(
               label: 'TOTAL BRUTO',
-              value: formatCurrency(nomina.totalBruto),
+              value: FormatterNumber.formatCurrency(nomina.totalBruto),
               color: Colors.blueGrey,
             ),
             const SizedBox(width: 20),
             _FooterItem(
               label: 'RETENCIONES',
-              value: formatCurrency(nomina.totalRetenciones),
+              value: FormatterNumber.formatCurrency(nomina.totalRetenciones),
               color: Colors.red,
             ),
             const Spacer(),
             _FooterItem(
               label: 'NETO A PAGAR',
-              value: formatCurrency(nomina.totalNeto),
+              value: FormatterNumber.formatCurrency(nomina.totalNeto),
               color: AppColors.success,
               isLarge: true,
             ),

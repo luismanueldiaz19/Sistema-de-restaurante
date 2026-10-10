@@ -98,7 +98,7 @@ class _ProductosWidgetState extends State<ProductosWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text("Stock: ${producto.stock}"),
-                        Text("Precio: ${formatCurrency(producto.precio)}"),
+                        Text("Precio: ${FormatterNumber.formatCurrency(producto.precio)}"),
                       ],
                     ),
 

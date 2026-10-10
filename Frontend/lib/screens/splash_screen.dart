@@ -61,17 +61,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (!mounted) return;
 
     final auth = ref.read(authProvider.notifier);
-    await auth.loadSession();
+    final isValid = await auth.verifySession();
 
     if (!mounted) return;
-
-    final isAuthenticated = ref.read(authProvider).isAuthenticated;
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            isAuthenticated ? const MyHomePage() : const LoginPage(),
+        builder: (_) => isValid ? const MyHomePage() : const LoginPage(),
       ),
     );
   }

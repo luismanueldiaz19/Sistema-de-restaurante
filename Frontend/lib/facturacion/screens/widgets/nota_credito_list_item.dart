@@ -67,7 +67,7 @@ class NotaCreditoListItem extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              formatCurrency(double.tryParse(nota.totalDevolucion ?? '0') ?? 0),
+              FormatterNumber.formatCurrency(double.tryParse(nota.totalDevolucion ?? '0') ?? 0),
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: AppColors.secondary,

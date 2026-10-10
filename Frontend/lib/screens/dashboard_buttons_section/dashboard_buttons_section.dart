@@ -82,13 +82,13 @@ class DashboardButtonsSection extends ConsumerWidget {
       //     color: Colors.deepPurple,
       //     onTap: () => onAction('crear_orden_compra'),
       //   ),
-      if (!isCajero && auth.hasPermission('ver_facturas'))
-        DashboardButton(
-          title: 'Órdenes Compra',
-          icon: Icons.history,
-          color: Colors.purple.shade700,
-          onTap: () => onAction('ver_ordenes_compra'),
-        ),
+      // if (!isCajero && auth.hasPermission('ver_facturas'))
+      //   DashboardButton(
+      //     title: 'Órdenes Compra',
+      //     icon: Icons.history,
+      //     color: Colors.purple.shade700,
+      //     onTap: () => onAction('ver_ordenes_compra'),
+      //   ),
       if (!isCajero && auth.hasPermission('ver_cxp'))
         DashboardButton(
           title: 'Reg. Gasto',
@@ -120,7 +120,7 @@ class DashboardButtonsSection extends ConsumerWidget {
           builder: (context, constraints) {
             double width = constraints.maxWidth;
 
-            print(width);
+            // print(width);
 
             // Ajuste de columnas usando la nueva clase ResponsiveUtils
             int crossAxisCount = ResponsiveUtils.getGridCrossAxisCount(width);

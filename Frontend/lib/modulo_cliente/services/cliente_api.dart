@@ -7,7 +7,7 @@ import '../models/cliente.dart';
 class ClienteApi {
   final ApiService api = ApiService();
 
-  final String baseUrl = "$hostName/api/v2/clientes";
+  final String baseUrl = "$apiUrl/clientes";
 
   /// 🔥 GET TODOS LOS CLIENTES (Paginated)
   Future<Map<String, dynamic>> fetchClients(

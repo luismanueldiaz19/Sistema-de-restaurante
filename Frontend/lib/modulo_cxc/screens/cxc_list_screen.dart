@@ -161,7 +161,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                 ),
                               ),
                               Text(
-                                formatCurrency(totalCobrar),
+                                FormatterNumber.formatCurrency(totalCobrar),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
@@ -345,7 +345,7 @@ class _CxcListScreenState extends ConsumerState<CxcListScreen> {
                                               ),
                                             ),
                                             Text(
-                                              formatCurrency(
+                                              FormatterNumber.formatCurrency(
                                                 cxc.balancePendiente,
                                               ),
                                               style: const TextStyle(

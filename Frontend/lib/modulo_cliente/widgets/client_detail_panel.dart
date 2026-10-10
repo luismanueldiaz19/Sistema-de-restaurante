@@ -2,18 +2,12 @@ import 'package:flutter/material.dart';
 import '../../palletes/app_colors.dart';
 import '../models/cliente.dart';
 import 'client_detail_item.dart';
+import '../../utils/get_initials.dart';
 
 class ClientDetailPanel extends StatelessWidget {
   final Cliente cliente;
 
   const ClientDetailPanel({super.key, required this.cliente});
-
-  String _getInitials(String? name) {
-    if (name == null || name.trim().isEmpty) return "C";
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length == 1) return parts[0].substring(0, 1).toUpperCase();
-    return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +49,7 @@ class ClientDetailPanel extends StatelessWidget {
                   backgroundColor: AppColors.azulOscuro,
                   radius: 30,
                   child: Text(
-                    _getInitials(cliente.nombre),
+                    InitialsHelper.getInitials(cliente.nombre, defaultChar: "C"),
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

@@ -64,7 +64,7 @@ class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
                 ),
               ),
               Text(
-                formatCurrency(balance),
+                FormatterNumber.formatCurrency(balance),
                 style: TextStyle(
                   fontWeight: esDetalle ? FontWeight.normal : FontWeight.bold,
                   color: balance < 0 ? Colors.red : (esDetalle ? Colors.black87 : AppColors.secondary),
@@ -104,7 +104,7 @@ class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                Text(formatCurrency(total), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                Text(FormatterNumber.formatCurrency(total), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
               ],
             ),
           ),
@@ -180,7 +180,7 @@ class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
                         children: [
                           const Text('CAPITAL', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
                           Text(
-                            formatCurrency((double.tryParse(totales['capital'].toString()) ?? 0) + (double.tryParse(utilidad.toString()) ?? 0)), 
+                            FormatterNumber.formatCurrency((double.tryParse(totales['capital'].toString()) ?? 0) + (double.tryParse(utilidad.toString()) ?? 0)), 
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)
                           ),
                         ],
@@ -205,7 +205,7 @@ class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
                                   ],
                                 ),
                                 Text(
-                                  formatCurrency(double.tryParse(utilidad.toString()) ?? 0),
+                                  FormatterNumber.formatCurrency(double.tryParse(utilidad.toString()) ?? 0),
                                   style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary),
                                 ),
                               ],
@@ -230,7 +230,7 @@ class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
                   children: [
                     const Text('TOTAL PASIVO Y CAPITAL', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
                     Text(
-                      formatCurrency(double.tryParse(totales['pasivo_y_capital'].toString()) ?? 0), 
+                      FormatterNumber.formatCurrency(double.tryParse(totales['pasivo_y_capital'].toString()) ?? 0), 
                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)
                     ),
                   ],

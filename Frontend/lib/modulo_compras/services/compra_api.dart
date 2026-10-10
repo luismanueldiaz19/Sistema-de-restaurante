@@ -3,7 +3,7 @@ import '../../utils/constants.dart';
 import '../../services/api_services.dart';
 
 class CompraApi {
-  final String baseUrl = "$hostName/api/v2/compras";
+  final String baseUrl = "$apiUrl/compras";
 
   Future<Map<String, dynamic>> getAll(
     String token, {

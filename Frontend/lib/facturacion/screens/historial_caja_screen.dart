@@ -270,24 +270,24 @@ class _HistorialCajaScreenState extends ConsumerState<HistorialCajaScreen> {
                   DataCell(Text(s['caja']?['nombre'] ?? 'N/A')),
                   DataCell(Text(s['turno']?['nombre'] ?? 'N/A')),
                   DataCell(
-                    Text(formatFechaHora(DateTime.parse(s['fecha_apertura']))),
+                    Text(FormatterNumber.formatFechaHora(DateTime.parse(s['fecha_apertura']))),
                   ),
                   DataCell(
                     Text(
                       s['fecha_cierre'] != null
-                          ? formatFechaHora(DateTime.parse(s['fecha_cierre']))
+                          ? FormatterNumber.formatFechaHora(DateTime.parse(s['fecha_cierre']))
                           : 'Pendiente',
                     ),
                   ),
-                  DataCell(Text(formatCurrency(montoInicial))),
+                  DataCell(Text(FormatterNumber.formatCurrency(montoInicial))),
                   DataCell(
                     Text(
-                      montoFisico != null ? formatCurrency(montoFisico) : '-',
+                      montoFisico != null ? FormatterNumber.formatCurrency(montoFisico) : '-',
                     ),
                   ),
                   DataCell(
                     Text(
-                      formatCurrency(diff),
+                      FormatterNumber.formatCurrency(diff),
                       style: TextStyle(
                         color: diff == 0
                             ? Colors.green
@@ -366,38 +366,38 @@ class _HistorialCajaScreenState extends ConsumerState<HistorialCajaScreen> {
                 _detalleItem('Turno:', s['turno']?['nombre'] ?? 'N/A'),
                 _detalleItem(
                   'Apertura:',
-                  formatFechaHora(DateTime.parse(s['fecha_apertura'])),
+                  FormatterNumber.formatFechaHora(DateTime.parse(s['fecha_apertura'])),
                 ),
                 if (s['fecha_cierre'] != null)
                   _detalleItem(
                     'Cierre:',
-                    formatFechaHora(DateTime.parse(s['fecha_cierre'])),
+                    FormatterNumber.formatFechaHora(DateTime.parse(s['fecha_cierre'])),
                   ),
                 const SizedBox(height: 20),
                 _buildSectionTitle('RESULTADOS FINANCIEROS'),
                 _detalleItem(
                   'Monto Inicial:',
-                  formatCurrency(
+                  FormatterNumber.formatCurrency(
                     double.parse((s['monto_inicial'] ?? 0).toString()),
                   ),
                 ),
                 _detalleItem(
                   'Monto Esperado:',
-                  formatCurrency(
+                  FormatterNumber.formatCurrency(
                     double.parse((s['monto_final_esperado'] ?? 0).toString()),
                   ),
                 ),
                 _detalleItem(
                   'Monto Físico:',
                   s['monto_final_fisico'] != null
-                      ? formatCurrency(
+                      ? FormatterNumber.formatCurrency(
                           double.parse(s['monto_final_fisico'].toString()),
                         )
                       : '-',
                 ),
                 _detalleItem(
                   'Diferencia:',
-                  formatCurrency(
+                  FormatterNumber.formatCurrency(
                     double.parse((s['diferencia'] ?? 0).toString()),
                   ),
                   color: double.parse((s['diferencia'] ?? 0).toString()) < 0
@@ -409,7 +409,7 @@ class _HistorialCajaScreenState extends ConsumerState<HistorialCajaScreen> {
                   _buildSectionTitle('RESUMEN DE VENTAS POR MÉTODO'),
                   ...(resumen as List).map((m) => _detalleItem(
                         m['metodo_pago'].toString().toUpperCase(),
-                        formatCurrency(double.parse(m['total'].toString())),
+                        FormatterNumber.formatCurrency(double.parse(m['total'].toString())),
                       )),
                 ],
                 if (desglose != null && desglose.isNotEmpty) ...[

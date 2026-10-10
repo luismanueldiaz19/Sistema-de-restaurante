@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
+export 'formatter_number.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
@@ -90,32 +91,12 @@ Future<void> showCustomDialog(
   );
 }
 
-String formatCurrency(double amount) {
-  return NumberFormat.currency(locale: 'en_US', symbol: 'RD\$ ').format(amount);
-}
-
-String formatMoneda(double amount) {
-  return NumberFormat.simpleCurrency(
-    locale: 'en_US',
-    name: 'RD\$ ',
-  ).format(amount);
-}
-
-String formatFechaLatina(DateTime date) {
-  return DateFormat('dd/MM/yyyy').format(date);
-}
-
-String formatFechaHora(DateTime date) {
-  return DateFormat('dd/MM/yyyy hh:mm a').format(date);
-}
-
-double parseDouble(dynamic value) {
-  if (value == null) return 0.0;
-  if (value is double) return value;
-  if (value is int) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0.0;
-  return 0.0;
-}
+// String formatMoneda(double amount) {
+//   return NumberFormat.simpleCurrency(
+//     locale: 'en_US',
+//     name: 'RD\$ ',
+//   ).format(amount);
+// }
 
 // String generateUUID() {
 //   ///generador de UUID
@@ -380,6 +361,7 @@ Widget textFieldWidgetUI({
   );
 }
 
+// ignore: strict_top_level_inference
 Widget identy(context) =>
     Text('© 2026 $developer', style: Theme.of(context).textTheme.bodySmall);
 
@@ -1003,11 +985,6 @@ Widget buildStyledDropdownFormField<T>({
       onChanged: onChanged,
     ),
   );
-}
-
-getTotal<T>(List<T> collection, double Function(T) selector) {
-  double total = collection.fold(0.0, (sum, item) => sum + selector(item));
-  return total.toStringAsFixed(0);
 }
 
 String getGreeting() {

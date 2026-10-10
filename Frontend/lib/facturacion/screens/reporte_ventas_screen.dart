@@ -365,7 +365,7 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
-                          formatCurrency(total),
+                          FormatterNumber.formatCurrency(total),
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             color: AppColors.primary,
@@ -391,7 +391,7 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Text(
-                        formatCurrency(totalGeneral),
+                        FormatterNumber.formatCurrency(totalGeneral),
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,

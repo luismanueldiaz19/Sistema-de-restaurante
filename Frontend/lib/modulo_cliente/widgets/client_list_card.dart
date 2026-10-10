@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/cliente.dart';
 import '../../palletes/app_colors.dart';
+import '../../utils/get_initials.dart';
 
 class ClientListCard extends StatelessWidget {
   final Cliente cliente;
@@ -35,13 +36,6 @@ class ClientListCard extends StatelessWidget {
     ];
     final hash = name.codeUnits.fold(0, (prev, curr) => prev + curr);
     return colors[hash % colors.length];
-  }
-
-  String _getInitials(String? name) {
-    if (name == null || name.trim().isEmpty) return "C";
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length == 1) return parts[0].substring(0, 1).toUpperCase();
-    return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
   }
 
   @override
@@ -83,7 +77,7 @@ class ClientListCard extends StatelessWidget {
                           backgroundColor: cardColor,
                           radius: 18,
                           child: Text(
-                            _getInitials(cliente.nombre),
+                            InitialsHelper.getInitials(cliente.nombre, defaultChar: "C"),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,

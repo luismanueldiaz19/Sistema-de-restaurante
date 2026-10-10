@@ -293,7 +293,7 @@ class CotizacionDetallePanel extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          formatCurrency(
+                          FormatterNumber.formatCurrency(
                             double.tryParse(cotizacion!.total ?? '0') ?? 0,
                           ),
                           style: const TextStyle(
@@ -410,7 +410,7 @@ class CotizacionDetallePanel extends StatelessWidget {
             ),
           ),
           Text(
-            formatCurrency(double.tryParse(item.total ?? '0') ?? 0),
+            FormatterNumber.formatCurrency(double.tryParse(item.total ?? '0') ?? 0),
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           ),
         ],
@@ -431,7 +431,7 @@ class CotizacionDetallePanel extends StatelessWidget {
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
         Text(
-          '${isDiscount ? '- ' : ''}${formatCurrency(amount)}',
+          '${isDiscount ? '- ' : ''}${FormatterNumber.formatCurrency(amount)}',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 12,
