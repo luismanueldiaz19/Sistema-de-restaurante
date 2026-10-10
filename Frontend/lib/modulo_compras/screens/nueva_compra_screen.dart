@@ -84,6 +84,7 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
       )[0],
       'tipo_compra': formState.tipoCompra,
       'metodo_pago_id': formState.metodoPagoId,
+      'referencia_pago': formState.referenciaPago,
       'notas': formState.notas,
       // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
       // El mismo UUID se envía en cada reintento del formulario.

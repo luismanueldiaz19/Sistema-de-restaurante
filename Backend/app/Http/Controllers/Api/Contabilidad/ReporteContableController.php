@@ -11,6 +11,19 @@ use Illuminate\Support\Facades\DB;
 class ReporteContableController extends Controller
 {
     /**
+     * Reporte de Libro Diario
+     */
+    public function libroDiario(Request $request, \App\Modules\Contabilidad\Services\ReportesContablesService $service)
+    {
+        $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
+        $fechaHasta = $request->input('fecha_hasta', now()->toDateString());
+        
+        $diario = $service->generarLibroDiario($fechaDesde, $fechaHasta);
+        
+        return response()->json(['data' => $diario]);
+    }
+
+    /**
      * Reporte de Mayor General.
      * Retorna todas las cuentas de detalle con sus débitos, créditos y saldo en un rango de fechas.
      */

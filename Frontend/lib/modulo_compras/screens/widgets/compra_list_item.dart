@@ -21,15 +21,15 @@ class CompraListItem extends StatelessWidget {
     
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withOpacity(0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.grey.shade200,
-            width: isSelected ? 2 : 1,
+            width: isSelected ? 1.5 : 1,
           ),
         ),
         child: Column(
@@ -41,41 +41,42 @@ class CompraListItem extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Factura #${compra.numeroFacturaProveedor}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 _buildEstadoBadge(compra.estado),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Row(
               children: [
-                Icon(isContado ? Icons.money : Icons.credit_card, size: 14, color: isContado ? Colors.green : Colors.orange),
+                Icon(isContado ? Icons.money : Icons.credit_card, size: 12, color: isContado ? Colors.green : Colors.orange),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     'Proveedor: ${compra.proveedor?.nombre ?? 'N/A'}',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               'Fecha: ${compra.fechaCompra.toLocal().toString().split(' ')[0]}',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               formatCurrency(compra.total),
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: AppColors.secondary,
-                fontSize: 16,
+                fontSize: 14,
               ),
             ),
           ],
@@ -98,14 +99,14 @@ class CompraListItem extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         estado.toUpperCase(),
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+        style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold),
       ),
     );
   }

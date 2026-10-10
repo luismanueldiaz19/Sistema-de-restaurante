@@ -18,6 +18,9 @@ class ComprasListScreen extends ConsumerStatefulWidget {
 class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
   Compra? _selectedCompra;
   String _selectedDateFilter = 'Todos';
+  String _selectedStatus = 'todos';
+  final TextEditingController _searchCtrl = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -25,6 +28,20 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(comprasProvider.notifier).loadCompras();
     });
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        ref.read(comprasProvider.notifier).loadMore();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _aplicarFiltroFecha(String filtro) {
@@ -65,7 +82,29 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
 
     ref
         .read(comprasProvider.notifier)
-        .loadCompras(fechaDesde: fechaDesde, fechaHasta: fechaHasta);
+        .loadCompras(
+          fechaDesde: fechaDesde,
+          fechaHasta: fechaHasta,
+          search: _searchCtrl.text,
+          estado: _selectedStatus,
+        );
+  }
+
+  void _aplicarFiltroSearch(String text) {
+    ref
+        .read(comprasProvider.notifier)
+        .loadCompras(search: text, estado: _selectedStatus);
+  }
+
+  void _aplicarFiltroEstado(String? estado) {
+    if (estado == null) return;
+    setState(() {
+      _selectedStatus = estado;
+      _selectedCompra = null;
+    });
+    ref
+        .read(comprasProvider.notifier)
+        .loadCompras(estado: estado, search: _searchCtrl.text);
   }
 
   Future<void> _mostrarSelectorRangoFechas() async {
@@ -189,10 +228,25 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
                                       ),
                                     )
                                   : ListView.separated(
-                                      itemCount: state.compras.length,
+                                      controller: _scrollController,
+                                      itemCount:
+                                          state.compras.length +
+                                          (state.hasMore ? 1 : 0),
                                       separatorBuilder: (_, __) =>
                                           const SizedBox(height: 12),
                                       itemBuilder: (context, index) {
+                                        if (index == state.compras.length) {
+                                          return const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: 16.0,
+                                            ),
+                                            child: Center(
+                                              child: CircularProgressIndicator(
+                                                color: AppColors.primary,
+                                              ),
+                                            ),
+                                          );
+                                        }
                                         final compra = state.compras[index];
                                         final isSelected =
                                             _selectedCompra?.id == compra.id;
@@ -235,37 +289,99 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
   Widget _buildDateFilters() {
     final filters = ['Todos', 'Hoy', 'Ayer', 'Este Mes', 'Rango...'];
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: filters.map((filter) {
-          final isSelected = _selectedDateFilter == filter;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ChoiceChip(
-              label: Text(filter),
-              selected: isSelected,
-              onSelected: (bool selected) {
-                if (selected) {
-                  _aplicarFiltroFecha(filter);
-                }
-              },
-              selectedColor: AppColors.primary.withOpacity(0.2),
-              labelStyle: TextStyle(
-                color: isSelected ? AppColors.primary : Colors.grey.shade700,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: 'Buscar factura, proveedor o NCF...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 0,
+                  ),
+                ),
+                onSubmitted: _aplicarFiltroSearch,
               ),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
+            ),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedStatus,
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'todos',
+                      child: Text('Todos los Estados'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'PENDIENTE',
+                      child: Text('Pendiente'),
+                    ),
+                    DropdownMenuItem(value: 'PAGADA', child: Text('Pagada')),
+                    DropdownMenuItem(value: 'ANULADA', child: Text('Anulada')),
+                  ],
+                  onChanged: _aplicarFiltroEstado,
                 ),
               ),
             ),
-          );
-        }).toList(),
-      ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: filters.map((filter) {
+              final isSelected = _selectedDateFilter == filter;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ChoiceChip(
+                  label: Text(filter),
+                  selected: isSelected,
+                  onSelected: (bool selected) {
+                    if (selected) {
+                      _aplicarFiltroFecha(filter);
+                    }
+                  },
+                  selectedColor: AppColors.primary.withOpacity(0.2),
+                  labelStyle: TextStyle(
+                    color: isSelected
+                        ? AppColors.primary
+                        : Colors.grey.shade700,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.grey.shade300,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 
@@ -274,22 +390,22 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
       children: [
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
+                  color: AppColors.primary.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
@@ -297,53 +413,56 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
                   child: const Icon(
                     Icons.shopping_bag,
                     color: AppColors.primary,
-                    size: 28,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total General',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 12,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Total General',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
-                    Text(
-                      formatCurrency(state.totales.totalGeneral),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
-                        color: AppColors.secondary,
+                      Text(
+                        formatCurrency(state.totales.totalGeneral),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          color: AppColors.secondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.green.withOpacity(0.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
+                  color: Colors.green.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.green.withOpacity(0.1),
                     shape: BoxShape.circle,
@@ -351,29 +470,32 @@ class _ComprasListScreenState extends ConsumerState<ComprasListScreen> {
                   child: const Icon(
                     Icons.check_circle_outline,
                     color: Colors.green,
-                    size: 28,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pagado',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 12,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pagado',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
-                    Text(
-                      formatCurrency(state.totales.totalPagado),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
-                        color: AppColors.secondary,
+                      Text(
+                        formatCurrency(state.totales.totalPagado),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          color: AppColors.secondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

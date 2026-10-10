@@ -1,3 +1,4 @@
+import 'package:sistema_restaurante/utils/helpers.dart';
 import 'producto.dart';
 
 class Receta {
@@ -19,7 +20,7 @@ class Receta {
     id: json["id"],
     productoId: json["producto_id"],
     ingredienteProductoId: json["ingrediente_producto_id"],
-    cantidad: json["cantidad"]?.toDouble() ?? 0,
+    cantidad: parseDouble(json["cantidad"]),
     ingrediente: json["ingrediente"] == null ? null : Producto.fromJson(json["ingrediente"]),
   );
 

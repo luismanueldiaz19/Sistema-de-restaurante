@@ -76,12 +76,14 @@ class CuentaPorPagarService
             // Registrar Asiento Contable del Pago
             $numeroFactura = $cxp->compra->numero_factura_proveedor ?? 'N/A';
             $asientoPago = $this->contabilidadService->registrarAsientoAuto(
-                'pago_compra',
-                0, 0, $dto->monto_pagado,
-                "PAGO-CXP-{$pago->id}",
-                "Abono a CxP de Compra Fac: " . $numeroFactura,
-                auth()->id() ?? 1,
-                ['pago_compra_efectivo_haber' => $cuentaOrigenId]
+                new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
+                    'pago_compra',
+                    0, 0, $dto->monto_pagado,
+                    "PAGO-CXP-{$pago->id}",
+                    "Abono a CxP de Compra Fac: " . $numeroFactura,
+                    auth()->id() ?? 1,
+                    ['pago_compra_efectivo_haber' => $cuentaOrigenId]
+                )
             );
 
             if ($asientoPago) {

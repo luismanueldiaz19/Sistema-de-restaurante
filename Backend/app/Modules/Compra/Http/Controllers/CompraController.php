@@ -38,6 +38,18 @@ class CompraController extends Controller
             $query->where('estado', $request->estado);
         }
 
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(numero_factura_proveedor) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(ncf) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(notas) LIKE ?', ["%{$search}%"])
+                  ->orWhereHas('proveedor', function($p) use ($search) {
+                      $p->whereRaw('LOWER(nombre) LIKE ?', ["%{$search}%"]);
+                  });
+            });
+        }
+
         $compras = $query->paginate((int)$request->input('per_page', 20));
 
         return $this->successResponse(

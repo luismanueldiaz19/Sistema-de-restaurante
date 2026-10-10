@@ -196,16 +196,18 @@ class FacturacionService {
             // - CRÉDITO a: Ingresos por Ventas (reconoce el ingreso)
             // - CRÉDITO a: ITBIS por Pagar (reconoce el impuesto a pagar)
             // - (También afecta Costo e Inventario si aplica)
-            $asientoContable = $this->contabilidadService -> registrarAsientoAuto(
-                'venta_credito',
-                round($subtotal, 2),
-                round($itbisTotal, 2),
-                round($total, 2),
-                $ncf,
-                "Venta - Factura NCF $ncf",
-                $usuarioId,
-                $customConfigs,
-                round($costoTotalVenta, 2)
+            $asientoContable = $this->contabilidadService->registrarAsientoAuto(
+                new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
+                    'venta_credito',
+                    round($subtotal, 2),
+                    round($itbisTotal, 2),
+                    round($total, 2),
+                    $ncf,
+                    "Venta - Factura NCF $ncf",
+                    $usuarioId,
+                    $customConfigs,
+                    round($costoTotalVenta, 2)
+                )
             );
 
             $asientoPago = null;
@@ -238,12 +240,14 @@ class FacturacionService {
                 // - DÉBITO a: Caja General o Banco (entra el dinero real a nuestra cuenta)
                 // - CRÉDITO a: Cuentas por Cobrar Clientes (liquida la deuda que se creó en el Paso 1)
                 $asientoPago = $this->contabilidadService->registrarAsientoAuto(
-                    'pago_cxc',
-                    0, 0, $total,
-                    $ncf,
-                    "Cobro de Factura NCF: $ncf",
-                    $usuarioId,
-                    $customConfigs
+                    new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
+                        'pago_cxc',
+                        0, 0, $total,
+                        $ncf,
+                        "Cobro de Factura NCF: $ncf",
+                        $usuarioId,
+                        $customConfigs
+                    )
                 );
 
                 if ($asientoPago) {

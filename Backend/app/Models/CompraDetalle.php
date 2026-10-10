@@ -16,6 +16,8 @@ class CompraDetalle extends Model
         'producto_id',
         'descripcion',
         'cuenta_contable_id',
+        'presentacion',
+        'factor_conversion',
         'cantidad',
         'costo_unitario',
         'subtotal',

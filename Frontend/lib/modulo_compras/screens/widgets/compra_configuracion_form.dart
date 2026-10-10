@@ -142,7 +142,7 @@ class _CompraConfiguracionFormState
               const SizedBox(height: 8),
               CustomTextField(
                 controller: notasCtrl,
-                label: 'Notas (Opcional)',
+                label: 'Nota / Referencia de Compra (Opcional)',
                 prefixIcon: Icons.note_alt_outlined,
                 maxLines: 1,
                 onChanged: (val) => formNotifier.setNotas(val),
@@ -177,7 +177,7 @@ class _CompraConfiguracionFormState
               ],
               CustomTextField(
                 controller: notasCtrl,
-                label: 'Notas (Opcional)',
+                label: 'Nota / Referencia de Compra (Opcional)',
                 prefixIcon: Icons.note_alt_outlined,
                 maxLines: 2,
                 onChanged: (val) => formNotifier.setNotas(val),
@@ -452,10 +452,7 @@ class _CompraConfiguracionFormState
   Widget _buildMetodoPago(formState, formNotifier) {
     final metodosState = ref.watch(metodoPagoProvider);
     final items = metodosState.metodos.map((m) {
-      return DropdownMenuItem<int>(
-        value: m.id,
-        child: Text(m.nombre),
-      );
+      return DropdownMenuItem<int>(value: m.id, child: Text(m.nombre));
     }).toList();
 
     return DropdownButtonFormField<int>(
@@ -463,8 +460,14 @@ class _CompraConfiguracionFormState
         labelText: 'Método de Pago',
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
         filled: true,
         fillColor: Colors.white,
       ),

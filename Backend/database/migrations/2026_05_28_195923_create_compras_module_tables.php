@@ -99,10 +99,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 5. Pagos a Cuentas por Pagar
+        // 5. Pagos a Cuentas por Pagar (y Pagos directos de Compras al Contado)
         Schema::create('pagos_compras', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cxp_id')->constrained('cuentas_por_pagar')->restrictOnDelete();
+            $table->foreignId('cxp_id')->nullable()->constrained('cuentas_por_pagar')->restrictOnDelete();
+            $table->foreignId('compra_id')->nullable()->constrained('compras')->restrictOnDelete();
             $table->decimal('monto_pagado', 12, 2);
             $table->date('fecha_pago');
             $table->foreignId('metodo_pago_id')->constrained('metodo_pagos')->restrictOnDelete();

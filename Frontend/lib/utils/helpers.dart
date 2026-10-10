@@ -109,6 +109,14 @@ String formatFechaHora(DateTime date) {
   return DateFormat('dd/MM/yyyy hh:mm a').format(date);
 }
 
+double parseDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
 // String generateUUID() {
 //   ///generador de UUID
 //   const uuid = Uuid();

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:sistema_restaurante/utils/normalize.dart';
+import 'package:sistema_restaurante/utils/helpers.dart';
 
 import 'categoria_model.dart';
 import 'marca_model.dart';
@@ -117,21 +118,23 @@ class Producto {
         ? CategoriaModel.fromJson(json["categoria"])
         : null,
     marca: json["marca"] != null ? MarcaModel.fromJson(json["marca"]) : null,
-    unidadMedida: json["unidad_medida"] != null ? UnidadMedidaModel.fromJson(json["unidad_medida"]) : null,
+    unidadMedida: json["unidad_medida"] != null
+        ? UnidadMedidaModel.fromJson(json["unidad_medida"])
+        : null,
     impuesto: json["impuesto"] != null
         ? ImpuestoModel.fromJson(json["impuesto"])
         : null,
     tipoProducto: json["tipo_producto"] ?? 'PRODUCTO',
     tipoContable: json["tipo_contable"] ?? 'INVENTARIO',
-    precioVenta: json["precio_venta"]?.toDouble(),
-    precioCompra: json["precio_compra"]?.toDouble(),
-    costo: json["costo"]?.toDouble(),
+    precioVenta: parseDouble(json["precio_venta"]),
+    precioCompra: parseDouble(json["precio_compra"]),
+    costo: parseDouble(json["costo"]),
     manejaInventario:
         json["maneja_inventario"] == 1 || json["maneja_inventario"] == true,
-    stockActual: json["stock_actual"]?.toDouble(),
-    stockMinimo: json["stock_minimo"]?.toDouble(),
+    stockActual: parseDouble(json["stock_actual"]),
+    stockMinimo: parseDouble(json["stock_minimo"]),
     presentacionCompraPorDefecto: json["presentacion_compra_por_defecto"],
-    factorCompraPorDefecto: json["factor_compra_por_defecto"]?.toDouble(),
+    factorCompraPorDefecto: parseDouble(json["factor_compra_por_defecto"]),
     cuentaIngresoId: json["cuenta_ingreso_id"],
     cuentaInventarioId: json["cuenta_inventario_id"],
     cuentaCostoId: json["cuenta_costo_id"],
@@ -144,8 +147,8 @@ class Producto {
     updatedAt: json["updated_at"] == null
         ? null
         : DateTime.parse(json["updated_at"]),
-    recetas: json["recetas"] == null 
-        ? [] 
+    recetas: json["recetas"] == null
+        ? []
         : List<Receta>.from(json["recetas"].map((x) => Receta.fromJson(x))),
   );
 

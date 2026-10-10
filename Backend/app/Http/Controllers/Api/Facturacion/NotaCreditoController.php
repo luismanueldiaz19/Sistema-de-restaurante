@@ -161,15 +161,17 @@ class NotaCreditoController extends Controller
             // Generar asiento contable automático
             $contabilidadService = new ContabilidadService();
             $contabilidadService->registrarAsientoAuto(
-                'devolucion_venta',
-                round($subtotalTotal, 2),
-                round($itbisTotal, 2),
-                round($totalMonto, 2),
-                "NotaCredito-{$notaCredito->id}",
-                "Devolución parcial de Venta, NCF: {$ncf}",
-                auth()->id(),
-                [],
-                round($costoTotal, 2)
+                new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
+                    'devolucion_venta',
+                    round($subtotalTotal, 2),
+                    round($itbisTotal, 2),
+                    round($totalMonto, 2),
+                    "NotaCredito-{$notaCredito->id}",
+                    "Devolución parcial de Venta, NCF: {$ncf}",
+                    auth()->id(),
+                    [],
+                    round($costoTotal, 2)
+                )
             );
 
             // Restar de la caja actual si la factura original se pagó en efectivo

@@ -13,6 +13,7 @@ class PagoCompra extends Model
 
     protected $fillable = [
         'cxp_id',
+        'compra_id',
         'monto_pagado',
         'fecha_pago',
         'metodo_pago_id',
@@ -21,6 +22,11 @@ class PagoCompra extends Model
         'asiento_id',
         'usuario_id',
     ];
+
+    public function compra()
+    {
+        return $this->belongsTo(Compra::class, 'compra_id');
+    }
 
     public function cuentaPorPagar()
     {

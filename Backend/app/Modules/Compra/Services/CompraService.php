@@ -26,9 +26,18 @@ class CompraService
         private readonly BankService $bankService
     ) {}
 
-    public function create(CreateCompraDTO $dto): array
-    {
+    public function create(CreateCompraDTO $dto): array {
         return DB::transaction(function () use ($dto) {
+            // Verificar idempotencia: Si ya existe esta factura para este proveedor, no duplicar.
+            $compraExistente = Compra::with('detalles')
+                ->where('proveedor_id', $dto->proveedor_id)
+                ->where('numero_factura_proveedor', $dto->numero_factura_proveedor)
+                ->first();
+
+            if ($compraExistente) {
+                return $compraExistente->toArray();
+            }
+
             $subtotal  = 0;
             $impuestos = 0;
             $total     = 0;
@@ -56,10 +65,12 @@ class CompraService
             }
 
             // Verificar si el proveedor es informal para generar E41 y aplicar retención
-            $proveedor = Proveedor::findOrFail($dto->proveedor_id);
-            $esInformal = (bool) $proveedor->es_informal;
+            // $proveedor = Proveedor::findOrFail($dto->proveedor_id);
+            // $esInformal = (bool) $proveedor->es_informal;
+            $esInformal = false; // Comentado temporalmente
             $ncfFinal = $dto->ncf;
 
+            /*
             if ($esInformal) {
                 // Buscar secuencia E41
                 $sec = DB::table('ncf_secuencias')->where('tipo', '41')->lockForUpdate()->first();
@@ -70,7 +81,7 @@ class CompraService
                     $ncfFinal = 'E41' . str_pad((string)$nuevo, 10, '0', STR_PAD_LEFT);
                 }
             }
-
+            */
             // Crear Compra
             $estado = $dto->tipo_compra === CompraTipoEnum::CONTADO ? CompraEstadoEnum::PAGADA->value : CompraEstadoEnum::PENDIENTE->value;
 
@@ -190,9 +201,36 @@ class CompraService
             }
             */
 
-            // --- NUEVA INTEGRACIÓN CXP, BANCOS Y CONTABILIDAD ---
-            if ($dto->tipo_compra === CompraTipoEnum::CREDITO) {
-                // Registrar CxP sólo para compras a CRÉDITO
+            // --- LÓGICA DE CONTADO VS CRÉDITO ---
+            if ($dto->tipo_compra === CompraTipoEnum::CONTADO) {
+                // Compra al contado: No se registra CxP. Se registra el pago directamente.
+                if ($dto->metodo_pago_id) {
+                    $metodo = MetodoPago::find($dto->metodo_pago_id);
+                    $cuentaOrigenId = $metodo ? $metodo->catalogo_cuenta_id : 1;
+
+                    // Crear el recibo de pago asociado a la compra
+                    $pago = PagoCompra::create([
+                        'compra_id' => $compra->id,
+                        'monto_pagado' => $total,
+                        'fecha_pago' => $dto->fecha_compra,
+                        'metodo_pago_id' => $dto->metodo_pago_id,
+                        'referencia' => $dto->referencia_pago ?? "Pago Fac. {$dto->numero_factura_proveedor}",
+                        'cuenta_origen_id' => $cuentaOrigenId,
+                        'usuario_id' => auth()->id() ?? 1,
+                    ]);
+
+                    if ($metodo && $metodo->bank_account_id && $this->bankService) {
+                        $this->bankService->registrarTransaccion(
+                            $metodo->bank_account_id,
+                            'withdrawal',
+                            (float) $total,
+                            $dto->referencia_pago ?? "Pago Fac. {$dto->numero_factura_proveedor}",
+                            "Pago inmediato Factura Prov. {$dto->numero_factura_proveedor}"
+                        );
+                    }
+                }
+            } else {
+                // Compra al crédito: Se registra la CxP. No hay pago inmediato.
                 $cxp = CuentaPorPagar::create([
                     'proveedor_id'      => $dto->proveedor_id,
                     'compra_id'         => $compra->id,
@@ -201,34 +239,57 @@ class CompraService
                     'fecha_vencimiento' => $dto->fecha_vencimiento ?? $dto->fecha_compra,
                     'estado'            => 'PENDIENTE',
                 ]);
-            } else {
-                // Es CONTADO: Registrar transacción bancaria inmediata si aplica
-                if ($dto->metodo_pago_id) {
-                    $metodo = \App\Models\MetodoPago::find($dto->metodo_pago_id);
-                    if ($metodo && $metodo->bank_account_id && $this->bankService) {
-                        $this->bankService->registrarTransaccion(
-                            $metodo->bank_account_id,
-                            'withdrawal',
-                            (float) $total,
-                            $dto->referencia_pago ?? null,
-                            "Pago inmediato Factura Prov. {$dto->numero_factura_proveedor}"
-                        );
-                    }
-                }
             }
 
-            // Asiento contable (se asume que registrarAsientoCompra maneja la lógica contado/crédito internamente)
+            /* Comentado temporalmente para probar CxP y Pagos primero
+            // Asiento contable
             try {
                 if ($this->contabilidadService) {
-                    $asientoId = $this->contabilidadService->registrarAsientoCompra($compra->id);
-                    if ($asientoId) {
-                        $compra->asiento_id = $asientoId;
+                    $customConfigs = [
+                        'es_informal' => $esInformal,
+                        'detalles' => $detallesProcesados
+                    ];
+
+                    $asiento = $this->contabilidadService->registrarAsientoAuto(
+                        new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
+                            'compra_inventario',
+                            $subtotal,
+                            $impuestos,
+                            $total,
+                            $ncfFinal ?? 'S/N',
+                            "Compra - Factura Prov: " . ($dto->numero_factura_proveedor ?? 'S/N'),
+                            auth()->id() ?? 1,
+                            $customConfigs
+                        )
+                    );
+
+                    if ($asiento) {
+                        $compra->asiento_id = $asiento->id;
                         $compra->save();
+                    }
+
+                    // Si fue al contado, asentar el pago
+                    if ($dto->tipo_compra === CompraTipoEnum::CONTADO && $dto->metodo_pago_id && isset($pago) && isset($cuentaOrigenId)) {
+                        $asientoPago = $this->contabilidadService->registrarAsientoAuto(
+                            new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
+                                'pago_compra',
+                                0, 0, $total,
+                                "PAGO-COMPRA-{$compra->id}",
+                                "Pago inmediato de Compra Fac: " . ($dto->numero_factura_proveedor ?? 'S/N'),
+                                auth()->id() ?? 1,
+                                ['pago_compra_efectivo_haber' => $cuentaOrigenId]
+                            )
+                        );
+                        if ($asientoPago) {
+                            $pago->asiento_id = $asientoPago->id;
+                            $pago->save();
+                        }
                     }
                 }
             } catch (\Exception $e) {
                 // Log and continue
             }
+            */
             // ----------------------------------------------------
 
             $compra->load('detalles');

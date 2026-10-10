@@ -26,6 +26,7 @@ class StoreCompraRequest extends FormRequest
             'tipo_compra'                   => ['required', Rule::enum(CompraTipoEnum::class)],
             'metodo_pago_id'                => ['nullable', 'integer', 'exists:metodo_pagos,id'],
             'referencia_pago'               => ['nullable', 'string'],
+            'referencia'                    => ['nullable', 'string'],
             'notas'                         => ['nullable', 'string'],
             'idempotency_key'               => ['nullable', 'string', 'max:36'],
             

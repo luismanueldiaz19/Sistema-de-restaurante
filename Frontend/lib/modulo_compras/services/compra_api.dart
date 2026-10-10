@@ -5,17 +5,26 @@ import '../../services/api_services.dart';
 class CompraApi {
   final String baseUrl = "$hostName/api/v2/compras";
 
-  Future<List<dynamic>> getAll(String token, {String? fechaDesde, String? fechaHasta}) async {
+  Future<Map<String, dynamic>> getAll(
+    String token, {
+    String? fechaDesde,
+    String? fechaHasta,
+    String? estado,
+    String? search,
+    int page = 1,
+  }) async {
     final api = ApiService();
-    String query = baseUrl;
-    if (fechaDesde != null && fechaHasta != null) {
-      query += '?fecha_desde=$fechaDesde&fecha_hasta=$fechaHasta';
-    }
+    String query = '$baseUrl?page=$page';
+    if (fechaDesde != null && fechaDesde.isNotEmpty) query += '&fecha_desde=$fechaDesde';
+    if (fechaHasta != null && fechaHasta.isNotEmpty) query += '&fecha_hasta=$fechaHasta';
+    if (estado != null && estado.isNotEmpty && estado != 'todos') query += '&estado=$estado';
+    if (search != null && search.isNotEmpty) query += '&search=$search';
     
     final response = await api.get(query, token: token);
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final decoded = jsonDecode(response.body);
+      return decoded['data'] ?? {};
     }
     throw Exception('Error al cargar compras');
   }

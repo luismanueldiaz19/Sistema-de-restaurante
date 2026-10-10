@@ -88,12 +88,14 @@ class CuentaPorCobrarService
             ];
 
             $asientoPago = $this->contabilidadService->registrarAsientoAuto(
-                'pago_cxc',
-                0, 0, $dto->monto_pagado,
-                $ncfFactura,
-                "Cobro de CxC Factura: {$facturaId}",
-                auth()->id() ?? 1,
-                $customConfigs
+                new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
+                    'pago_cxc',
+                    0, 0, $dto->monto_pagado,
+                    $ncfFactura,
+                    "Cobro de CxC Factura: {$facturaId}",
+                    auth()->id() ?? 1,
+                    $customConfigs
+                )
             );
 
             if ($asientoPago) {

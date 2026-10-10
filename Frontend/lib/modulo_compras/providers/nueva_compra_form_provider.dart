@@ -66,6 +66,7 @@ class NuevaCompraFormState {
   final String numFactura;
   final String notas;
   final int? metodoPagoId;
+  final String? referenciaPago;
 
   /// UUID v4 generado una sola vez al crear/resetear el formulario.
   /// Se envía al backend en cada intento de POST para garantizar idempotencia:
@@ -83,6 +84,7 @@ class NuevaCompraFormState {
     this.numFactura = '',
     this.notas = '',
     this.metodoPagoId,
+    this.referenciaPago,
     String? idempotencyKey,
   }) : idempotencyKey = idempotencyKey ?? _uuid.v4();
 
@@ -106,6 +108,8 @@ class NuevaCompraFormState {
     String? notas,
     int? metodoPagoId,
     bool clearMetodoPago = false,
+    String? referenciaPago,
+    bool clearReferenciaPago = false,
     // idempotencyKey NO se expone en copyWith para evitar mutaciones accidentales.
     // Solo se renueva explícitamente con clearForm().
   }) {
@@ -120,7 +124,12 @@ class NuevaCompraFormState {
       ncf: ncf ?? this.ncf,
       numFactura: numFactura ?? this.numFactura,
       notas: notas ?? this.notas,
-      metodoPagoId: clearMetodoPago ? null : (metodoPagoId ?? this.metodoPagoId),
+      metodoPagoId: clearMetodoPago
+          ? null
+          : (metodoPagoId ?? this.metodoPagoId),
+      referenciaPago: clearReferenciaPago
+          ? null
+          : (referenciaPago ?? this.referenciaPago),
       idempotencyKey: idempotencyKey, // mantiene el mismo key en cada copyWith
     );
   }
@@ -182,6 +191,10 @@ class NuevaCompraFormNotifier extends StateNotifier<NuevaCompraFormState> {
 
   void setMetodoPago(int? id) {
     state = state.copyWith(metodoPagoId: id, clearMetodoPago: id == null);
+  }
+
+  void setReferenciaPago(String? ref) {
+    state = state.copyWith(referenciaPago: ref, clearReferenciaPago: ref == null || ref.isEmpty);
   }
 
   /// Resetea el formulario y genera un NUEVO idempotency_key.

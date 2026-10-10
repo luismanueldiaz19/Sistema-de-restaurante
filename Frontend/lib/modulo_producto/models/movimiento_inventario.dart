@@ -1,3 +1,4 @@
+import 'package:sistema_restaurante/utils/helpers.dart';
 import 'producto.dart';
 
 class MovimientoInventario {
@@ -27,7 +28,7 @@ class MovimientoInventario {
         id: json['id'],
         productoId: json['producto_id'],
         tipo: json['tipo'],
-        cantidad: json['cantidad'] != null ? (json['cantidad'] as num).toDouble() : null,
+        cantidad: parseDouble(json['cantidad']),
         referencia: json['referencia'],
         fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha']) : null,
         createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,

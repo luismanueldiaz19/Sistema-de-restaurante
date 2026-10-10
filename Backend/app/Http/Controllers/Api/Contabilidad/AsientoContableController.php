@@ -48,5 +48,30 @@ class AsientoContableController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Crear un asiento contable de forma manual.
+     */
+    public function store(\App\Modules\Contabilidad\Requests\StoreAsientoManualRequest $request, \App\Modules\Contabilidad\Services\ContabilidadService $service)
+    {
+        try {
+            $asiento = $service->registrarAsientoManual(
+                $request->only(['fecha', 'glosa', 'referencia']),
+                $request->input('detalles'),
+                $request->user() ? $request->user()->id : null
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Asiento contable manual registrado correctamente',
+                'data' => $asiento
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar el asiento contable: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }
 

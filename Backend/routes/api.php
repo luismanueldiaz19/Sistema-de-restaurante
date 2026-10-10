@@ -193,12 +193,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/empleados/{id}/toggle', [EmpleadoController::class, 'toggleStatus'])
         ->middleware('permission:ver_nomina');
 
+    Route::get('/contabilidad/libro-diario', [ReporteContableController::class, 'libroDiario']);
+    
     // ================= CONTABILIDAD =================
     Route::apiResource('catalogo-cuentas', CatalogoCuentaController::class);
     Route::get('/configuracion-contable', [ConfiguracionContableController::class, 'index']);
     Route::put('/configuracion-contable/{id}', [ConfiguracionContableController::class, 'update']);
     Route::post('/configuracion-contable/bulk', [ConfiguracionContableController::class, 'bulkUpdate']);
     Route::get('/asientos', [AsientoContableController::class, 'index']);
+    Route::post('/asientos/manual', [AsientoContableController::class, 'store']);
 
     // ================= METODOS DE PAGO =================
     Route::get('/metodos-pagos/activos', [\App\Http\Controllers\Api\Finanzas\MetodoPagoController::class, 'activos']);

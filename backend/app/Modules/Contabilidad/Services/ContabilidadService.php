@@ -12,40 +12,30 @@ use Illuminate\Support\Facades\DB;
 
 class ContabilidadService
 {
-    public function registrarAsientoAuto(
-        string $tipoTransaccion,
-        float $subtotal,
-        float $itbis,
-        float $total,
-        string $referencia,
-        string $glosa,
-        int $usuarioId = null,
-        array $customConfigs = [],
-        float $costo = 0.0
-    ) {
-        if ($total <= 0) {
+    public function registrarAsientoAuto(\App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO $dto) {
+        if ($dto->total <= 0) {
             return null;
         }
 
-        return DB::transaction(function () use ($tipoTransaccion, $subtotal, $itbis, $total, $referencia, $glosa, $usuarioId, $customConfigs, $costo) {
+        return DB::transaction(function () use ($dto) {
             // 1. Cargar las configuraciones contables para obtener las cuentas correspondientes
             $configs = ConfiguracionContable::pluck('cuenta_id', 'clave')->toArray();
-            if (!empty($customConfigs)) {
-                $configs = array_merge($configs, $customConfigs);
+            if (!empty($dto->custom_configs)) {
+                $configs = array_merge($configs, $dto->custom_configs);
             }
 
             // 2. Obtener la estrategia contable adecuada mediante el Factory (Patrón Estrategia)
-            $strategy = AsientoStrategyFactory::make($tipoTransaccion);
+            $strategy = AsientoStrategyFactory::make($dto->tipo_transaccion);
             
             // 3. Generar las líneas de débito y crédito del asiento de forma dinámica
-            $detalles = $strategy->generarDetalles($configs, $subtotal, $itbis, $total, $costo);
+            $detalles = $strategy->generarDetalles($configs, $dto->subtotal, $dto->itbis, $dto->total, $dto->costo);
 
             // 4. Crear la cabecera del asiento contable (Journal Entry Header)
             $asiento = AsientoContable::create([
                 'fecha' => now()->toDateString(),
-                'glosa' => $glosa,
-                'referencia' => $referencia,
-                'usuario_id' => $usuarioId,
+                'glosa' => $dto->glosa,
+                'referencia' => $dto->referencia,
+                'usuario_id' => $dto->usuario_id,
                 'estado' => 'Posteado'
             ]);
 
@@ -67,6 +57,48 @@ class ContabilidadService
             // 6. Validar que la partida doble cuadre perfectamente (Double Entry checking)
             if (abs($totalDebito - $totalCredito) > 0.05) {
                 throw new ContabilidadException("Inconsistencia contable: El asiento no cuadra (Débito: $totalDebito, Crédito: $totalCredito).");
+            }
+
+            return $asiento->load('detalles.cuenta');
+        });
+    }
+
+    /**
+     * Registra un asiento contable de forma manual (ej. por un contador).
+     */
+    public function registrarAsientoManual(array $datosAsiento, array $detalles, int $usuarioId = null)
+    {
+        return DB::transaction(function () use ($datosAsiento, $detalles, $usuarioId) {
+            $totalDebito = 0.00;
+            $totalCredito = 0.00;
+
+            // 1. Validar partida doble antes de crear el registro
+            foreach ($detalles as $det) {
+                $totalDebito += (float) ($det['debito'] ?? 0);
+                $totalCredito += (float) ($det['credito'] ?? 0);
+            }
+
+            if (abs($totalDebito - $totalCredito) > 0.05) {
+                throw new ContabilidadException("Inconsistencia contable: El asiento manual no cuadra (Débito: $totalDebito, Crédito: $totalCredito).");
+            }
+
+            // 2. Crear cabecera
+            $asiento = AsientoContable::create([
+                'fecha' => $datosAsiento['fecha'] ?? now()->toDateString(),
+                'glosa' => $datosAsiento['glosa'] ?? 'Asiento manual',
+                'referencia' => $datosAsiento['referencia'] ?? null,
+                'usuario_id' => $usuarioId,
+                'estado' => 'Posteado'
+            ]);
+
+            // 3. Crear detalles
+            foreach ($detalles as $det) {
+                AsientoDetalle::create([
+                    'asiento_id' => $asiento->id,
+                    'cuenta_id' => $det['cuenta_id'],
+                    'debito' => $det['debito'] ?? 0.00,
+                    'credito' => $det['credito'] ?? 0.00
+                ]);
             }
 
             return $asiento->load('detalles.cuenta');

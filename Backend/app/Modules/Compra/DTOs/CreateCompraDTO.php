@@ -33,7 +33,7 @@ final readonly class CreateCompraDTO
             fecha_vencimiento: $request->fecha_vencimiento,
             tipo_compra: CompraTipoEnum::from($request->tipo_compra),
             metodo_pago_id: $request->metodo_pago_id ? (int) $request->metodo_pago_id : null,
-            referencia_pago: $request->referencia_pago,
+            referencia_pago: $request->referencia_pago ?? $request->referencia,
             notas: $request->notas,
             idempotency_key: $request->idempotency_key,
             detalles: $request->detalles
