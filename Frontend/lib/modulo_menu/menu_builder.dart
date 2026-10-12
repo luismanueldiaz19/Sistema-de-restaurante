@@ -12,6 +12,7 @@ import 'package:sistema_restaurante/facturacion/screens/historial_ventas_screen.
 import 'package:sistema_restaurante/pedidos/screens/pedidos_screen.dart';
 import 'package:sistema_restaurante/pedidos/screens/add_pedido.dart';
 import 'package:sistema_restaurante/pedidos/providers/pedidos_provider.dart';
+import 'package:sistema_restaurante/modulo_mesas/screens/mesas_screen.dart';
 import 'package:sistema_restaurante/modulo_cliente/screens/screen_client_admin.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_productos.dart';
 import 'package:sistema_restaurante/modulo_producto/screens/screen_recetas.dart';
@@ -42,8 +43,6 @@ import 'package:sistema_restaurante/modulo_dgii/screens/dgii_dashboard_screen.da
 import 'package:sistema_restaurante/facturacion/screens/reporte_ventas_screen.dart';
 import 'package:sistema_restaurante/modulo_cotizaciones/screens/crear_cotizacion_screen.dart';
 import 'package:sistema_restaurante/modulo_cotizaciones/screens/historial_cotizaciones_screen.dart';
-import 'package:sistema_restaurante/modulo_ordenes_compra/screens/crear_orden_compra_screen.dart';
-import 'package:sistema_restaurante/modulo_ordenes_compra/screens/historial_ordenes_compra_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/gestion_documentos_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/historial_notas_credito_screen.dart';
 
@@ -68,6 +67,16 @@ class MenuBuilder {
         onTap: onDashboardTap,
       ),
 
+      // 2. MESAS (Top / Salón)
+      SidebarItem(
+        title: 'Mesas',
+        icon: Icons.table_restaurant_rounded,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MesasScreen()),
+        ),
+      ),
+
       // MI PERFIL (Conservado para facilidad de acceso)
       SidebarItem(
         title: 'Mi Perfil',
@@ -78,7 +87,34 @@ class MenuBuilder {
         ),
       ),
 
-      // 2. VENTAS
+      // 3. PEDIDOS
+      SidebarItem(
+        title: 'Pedidos',
+        icon: Icons.restaurant_menu_rounded,
+        subItems: [
+          SidebarSubItem(
+            title: 'Nuevo Pedido',
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CrearPedidoPage()),
+              );
+              if (result == true) {
+                ref.read(pedidosProvider).fetchPedidos();
+              }
+            },
+          ),
+          SidebarSubItem(
+            title: 'Gestión de Pedidos',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PedidosScreen()),
+            ),
+          ),
+        ],
+      ),
+
+      // 3. VENTAS
       if (auth.hasPermission('ver_facturas') ||
           auth.hasPermission('ver_clientes') ||
           isAdmin)
@@ -86,45 +122,6 @@ class MenuBuilder {
           title: 'Ventas',
           icon: Icons.point_of_sale_outlined,
           subItems: [
-            if (!isCajero && (auth.hasPermission('crear_facturas') || isAdmin))
-              SidebarSubItem(
-                title: 'Nueva Cotización',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const CrearCotizacionScreen(),
-                  ),
-                ),
-              ),
-            if (!isCajero && (auth.hasPermission('ver_facturas') || isAdmin))
-              SidebarSubItem(
-                title: 'Cotizaciones',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HistorialCotizacionesScreen(),
-                  ),
-                ),
-              ),
-            SidebarSubItem(
-              title: 'Pedidos',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PedidosScreen()),
-              ),
-            ),
-            SidebarSubItem(
-              title: 'Nuevo Pedido',
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CrearPedidoPage()),
-                );
-                if (result == true) {
-                  ref.read(pedidosProvider).fetchPedidos();
-                }
-              },
-            ),
             if (auth.hasPermission('crear_facturas') || isAdmin)
               SidebarSubItem(
                 title: 'Nueva Venta',
@@ -174,7 +171,39 @@ class MenuBuilder {
           ],
         ),
 
-      // 3. INVENTARIO
+      // 4. COTIZACIONES
+      if (!isCajero &&
+          (auth.hasPermission('ver_facturas') ||
+              auth.hasPermission('crear_facturas') ||
+              isAdmin))
+        SidebarItem(
+          title: 'Cotizaciones',
+          icon: Icons.request_quote_outlined,
+          subItems: [
+            if (auth.hasPermission('crear_facturas') || isAdmin)
+              SidebarSubItem(
+                title: 'Nueva Cotización',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CrearCotizacionScreen(),
+                  ),
+                ),
+              ),
+            if (auth.hasPermission('ver_facturas') || isAdmin)
+              SidebarSubItem(
+                title: 'Historial de Cotizaciones',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HistorialCotizacionesScreen(),
+                  ),
+                ),
+              ),
+          ],
+        ),
+
+      // 5. INVENTARIO
       if (!isCajero &&
           (auth.hasPermission('ver_inventario') ||
               auth.hasPermission('ver_productos') ||
@@ -257,7 +286,7 @@ class MenuBuilder {
           ],
         ),
 
-      // 4. COMPRAS
+      // 6. COMPRAS
       if (!isCajero &&
           (auth.hasPermission('ver_compras') ||
               auth.hasPermission('ver_proveedores') ||
@@ -331,7 +360,7 @@ class MenuBuilder {
           ],
         ),
 
-      // 5. FINANZAS
+      // 7. FINANZAS
       if (auth.hasPermission('gestionar_caja') ||
           auth.hasPermission('ver_cxc') ||
           auth.hasPermission('ver_gastos') ||
@@ -409,7 +438,7 @@ class MenuBuilder {
           ],
         ),
 
-      // 6. CONTABILIDAD
+      // 8. CONTABILIDAD
       if (isAdmin || isContador)
         SidebarItem(
           title: 'Contabilidad',
@@ -466,7 +495,7 @@ class MenuBuilder {
           ],
         ),
 
-      // 7. RRHH
+      // 9. RRHH
       if (!isCajero &&
           (isAdmin ||
               isContador ||
@@ -510,7 +539,7 @@ class MenuBuilder {
           ],
         ),
 
-      // 8. DGII
+      // 10. DGII
       if (isAdmin || isContador)
         SidebarItem(
           title: 'DGII',

@@ -19,6 +19,13 @@ class DashboardButtonsSection extends ConsumerWidget {
     final items = [
       if (auth.hasPermission('crear_facturas'))
         DashboardButton(
+          title: 'Mesas',
+          icon: Icons.table_restaurant_rounded,
+          color: const Color(0xFFE65100),
+          onTap: () => onAction('mesas'),
+        ),
+      if (auth.hasPermission('crear_facturas'))
+        DashboardButton(
           title: 'Vender',
           icon: Icons.add_shopping_cart_rounded,
           color: Colors.green.shade600,

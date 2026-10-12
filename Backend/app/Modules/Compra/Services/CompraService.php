@@ -203,13 +203,24 @@ class CompraService
 
             // --- LÓGICA DE CONTADO VS CRÉDITO ---
             if ($dto->tipo_compra === CompraTipoEnum::CONTADO) {
-                // Compra al contado: No se registra CxP. Se registra el pago directamente.
+                // Compra al contado: Registrar la CxP en estado PAGADA y con balance 0
+                // para mantener la trazabilidad y la relación con los pagos del proveedor.
+                $cxp = CuentaPorPagar::create([
+                    'proveedor_id'      => $dto->proveedor_id,
+                    'compra_id'         => $compra->id,
+                    'monto_original'    => $total,
+                    'balance_pendiente' => 0,
+                    'fecha_vencimiento' => $dto->fecha_vencimiento ?? $dto->fecha_compra,
+                    'estado'            => 'PAGADA',
+                ]);
+
                 if ($dto->metodo_pago_id) {
                     $metodo = MetodoPago::find($dto->metodo_pago_id);
                     $cuentaOrigenId = $metodo ? $metodo->catalogo_cuenta_id : 1;
 
-                    // Crear el recibo de pago asociado a la compra
+                    // Crear el recibo de pago asociado a la compra y a la cxp
                     $pago = PagoCompra::create([
+                        'cxp_id' => $cxp->id,
                         'compra_id' => $compra->id,
                         'monto_pagado' => $total,
                         'fecha_pago' => $dto->fecha_compra,

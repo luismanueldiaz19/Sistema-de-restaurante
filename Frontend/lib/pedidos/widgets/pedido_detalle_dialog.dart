@@ -308,11 +308,8 @@ class PedidoDetalleDialog extends ConsumerWidget {
         ElevatedButton.icon(
           onPressed: () async {
             // Mandar a facturar
-            final factProvider = ref.read(facturacionProvider.notifier);
-            factProvider.limpiarCarrito();
-
-            print("=== PEDIDO DETALLES LENGTH: ${pedido.detalles.length}");
-            print("=== ANTES DE AGREGAR: ${factProvider.state.carrito.length}");
+            final factNotifier = ref.read(facturacionProvider.notifier);
+            factNotifier.limpiarCarrito();
 
             for (var det in pedido.detalles) {
               final p = Producto(
@@ -323,17 +320,12 @@ class PedidoDetalleDialog extends ConsumerWidget {
               );
               final item = FacturaItem(
                 cantidad: det.cantidad,
-
                 id: p.id.toString(),
                 descripcion: p.nombre!,
                 precio: p.precioVenta!,
               );
-              factProvider.agregarProducto(item);
+              factNotifier.agregarProducto(item);
             }
-
-            print(
-              "=== DESPUES DE AGREGAR: ${factProvider.state.carrito.length}",
-            );
 
             // Aquí marcamos el pedido como facturado
             await provider.updatePedidoStatus(pedido.id!, 'Facturado');

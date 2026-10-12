@@ -16,7 +16,7 @@ use App\Http\Controllers\Api\Impuestos\DgiiController;
 use App\Http\Controllers\Api\Contabilidad\ReporteContableController;
 use App\Http\Controllers\Api\Inventario\AjusteInventarioController;
 use App\Http\Controllers\Api\Facturacion\NotaCreditoController;
-use App\Http\Controllers\Api\Restaurante\PedidoController;
+// use App\Http\Controllers\Api\Restaurante\PedidoController; // Migrado a V2
 use App\Http\Controllers\Api\Inventario\RecetaController;
 use App\Http\Controllers\Api\Contabilidad\CatalogoCuentaController;
 use App\Http\Controllers\Api\Contabilidad\ConfiguracionContableController;
@@ -52,7 +52,7 @@ Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 // Webhook para Chatbot (Sin Auth de usuario)
-Route::post('/pedidos/bot', [PedidoController::class, 'storeWebhook']);
+Route::post('/pedidos/bot', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'storeWebhook']);
 Route::get('/pedidos/bot/productos', [ProductoController::class, 'index']);
 
 
@@ -127,10 +127,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('permission:crear_facturas');
 
     // ================= PEDIDOS =================
-    Route::post('/pedidos', [PedidoController::class, 'store']);
-    Route::get('/pedidos', [PedidoController::class, 'index']);
-    Route::get('/pedidos/codigo/{codigo}', [PedidoController::class, 'getByCodigo']);
-    Route::put('/pedidos/{id}/estado', [PedidoController::class, 'updateStatus']);
+    // Route::post('/pedidos', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'store']); // Migrado a V2
+    // Route::get('/pedidos', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'index']); // Migrado a V2
+    // Route::get('/pedidos/codigo/{codigo}', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'getByCodigo']); // Migrado a V2
+    // Route::put('/pedidos/{id}/estado', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'updateStatus']); // Migrado a V2
 
     // ================= ASIGNACIÓN DE MESAS Y CUENTAS =================
     Route::post('/cajas/{cajaId}/asignar-mesa', [CajaController::class, 'asignarMesa']);
@@ -250,4 +250,6 @@ Route::prefix('v2')->group(function () {
     require base_path('app/Modules/CuentaPorPagar/Routes/api.php');
     require base_path('app/Modules/CuentaPorCobrar/Routes/api.php');
     require base_path('app/Modules/Pago/Routes/api.php');
+    require base_path('app/Modules/Pedido/Routes/api.php');
+    require base_path('app/Modules/Mesa/Routes/api.php');
 });

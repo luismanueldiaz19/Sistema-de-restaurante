@@ -23,6 +23,25 @@ class PagoCompra extends Model
         'usuario_id',
     ];
 
+    protected $appends = [
+        'proveedor_nombre',
+        'numero_factura',
+    ];
+
+    public function getProveedorNombreAttribute(): string
+    {
+        return $this->cuentaPorPagar?->proveedor?->nombre 
+            ?? $this->compra?->proveedor?->nombre 
+            ?? 'Proveedor Desconocido';
+    }
+
+    public function getNumeroFacturaAttribute(): string
+    {
+        return $this->cuentaPorPagar?->compra?->numero_factura_proveedor 
+            ?? $this->compra?->numero_factura_proveedor 
+            ?? 'N/A';
+    }
+
     public function compra()
     {
         return $this->belongsTo(Compra::class, 'compra_id');

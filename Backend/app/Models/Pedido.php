@@ -20,6 +20,7 @@ class Pedido extends Model
         'total',
         'nota',
         'factura_id',
+        'mesa_id',
         'codigo_barras',
     ];
 
@@ -31,5 +32,10 @@ class Pedido extends Model
     public function factura()
     {
         return $this->belongsTo(Factura::class, 'factura_id');
+    }
+
+    public function mesa()
+    {
+        return $this->belongsTo(\App\Modules\Mesa\Models\Mesa::class, 'mesa_id');
     }
 }

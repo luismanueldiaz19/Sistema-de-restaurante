@@ -664,12 +664,28 @@ void showToast(
   BuildContext context,
   String message, {
   Color bgColor = Colors.black,
+  Duration duration = const Duration(milliseconds: 300),
+  SnackBarBehavior behavior = SnackBarBehavior.floating,
 }) {
-  ScaffoldMessenger.of(context).showSnackBar(
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.clearSnackBars();
+  messenger.showSnackBar(
     SnackBar(
-      content: Text(message),
+      content: Text(
+        message,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
       backgroundColor: bgColor,
-      duration: const Duration(seconds: 2),
+      duration: duration,
+      behavior: behavior,
+      margin: behavior == SnackBarBehavior.floating
+          ? const EdgeInsets.symmetric(horizontal: 16, vertical: 10)
+          : null,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
   );
 }

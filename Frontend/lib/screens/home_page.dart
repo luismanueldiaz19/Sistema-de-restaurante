@@ -18,6 +18,7 @@ import 'package:sistema_restaurante/widgets/custom_confirm_dialog.dart';
 import 'package:sistema_restaurante/widgets/custom_sidebar.dart';
 import '../facturacion/screens/historial_ventas_screen.dart';
 import '../modulo_cliente/providers/cliente_admin_provider.dart';
+import '../modulo_mesas/screens/mesas_screen.dart';
 import '../modulo_caja/providers/caja_provider.dart';
 import '../modulo_caja/widgets/cierre_caja_dialog.dart';
 import '../palletes/app_colors.dart';
@@ -364,6 +365,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 child: DashboardButtonsSection(
                   onAction: (action) {
                     switch (action) {
+                      case 'mesas':
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MesasScreen(),
+                          ),
+                        );
+                        break;
                       case 'venta':
                         Navigator.push(
                           context,

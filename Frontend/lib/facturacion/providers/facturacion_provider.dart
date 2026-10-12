@@ -146,6 +146,13 @@ class FacturacionNotifier extends StateNotifier<FacturacionState> {
     state = state.copyWith(carrito: []);
   }
 
+  void cargarItemsDeMesa(List<FacturaItem> items, {String? nota}) {
+    state = state.copyWith(
+      carrito: items,
+      nota: nota ?? state.nota,
+    );
+  }
+
   void resetState() {
     state = FacturacionState();
   }

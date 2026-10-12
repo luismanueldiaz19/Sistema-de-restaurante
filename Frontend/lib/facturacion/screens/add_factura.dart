@@ -22,11 +22,16 @@ import '../../repositories/repo_comprobante.dart';
 import '../../model/comprobante.dart';
 import '../../palletes/app_colors.dart';
 import '../../modulo_caja/providers/caja_provider.dart';
+import '../../modulo_mesas/models/mesa_model.dart';
+import '../../modulo_mesas/providers/mesas_provider.dart';
+import '../widgets/seleccionar_mesa_dialog.dart';
 import 'apertura_caja_page.dart';
 import '../../widgets/custom_confirm_dialog.dart';
 
 class CrearFacturaPage extends ConsumerStatefulWidget {
-  const CrearFacturaPage({super.key});
+  final MesaModel? mesaOrigen;
+
+  const CrearFacturaPage({super.key, this.mesaOrigen});
 
   @override
   ConsumerState<CrearFacturaPage> createState() => _CrearFacturaPageState();
@@ -41,10 +46,12 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   List<Comprobante> _comprobantes = [];
   String _searchQuery = "";
   bool _imprimirAutomaticamente = true;
+  MesaModel? _mesaVinculada;
 
   @override
   void initState() {
     super.initState();
+    _mesaVinculada = widget.mesaOrigen;
     _initData();
   }
 
@@ -52,6 +59,47 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _cargarMesaAlCarrito(MesaModel mesa) {
+    _mesaVinculada = mesa;
+    final items = mesa.ordenActiva?.detalles.map((det) {
+      return FacturaItem(
+        id: (det.productoId ?? 0).toString(),
+        descripcion: det.nombreProducto,
+        precio: det.precioUnitario,
+        cantidad: det.cantidad,
+      );
+    }).toList() ?? [];
+
+    ref.read(facturacionProvider.notifier).cargarItemsDeMesa(
+      items,
+      nota: 'Mesa: ${mesa.nombre} (${mesa.area})',
+    );
+
+    if (mounted) {
+      showToast(
+        context,
+        '🍽️ Comanda de Mesa ${mesa.nombre} cargada al carrito',
+        bgColor: Colors.green,
+      );
+      setState(() {});
+    }
+  }
+
+  Future<void> _abrirSelectorMesa() async {
+    final mesasState = ref.read(mesasProvider);
+    await mesasState.fetchMesas(silent: true);
+
+    if (!mounted) return;
+    final seleccionada = await showDialog<MesaModel>(
+      context: context,
+      builder: (_) => SeleccionarMesaDialog(mesas: mesasState.mesas),
+    );
+
+    if (seleccionada != null) {
+      _cargarMesaAlCarrito(seleccionada);
+    }
   }
 
   Future<void> _handleBarcodeScan(
@@ -100,9 +148,13 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   Future<void> _initData() async {
     final auth = ref.read(authProvider);
 
-    // 1. Limpiar estado previo
+    // 1. Limpiar o Cargar estado previo según mesa
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(facturacionProvider.notifier).resetState();
+      if (_mesaVinculada != null && _mesaVinculada!.ordenActiva != null) {
+        _cargarMesaAlCarrito(_mesaVinculada!);
+      } else {
+        ref.read(facturacionProvider.notifier).resetState();
+      }
     });
 
     // 2. Cargar comprobantes (Solo una vez al entrar)
@@ -244,11 +296,32 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     );
 
     if (result['success'] && mounted) {
-      // showToast(context, 'Factura creada con éxito', bgColor: Colors.green);
       // 🖨️ Imprimir ticket en impresora térmica USB si está activado
       if (imprimirTicket) {
         _imprimirTicket(state, result['data'], pagoInfo);
       }
+
+      // Si la factura provino de una mesa, liberarla en el salón
+      if (_mesaVinculada != null) {
+        final mesaId = _mesaVinculada!.id;
+        final mesaNombre = _mesaVinculada!.nombre;
+        _mesaVinculada = null;
+        try {
+          await ref
+              .read(mesasProvider)
+              .liberarMesa(mesaId, porFactura: true);
+          if (mounted) {
+            showToast(
+              context,
+              'Factura procesada y Mesa $mesaNombre liberada',
+              bgColor: Colors.green,
+            );
+          }
+        } catch (_) {}
+      } else {
+        showToast(context, 'Factura creada con éxito', bgColor: Colors.green);
+      }
+
       // Resetear para la siguiente venta
       _resetParaSiguienteVenta();
     } else if (mounted) {
@@ -348,6 +421,58 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
         ),
         actions: [
           const SizedBox(width: 8),
+          // 🍽️ Indicador o botón selector de Mesa
+          if (_mesaVinculada != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.deepOrange.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.deepOrange.shade300),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.table_restaurant_rounded,
+                    size: 15,
+                    color: Colors.deepOrange,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Mesa: ${_mesaVinculada!.nombre}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () {
+                      setState(() => _mesaVinculada = null);
+                      factNotifier.limpiarCarrito();
+                      showToast(context, 'Mesa desvinculada del cobro');
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      size: 13,
+                      color: Colors.deepOrange,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+          ] else ...[
+            _buildCircleButton(
+              icon: Icons.table_restaurant_rounded,
+              color: Colors.deepOrange,
+              tooltip: 'Cargar Comanda de Mesa',
+              onTap: _abrirSelectorMesa,
+            ),
+            const SizedBox(width: 6),
+          ],
           // 🖨️ Botón toggle de impresión automática
           _buildCircleButton(
             icon: _imprimirAutomaticamente ? Icons.print : Icons.print_disabled,

@@ -267,7 +267,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                         const SizedBox(height: 4),
                         _buildTextField(
                           controller: _nombreController,
-                          hintText: 'Ej. Juan Pérez',
+                          hintText: 'Nombre del cliente',
                         ),
                         const SizedBox(height: 12),
 
@@ -275,7 +275,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                         const SizedBox(height: 4),
                         _buildTextField(
                           controller: _telefonoController,
-                          hintText: 'Ej. 809-555-5555',
+                          hintText: 'Número de teléfono',
                         ),
                         const SizedBox(height: 12),
 
@@ -283,7 +283,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                         const SizedBox(height: 4),
                         _buildTextField(
                           controller: _direccionController,
-                          hintText: 'Ej. Calle Principal #123',
+                          hintText: 'Dirección de entrega',
                           maxLines: 2,
                         ),
 
@@ -365,7 +365,7 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                         const SizedBox(height: 4),
                         _buildTextField(
                           controller: _notaController,
-                          hintText: 'Ej. Sin cebolla, etc.',
+                          hintText: 'Notas o especificaciones',
                           maxLines: 3,
                         ),
                       ],
@@ -587,7 +587,9 @@ class _CrearPedidoPageState extends ConsumerState<CrearPedidoPage> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            FormatterNumber.formatCurrency(prod.precioVenta ?? 0),
+                            FormatterNumber.formatCurrency(
+                              prod.precioVenta ?? 0,
+                            ),
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w900,

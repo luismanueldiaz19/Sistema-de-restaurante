@@ -111,6 +111,7 @@ class CuentaPorPagarService
     public function getHistorialPagos(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $query = PagoCompra::with([
+            'compra.proveedor',
             'cuentaPorPagar.proveedor',
             'cuentaPorPagar.compra',
             'cuentaOrigen',
@@ -124,6 +125,10 @@ class CuentaPorPagarService
                 $q->whereHas('cuentaPorPagar.proveedor', function ($q2) use ($search) {
                     $q2->where('nombre', 'LIKE', "%{$search}%");
                 })->orWhereHas('cuentaPorPagar.compra', function ($q2) use ($search) {
+                    $q2->where('numero_factura_proveedor', 'LIKE', "%{$search}%");
+                })->orWhereHas('compra.proveedor', function ($q2) use ($search) {
+                    $q2->where('nombre', 'LIKE', "%{$search}%");
+                })->orWhereHas('compra', function ($q2) use ($search) {
                     $q2->where('numero_factura_proveedor', 'LIKE', "%{$search}%");
                 });
             });

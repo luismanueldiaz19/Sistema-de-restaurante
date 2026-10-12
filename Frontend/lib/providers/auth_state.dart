@@ -40,4 +40,7 @@ class AuthState {
     if (roles.contains('admin')) return true;
     return permissions.contains(permissionName);
   }
+
+  /// 🛡️ VERIFICAR SI ES ADMINISTRADOR DEL SISTEMA
+  bool get isAdmin => roles.any((r) => r.toLowerCase() == 'admin');
 }

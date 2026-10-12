@@ -12,7 +12,7 @@ class PedidosProvider with ChangeNotifier {
   bool _isLoading = false;
   String _error = '';
   DateTime _currentDate = DateTime.now();
-  // Timer? _timer;
+  Timer? _timer;
 
   List<Pedido> get pedidos => _pedidos;
   bool get isLoading => _isLoading;
@@ -21,15 +21,16 @@ class PedidosProvider with ChangeNotifier {
 
   void initPolling() {
     fetchPedidos();
-    // Poll every 15 seconds
-    // _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
-    fetchPedidos(silent: true);
-    // });
+    // Refresco periódico silencioso cada 10 segundos
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      fetchPedidos(silent: true);
+    });
   }
 
   void stopPolling() {
-    // _timer?.cancel();
-    // _timer = null;
+    _timer?.cancel();
+    _timer = null;
   }
 
   void changeDate(DateTime date) {
@@ -59,14 +60,28 @@ class PedidosProvider with ChangeNotifier {
   }
 
   Future<void> updatePedidoStatus(int id, String newStatus) async {
+    final index = _pedidos.indexWhere((p) => p.id == id);
+    if (index == -1) return;
+
+    final oldPedido = _pedidos[index];
+    // 🔥 Actualización optimista instantánea (0ms)
+    _pedidos[index] = oldPedido.copyWith(estado: newStatus);
+    notifyListeners();
+
     try {
       final updatedPedido = await _pedidoService.updateStatus(id, newStatus);
-      final index = _pedidos.indexWhere((p) => p.id == id);
-      if (index != -1) {
-        _pedidos[index] = updatedPedido;
+      final currentIndex = _pedidos.indexWhere((p) => p.id == id);
+      if (currentIndex != -1) {
+        _pedidos[currentIndex] = updatedPedido;
         notifyListeners();
       }
     } catch (e) {
+      // Revertir estado si el backend falla
+      final currentIndex = _pedidos.indexWhere((p) => p.id == id);
+      if (currentIndex != -1) {
+        _pedidos[currentIndex] = oldPedido;
+        notifyListeners();
+      }
       throw Exception('No se pudo actualizar: $e');
     }
   }

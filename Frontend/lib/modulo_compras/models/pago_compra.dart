@@ -38,10 +38,14 @@ class PagoCompra {
           : null,
       referencia: json['referencia']?.toString() ?? 'N/A',
       proveedorNombre:
+          json['proveedor_nombre'] ??
           json['cuenta_por_pagar']?['proveedor']?['nombre'] ??
+          json['compra']?['proveedor']?['nombre'] ??
           'Proveedor Desconocido',
       numeroFactura:
+          json['numero_factura'] ??
           json['cuenta_por_pagar']?['compra']?['numero_factura_proveedor'] ??
+          json['compra']?['numero_factura_proveedor'] ??
           'N/A',
       bancoNombre: json['cuenta_origen']?['nombre'] ?? 'Caja/Banco',
     );

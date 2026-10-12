@@ -63,8 +63,9 @@ class Pedido {
 
   factory Pedido.fromJson(Map<String, dynamic> json) {
     var list = json['detalles'] as List? ?? [];
-    List<PedidoDetalle> detallesList =
-        list.map((i) => PedidoDetalle.fromJson(i)).toList();
+    List<PedidoDetalle> detallesList = list
+        .map((i) => PedidoDetalle.fromJson(i))
+        .toList();
 
     return Pedido(
       id: json['id'],
@@ -80,6 +81,38 @@ class Pedido {
       facturaId: json['factura_id'],
       codigoBarras: json['codigo_barras'],
       detalles: detallesList,
+    );
+  }
+
+  Pedido copyWith({
+    int? id,
+    int? secuenciaDiaria,
+    String? fecha,
+    String? clienteNombre,
+    String? clienteTelefono,
+    String? direccion,
+    String? tipoEntrega,
+    String? estado,
+    double? total,
+    String? nota,
+    int? facturaId,
+    String? codigoBarras,
+    List<PedidoDetalle>? detalles,
+  }) {
+    return Pedido(
+      id: id ?? this.id,
+      secuenciaDiaria: secuenciaDiaria ?? this.secuenciaDiaria,
+      fecha: fecha ?? this.fecha,
+      clienteNombre: clienteNombre ?? this.clienteNombre,
+      clienteTelefono: clienteTelefono ?? this.clienteTelefono,
+      direccion: direccion ?? this.direccion,
+      tipoEntrega: tipoEntrega ?? this.tipoEntrega,
+      estado: estado ?? this.estado,
+      total: total ?? this.total,
+      nota: nota ?? this.nota,
+      facturaId: facturaId ?? this.facturaId,
+      codigoBarras: codigoBarras ?? this.codigoBarras,
+      detalles: detalles ?? this.detalles,
     );
   }
 }

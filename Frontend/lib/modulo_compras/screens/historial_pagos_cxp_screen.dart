@@ -397,7 +397,7 @@ class _HistorialPagosCxpScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Abono Fac: $fac',
+                  'Pago Fac: $fac',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
