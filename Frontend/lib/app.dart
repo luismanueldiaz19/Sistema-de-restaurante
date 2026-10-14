@@ -37,9 +37,8 @@ class MyApp extends StatelessWidget {
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
-          scrolledUnderElevation:
-              0, // 👈 Evita el cambio de color al hacer scroll
-          surfaceTintColor: Colors.transparent, // 👈 Evita el tinte crema/beige
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
         ),
         extensions: <ThemeExtension<dynamic>>[

@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Accounting\Strategies;
+namespace App\Modules\Contabilidad\Strategies;
 
-use App\Accounting\AsientoStrategy;
 use Exception;
 
 class PagoDgiiStrategy implements AsientoStrategy
@@ -12,9 +12,6 @@ class PagoDgiiStrategy implements AsientoStrategy
         // En este caso, $total representa el monto pagado a la DGII.
         // El ITBIS POR PAGAR (2.1.02) se debita (disminuye pasivo).
         // La cuenta de Banco se acredita (disminuye activo).
-        // Como la cuenta origen (Banco) viene en la solicitud y no está fija en config,
-        // esperaremos que el DgiiController la inyecte temporalmente en $configs.
-        
         $cuentaItbis = $configs['pago_dgii_itbis_debe'] ?? null;
         $cuentaBanco = $configs['pago_dgii_banco_haber'] ?? null;
 

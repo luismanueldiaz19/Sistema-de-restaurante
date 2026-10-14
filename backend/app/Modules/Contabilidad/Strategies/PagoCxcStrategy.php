@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Accounting\Strategies;
+namespace App\Modules\Contabilidad\Strategies;
 
-use App\Accounting\AsientoStrategy;
 use Exception;
 
 class PagoCxcStrategy implements AsientoStrategy
@@ -10,13 +10,13 @@ class PagoCxcStrategy implements AsientoStrategy
     public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array
     {
         $cuentaCxc = $configs['venta_credito_debe'] ?? null; // Cuentas por Cobrar Clientes
-        $cuentaCajaBanco = $configs['pago_cxc_efectivo_debe'] ?? null; // Efectivo/Banco entrante
+        $cuentaCajaBanco = $configs['pago_cxc_efectivo_debe'] ?? $configs['venta_efectivo_debe'] ?? null; // Efectivo/Banco entrante
 
         if (!$cuentaCxc) {
             throw new Exception("Falta configurar la cuenta para Cuentas por Cobrar Clientes (venta_credito_debe).");
         }
         if (!$cuentaCajaBanco) {
-            throw new Exception("Falta configurar la cuenta para Efectivo/Banco entrante (pago_cxc_efectivo_debe).");
+            throw new Exception("Falta configurar la cuenta para Efectivo/Banco entrante (pago_cxc_efectivo_debe o venta_efectivo_debe).");
         }
 
         $detalles = [];

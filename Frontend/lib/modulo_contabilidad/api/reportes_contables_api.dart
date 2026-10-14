@@ -3,9 +3,13 @@ import '../../utils/constants.dart';
 import '../../services/api_services.dart';
 
 class ReportesContablesApi {
-  final String baseUrl = "$hostName/api/contabilidad";
+  final String baseUrl = "$apiUrl/contabilidad";
 
-  Future<List<dynamic>> getMayorGeneral(String token, {String? fechaDesde, String? fechaHasta}) async {
+  Future<List<dynamic>> getMayorGeneral(
+    String token, {
+    String? fechaDesde,
+    String? fechaHasta,
+  }) async {
     final api = ApiService();
     String url = "$baseUrl/mayor-general?";
     if (fechaDesde != null) url += "fecha_desde=$fechaDesde&";
@@ -19,7 +23,10 @@ class ReportesContablesApi {
     throw Exception('Error al cargar Mayor General');
   }
 
-  Future<Map<String, dynamic>> getBalanceGeneral(String token, {String? fechaHasta}) async {
+  Future<Map<String, dynamic>> getBalanceGeneral(
+    String token, {
+    String? fechaHasta,
+  }) async {
     final api = ApiService();
     String url = "$baseUrl/balance-general?";
     if (fechaHasta != null) url += "fecha_hasta=$fechaHasta";
@@ -32,11 +39,17 @@ class ReportesContablesApi {
     throw Exception('Error al cargar Balance General');
   }
 
-  Future<Map<String, dynamic>> getEstadoResultados(String token, {String? fechaDesde, String? fechaHasta}) async {
+  Future<Map<String, dynamic>> getEstadoResultados(
+    String token, {
+    String? fechaDesde,
+    String? fechaHasta,
+    bool incluirCeros = false,
+  }) async {
     final api = ApiService();
     String url = "$baseUrl/estado-resultados?";
     if (fechaDesde != null) url += "fecha_desde=$fechaDesde&";
-    if (fechaHasta != null) url += "fecha_hasta=$fechaHasta";
+    if (fechaHasta != null) url += "fecha_hasta=$fechaHasta&";
+    url += "incluir_ceros=${incluirCeros ? '1' : '0'}";
 
     final response = await api.get(url, token: token);
     if (response.statusCode == 200) {

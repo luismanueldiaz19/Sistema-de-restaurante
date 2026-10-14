@@ -30,6 +30,7 @@ import '../modulo_finanzas/screens/bancos_dashboard_screen.dart';
 import '../modulo_contabilidad/screens/mayor_general_screen.dart';
 import '../modulo_contabilidad/screens/balance_general_screen.dart';
 import '../modulo_contabilidad/screens/estado_resultados_screen.dart';
+import '../modulo_contabilidad/screens/estado_resultados_tabla_screen.dart';
 import '../modulo_contabilidad/screens/catalogo_cuentas_screen.dart';
 import '../facturacion/screens/metodos_pago_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/historial_caja_screen.dart';
@@ -489,6 +490,15 @@ class MenuBuilder {
                 context,
                 MaterialPageRoute(
                   builder: (_) => const EstadoResultadosScreen(),
+                ),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Estado de Resultados (Excel)',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const EstadoResultadosTablaScreen(),
                 ),
               ),
             ),

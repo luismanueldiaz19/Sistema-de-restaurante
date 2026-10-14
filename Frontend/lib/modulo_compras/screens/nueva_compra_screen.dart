@@ -19,6 +19,8 @@ class NuevaCompraScreen extends ConsumerStatefulWidget {
 }
 
 class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +39,8 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
   }
 
   void _guardarCompra() async {
+    if (_isSaving) return;
+
     final formState = ref.read(nuevaCompraFormProvider);
 
     if (formState.proveedorId == null) {
@@ -74,39 +78,60 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
       return;
     }
 
-    final data = {
-      'proveedor_id': int.tryParse(formState.proveedorId ?? ''),
-      'numero_factura_proveedor': formState.numFactura,
-      'ncf': formState.ncf,
-      'fecha_compra': formState.fechaCompra.toIso8601String().split('T')[0],
-      'fecha_vencimiento': formState.fechaVencimiento?.toIso8601String().split(
-        'T',
-      )[0],
-      'tipo_compra': formState.tipoCompra,
-      'metodo_pago_id': formState.metodoPagoId,
-      'referencia_pago': formState.referenciaPago,
-      'notas': formState.notas,
-      // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
-      // El mismo UUID se envía en cada reintento del formulario.
-      // El backend detecta si ya existe una compra con este key y,
-      // de ser así, devuelve la existente sin duplicar ningún registro.
-      'idempotency_key': formState.idempotencyKey,
-      // ──────────────────────────────────────────────────────────────────────
-      'detalles': formState.detalles.map((d) => d.toJson()).toList(),
-    };
+    setState(() {
+      _isSaving = true;
+    });
 
-    final success = await ref.read(comprasProvider.notifier).createCompra(data);
-    if (success && mounted) {
-      showToast(context, 'Compra registrada con éxito', bgColor: Colors.green);
-      // clearForm() genera un nuevo idempotency_key para el próximo formulario
-      ref.read(nuevaCompraFormProvider.notifier).clearForm();
-      Navigator.pop(context);
-    } else if (mounted) {
-      showToast(
-        context,
-        ref.read(comprasProvider).error ?? 'Error al registrar',
-        bgColor: Colors.red,
-      );
+    try {
+      final data = {
+        'proveedor_id': int.tryParse(formState.proveedorId ?? ''),
+        'numero_factura_proveedor': formState.numFactura,
+        'ncf': formState.ncf,
+        'fecha_compra': formState.fechaCompra.toIso8601String().split('T')[0],
+        'fecha_vencimiento': formState.fechaVencimiento?.toIso8601String().split(
+          'T',
+        )[0],
+        'tipo_compra': formState.tipoCompra,
+        'metodo_pago_id': formState.metodoPagoId,
+        'referencia_pago': formState.referenciaPago,
+        'notas': formState.notas,
+        // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
+        // El mismo UUID se envía en cada reintento del formulario.
+        // El backend detecta si ya existe una compra con este key y,
+        // de ser así, devuelve la existente sin duplicar ningún registro.
+        'idempotency_key': formState.idempotencyKey,
+        // ──────────────────────────────────────────────────────────────────────
+        'detalles': formState.detalles.map((d) => d.toJson()).toList(),
+      };
+
+      final success = await ref.read(comprasProvider.notifier).createCompra(data);
+      if (!mounted) return;
+
+      if (success) {
+        showToast(
+          context,
+          'Compra registrada con éxito. Listo para la siguiente.',
+          bgColor: Colors.green,
+        );
+        // Limpia el carrito, campos y genera un nuevo idempotency_key
+        ref.read(nuevaCompraFormProvider.notifier).clearForm();
+      } else {
+        showToast(
+          context,
+          ref.read(comprasProvider).error ?? 'Error al registrar',
+          bgColor: Colors.red,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showToast(context, 'Error al registrar: $e', bgColor: Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -169,7 +194,10 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
                     children: [
                       const Expanded(child: CompraDetalleDataGrid()),
                       const SizedBox(height: 8),
-                      CompraPanelTotales(onGuardar: _guardarCompra),
+                      CompraPanelTotales(
+                        onGuardar: _guardarCompra,
+                        isLoading: _isSaving,
+                      ),
                     ],
                   ),
                 ),
@@ -207,7 +235,10 @@ class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
         ),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: CompraPanelTotales(onGuardar: _guardarCompra),
+          child: CompraPanelTotales(
+            onGuardar: _guardarCompra,
+            isLoading: _isSaving,
+          ),
         ),
       ],
     );

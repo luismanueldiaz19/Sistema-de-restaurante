@@ -24,6 +24,12 @@ class ConfiguracionContableSeeder extends Seeder
                 'codigo_cuenta' => '1.1.01.01', // CAJA GENERAL
             ],
             [
+                'clave' => 'pago_cxc_efectivo_debe',
+                'nombre' => 'Cobro de Facturas / Entrada Efectivo/Banco (Débito)',
+                'grupo' => 'Ventas',
+                'codigo_cuenta' => '1.1.01.01', // CAJA GENERAL
+            ],
+            [
                 'clave' => 'venta_credito_debe',
                 'nombre' => 'Cobro de Ventas a Crédito (Débito)',
                 'grupo' => 'Ventas',

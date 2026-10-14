@@ -60,6 +60,18 @@ class _CompraConfiguracionFormState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<NuevaCompraFormState>(nuevaCompraFormProvider, (previous, next) {
+      if (next.ncf != ncfCtrl.text) {
+        ncfCtrl.text = next.ncf;
+      }
+      if (next.numFactura != numFacturaCtrl.text) {
+        numFacturaCtrl.text = next.numFactura;
+      }
+      if (next.notas != notasCtrl.text) {
+        notasCtrl.text = next.notas;
+      }
+    });
+
     final formState = ref.watch(nuevaCompraFormProvider);
     final formNotifier = ref.read(nuevaCompraFormProvider.notifier);
     final provState = ref.watch(proveedoresProvider);

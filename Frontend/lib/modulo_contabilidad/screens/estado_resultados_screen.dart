@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
 import '../providers/reportes_contables_provider.dart';
 import '../../utils/helpers.dart';
+import 'estado_resultados_tabla_screen.dart';
 
 class EstadoResultadosScreen extends ConsumerStatefulWidget {
   const EstadoResultadosScreen({super.key});
@@ -24,8 +25,11 @@ class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen>
     );
     if (date != null) {
       setState(() {
-        if (isDesde) _fechaDesde = date;
-        else _fechaHasta = date;
+        if (isDesde) {
+          _fechaDesde = date;
+        } else {
+          _fechaHasta = date;
+        }
       });
     }
   }
@@ -132,6 +136,25 @@ class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen>
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: AppColors.secondary),
         elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const EstadoResultadosTablaScreen()),
+              ),
+              icon: const Icon(Icons.table_chart_rounded, color: Colors.white, size: 16),
+              label: const Text('Vista Tabla (Excel)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                elevation: 1,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [

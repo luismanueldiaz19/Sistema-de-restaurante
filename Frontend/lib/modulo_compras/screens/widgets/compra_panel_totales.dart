@@ -8,17 +8,20 @@ import '../../providers/compras_provider.dart';
 class CompraPanelTotales extends ConsumerWidget {
   final VoidCallback onGuardar;
   final String? textoBoton;
+  final bool? isLoading;
 
   const CompraPanelTotales({
     super.key,
     required this.onGuardar,
     this.textoBoton,
+    this.isLoading,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formState = ref.watch(nuevaCompraFormProvider);
-    final isSaving = ref.watch(comprasProvider).isLoading;
+    final isSaving =
+        (isLoading ?? false) || ref.watch(comprasProvider).isLoading;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -68,6 +71,8 @@ class CompraPanelTotales extends ConsumerWidget {
               onPressed: isSaving ? null : onGuardar,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
+                disabledBackgroundColor: Colors.grey.shade400,
+                disabledForegroundColor: Colors.white,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -85,7 +90,7 @@ class CompraPanelTotales extends ConsumerWidget {
                     )
                   : const Icon(Icons.check_circle_outline, size: 20),
               label: Text(
-                textoBoton ?? 'REGISTRAR COMPRA',
+                isSaving ? 'PROCESANDO...' : (textoBoton ?? 'REGISTRAR COMPRA'),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

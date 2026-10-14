@@ -5,21 +5,36 @@ namespace App\Modules\Contabilidad\Services;
 
 use App\Models\AsientoContable;
 use App\Models\AsientoDetalle;
-use App\Models\ConfiguracionContable;
-use App\Accounting\AsientoStrategyFactory;
+use App\Modules\Contabilidad\Strategies\AsientoStrategyFactory;
 use App\Modules\Contabilidad\Exceptions\ContabilidadException;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO;
 
 class ContabilidadService
 {
-    public function registrarAsientoAuto(\App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO $dto) {
+    public function __construct(
+        private readonly ?ConfiguracionContableService $configService = null
+    ) {}
+
+    public function getConfigService(): ConfiguracionContableService
+    {
+        return $this->configService ?? app(ConfiguracionContableService::class);
+    }
+
+    public function obtenerCuentaPorClave(string $clave): ?int
+    {
+        return $this->getConfigService()->obtenerCuentaPorClave($clave);
+    }
+
+    public function registrarAsientoAuto(RegistrarAsientoDTO $dto) {
         if ($dto->total <= 0) {
             return null;
         }
 
         return DB::transaction(function () use ($dto) {
-            // 1. Cargar las configuraciones contables para obtener las cuentas correspondientes
-            $configs = ConfiguracionContable::pluck('cuenta_id', 'clave')->toArray();
+            // 1. Cargar las configuraciones contables mediante el servicio especializado
+            $configs = $this->getConfigService()->obtenerMapaConfiguraciones();
+            
             if (!empty($dto->custom_configs)) {
                 $configs = array_merge($configs, $dto->custom_configs);
             }
@@ -32,7 +47,7 @@ class ContabilidadService
 
             // 4. Crear la cabecera del asiento contable (Journal Entry Header)
             $asiento = AsientoContable::create([
-                'fecha' => now()->toDateString(),
+                'fecha' => $dto->fecha ?? now()->toDateString(),
                 'glosa' => $dto->glosa,
                 'referencia' => $dto->referencia,
                 'usuario_id' => $dto->usuario_id,

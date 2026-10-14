@@ -14,6 +14,7 @@ class RegistrarAsientoDTO
         public readonly string $glosa,
         public readonly ?int $usuario_id = null,
         public readonly array $custom_configs = [],
-        public readonly float $costo = 0.0
+        public readonly float $costo = 0.0,
+        public readonly ?string $fecha = null
     ) {}
 }

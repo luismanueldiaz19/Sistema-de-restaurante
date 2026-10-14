@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Accounting\Strategies;
+namespace App\Modules\Contabilidad\Strategies;
 
-use App\Accounting\AsientoStrategy;
 use Exception;
 
 class VentaEfectivoStrategy implements AsientoStrategy
@@ -29,12 +29,46 @@ class VentaEfectivoStrategy implements AsientoStrategy
             'credito' => 0.00
         ];
 
-        // CRÉDITO: Ventas -> Subtotal
-        $detalles[] = [
-            'cuenta_id' => $cuentaVenta,
-            'debito' => 0.00,
-            'credito' => $subtotal
-        ];
+        // CRÉDITO: Ventas -> Subtotal (con soporte para desglose de cuentas por producto)
+        $detallesArray = $configs['detalles'] ?? [];
+        if (!empty($detallesArray)) {
+            $subtotalesPorCuenta = [];
+            foreach ($detallesArray as $d) {
+                $cuentaId = $d['cuenta_ingreso_id'] ?? $cuentaVenta;
+                if (!$cuentaId) {
+                    $cuentaId = $cuentaVenta;
+                }
+                $montoLinea = floatval($d['subtotal'] ?? 0.0);
+                if (!isset($subtotalesPorCuenta[$cuentaId])) {
+                    $subtotalesPorCuenta[$cuentaId] = 0.0;
+                }
+                $subtotalesPorCuenta[$cuentaId] += $montoLinea;
+            }
+
+            // Validar que la suma de subtotales cuadre exactamente con $subtotal
+            $sumaDetalles = array_sum($subtotalesPorCuenta);
+            $dif = round($subtotal - $sumaDetalles, 2);
+            if (abs($dif) > 0 && abs($dif) <= 0.05 && count($subtotalesPorCuenta) > 0) {
+                $primeraCuenta = array_key_first($subtotalesPorCuenta);
+                $subtotalesPorCuenta[$primeraCuenta] = round($subtotalesPorCuenta[$primeraCuenta] + $dif, 2);
+            }
+
+            foreach ($subtotalesPorCuenta as $cId => $monto) {
+                if ($monto > 0) {
+                    $detalles[] = [
+                        'cuenta_id' => $cId,
+                        'debito' => 0.00,
+                        'credito' => round($monto, 2)
+                    ];
+                }
+            }
+        } else {
+            $detalles[] = [
+                'cuenta_id' => $cuentaVenta,
+                'debito' => 0.00,
+                'credito' => $subtotal
+            ];
+        }
 
         // CRÉDITO: ITBIS por Pagar -> ITBIS
         if ($itbis > 0) {

@@ -1,17 +1,30 @@
 <?php
 
-namespace App\Http\Controllers\Api\Contabilidad;
+declare(strict_types=1);
+
+namespace App\Modules\Contabilidad\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AsientoContable;
+use App\Modules\Contabilidad\Http\Requests\StoreAsientoManualRequest;
+use App\Modules\Contabilidad\Services\ContabilidadService;
+use App\Modules\Shared\Traits\ApiResponseTrait;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 class AsientoContableController extends Controller
 {
+    use ApiResponseTrait;
+
+    public function __construct(
+        private readonly ContabilidadService $contabilidadService
+    ) {}
+
     /**
      * Listar todos los asientos contables generados cronológicamente.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         try {
             $query = AsientoContable::with(['detalles.cuenta', 'usuario'])
@@ -35,13 +48,13 @@ class AsientoContableController extends Controller
                 });
             }
 
-            $asientos = $query->paginate($request->per_page ?? 15);
+            $asientos = $query->paginate($request->integer('per_page', 15));
 
             return response()->json([
                 'success' => true,
                 'data' => $asientos,
             ]);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los asientos contables: ' . $e->getMessage(),
@@ -52,26 +65,25 @@ class AsientoContableController extends Controller
     /**
      * Crear un asiento contable de forma manual.
      */
-    public function store(\App\Modules\Contabilidad\Requests\StoreAsientoManualRequest $request, \App\Modules\Contabilidad\Services\ContabilidadService $service)
+    public function store(StoreAsientoManualRequest $request): JsonResponse
     {
         try {
-            $asiento = $service->registrarAsientoManual(
+            $asiento = $this->contabilidadService->registrarAsientoManual(
                 $request->only(['fecha', 'glosa', 'referencia']),
                 $request->input('detalles'),
-                $request->user() ? $request->user()->id : null
+                $request->user()?->id
             );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Asiento contable manual registrado correctamente',
-                'data' => $asiento
+                'data' => $asiento,
             ], 201);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al registrar el asiento contable: ' . $e->getMessage(),
-            ], 500);
+            ], 422);
         }
     }
 }
-

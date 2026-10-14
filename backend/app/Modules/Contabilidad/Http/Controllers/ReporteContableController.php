@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Api\Contabilidad;
+declare(strict_types=1);
+
+namespace App\Modules\Contabilidad\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CatalogoCuenta;
-use App\Models\AsientoDetalle;
+use App\Modules\Contabilidad\Services\ReportesContablesService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class ReporteContableController extends Controller
@@ -13,7 +16,7 @@ class ReporteContableController extends Controller
     /**
      * Reporte de Libro Diario
      */
-    public function libroDiario(Request $request, \App\Modules\Contabilidad\Services\ReportesContablesService $service)
+    public function libroDiario(Request $request, ReportesContablesService $service): JsonResponse
     {
         $fechaDesde = $request->input('fecha_desde', date('Y-m-01'));
         $fechaHasta = $request->input('fecha_hasta', now()->toDateString());
@@ -27,7 +30,7 @@ class ReporteContableController extends Controller
      * Reporte de Mayor General.
      * Retorna todas las cuentas de detalle con sus débitos, créditos y saldo en un rango de fechas.
      */
-    public function mayorGeneral(Request $request)
+    public function mayorGeneral(Request $request): JsonResponse
     {
         $fechaDesde = $request->input('fecha_desde', '2000-01-01');
         $fechaHasta = $request->input('fecha_hasta', now()->toDateString());
@@ -78,7 +81,7 @@ class ReporteContableController extends Controller
     /**
      * Balance General (Activo, Pasivo, Capital)
      */
-    public function balanceGeneral(Request $request)
+    public function balanceGeneral(Request $request): JsonResponse
     {
         $fechaHasta = $request->input('fecha_hasta', now()->toDateString());
 
@@ -109,7 +112,6 @@ class ReporteContableController extends Controller
                     'hijos' => []
                 ];
             } else {
-                // Incluir cualquier saldo registrado directamente a la cuenta padre (evita descuadres visuales)
                 $saldoPadre = $saldos->get($cuenta->id);
                 $dP = $saldoPadre ? (float) $saldoPadre->debito : 0;
                 $cP = $saldoPadre ? (float) $saldoPadre->credito : 0;
@@ -176,12 +178,13 @@ class ReporteContableController extends Controller
     /**
      * Estado de Resultados (Ingresos, Costos, Gastos)
      */
-    public function estadoResultados(Request $request)
+    public function estadoResultados(Request $request): JsonResponse
     {
         $fechaDesde = $request->input('fecha_desde', '2000-01-01');
         $fechaHasta = $request->input('fecha_hasta', now()->toDateString());
+        $incluirCeros = $request->boolean('incluir_ceros', false);
 
-        $cuentas = CatalogoCuenta::all();
+        $cuentas = CatalogoCuenta::with('padre')->get();
         $saldos = DB::table('asiento_detalles')
             ->join('asientos_contables', 'asiento_detalles.asiento_id', '=', 'asientos_contables.id')
             ->select('cuenta_id', DB::raw('SUM(debito) as debito'), DB::raw('SUM(credito) as credito'))
@@ -191,17 +194,53 @@ class ReporteContableController extends Controller
             ->get()
             ->keyBy('cuenta_id');
 
-        $calcularBalance = function ($cuenta) use (&$calcularBalance, $cuentas, $saldos) {
+        $determinarTipoCuenta = function ($cuenta) {
+            $nombre = strtoupper($cuenta->nombre);
+            if ($cuenta->tipo === 'Ingresos') {
+                return (str_contains($nombre, 'DEVOLUCION')) ? 'Menos: Devolución de Ventas' : 'Ingreso Operacional';
+            }
+            if ($cuenta->tipo === 'Costos') {
+                return 'Costo de Ventas';
+            }
+            if ($cuenta->tipo === 'Gastos') {
+                if (str_contains($nombre, 'NOMINA') || str_contains($nombre, 'SUELDO') || str_contains($nombre, 'SALARIO') || str_contains($nombre, 'COMIDA') || str_contains($nombre, 'PERSONAL') || str_contains($nombre, 'EMPLEADO')) {
+                    return 'Gasto de Personal';
+                }
+                if (str_contains($nombre, 'RECARGO')) {
+                    return 'Recargos Fiscales';
+                }
+                if (str_contains($nombre, 'INTERES') || str_contains($nombre, 'FINANCIERO')) {
+                    return 'Intereses Fiscales';
+                }
+                if (str_contains($nombre, 'IMPUESTO') || str_contains($nombre, 'IPI') || str_contains($nombre, 'TASA') || str_contains($nombre, 'DGII')) {
+                    return 'Impuestos y Tasas';
+                }
+                if (str_contains($nombre, 'HONORARIO') || str_contains($nombre, 'PROFESIONAL') || str_contains($nombre, 'LEGAL')) {
+                    return 'Servicios Profesionales';
+                }
+                return 'Gasto Operativo';
+            }
+            return $cuenta->padre?->nombre ?? $cuenta->tipo;
+        };
+
+        $calcularBalance = function ($cuenta) use (&$calcularBalance, $cuentas, $saldos, $incluirCeros, $determinarTipoCuenta) {
             if ($cuenta->permite_movimiento) {
                 $saldo = $saldos->get($cuenta->id);
                 $d = $saldo ? (float) $saldo->debito : 0;
                 $c = $saldo ? (float) $saldo->credito : 0;
                 $naturalezaDeudora = in_array($cuenta->tipo, ['Activo', 'Costos', 'Gastos']);
                 $bal = $naturalezaDeudora ? ($d - $c) : ($c - $d);
+
+                if (!$incluirCeros && $bal == 0 && $d == 0 && $c == 0) {
+                    return null;
+                }
+
                 return [
+                    'id' => $cuenta->id,
                     'codigo' => $cuenta->codigo,
                     'nombre' => $cuenta->nombre,
                     'tipo' => $cuenta->tipo,
+                    'tipo_cuenta' => $determinarTipoCuenta($cuenta),
                     'balance' => $bal,
                     'es_detalle' => true,
                     'hijos' => []
@@ -212,15 +251,22 @@ class ReporteContableController extends Controller
                 $sumaBalance = 0;
                 foreach ($hijosDB as $hijo) {
                     $resHijo = $calcularBalance($hijo);
-                    if ($resHijo['balance'] != 0 || count($resHijo['hijos']) > 0) {
+                    if ($resHijo !== null) {
                         $hijos[] = $resHijo;
                         $sumaBalance += $resHijo['balance'];
                     }
                 }
+
+                if (!$incluirCeros && $sumaBalance == 0 && count($hijos) == 0) {
+                    return null;
+                }
+
                 return [
+                    'id' => $cuenta->id,
                     'codigo' => $cuenta->codigo,
                     'nombre' => $cuenta->nombre,
                     'tipo' => $cuenta->tipo,
+                    'tipo_cuenta' => $determinarTipoCuenta($cuenta),
                     'balance' => $sumaBalance,
                     'es_detalle' => false,
                     'hijos' => $hijos
@@ -234,7 +280,7 @@ class ReporteContableController extends Controller
 
         foreach ($cuentas->where('padre_id', null)->sortBy('codigo') as $raiz) {
             $nodo = $calcularBalance($raiz);
-            if ($nodo['balance'] != 0 || count($nodo['hijos']) > 0) {
+            if ($nodo !== null) {
                 if ($raiz->tipo == 'Ingresos') $ingresos[] = $nodo;
                 if ($raiz->tipo == 'Costos') $costos[] = $nodo;
                 if ($raiz->tipo == 'Gastos') $gastos[] = $nodo;
@@ -263,10 +309,10 @@ class ReporteContableController extends Controller
         ]);
     }
 
-    private function calcularUtilidad($fechaHasta)
+    private function calcularUtilidad(string $fechaHasta): float
     {
-        $ingresos = 0;
-        $egresos = 0;
+        $ingresos = 0.0;
+        $egresos = 0.0;
 
         $saldos = DB::table('asiento_detalles')
             ->join('asientos_contables', 'asiento_detalles.asiento_id', '=', 'asientos_contables.id')
@@ -291,4 +337,3 @@ class ReporteContableController extends Controller
         return $ingresos - $egresos;
     }
 }
-

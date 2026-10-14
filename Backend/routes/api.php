@@ -13,14 +13,10 @@ use App\Http\Controllers\Api\Compras\ProveedorController;
 use App\Http\Controllers\Api\Finanzas\CxpController;
 use App\Http\Controllers\Api\Finanzas\CxcController;
 use App\Http\Controllers\Api\Impuestos\DgiiController;
-use App\Http\Controllers\Api\Contabilidad\ReporteContableController;
 use App\Http\Controllers\Api\Inventario\AjusteInventarioController;
 use App\Http\Controllers\Api\Facturacion\NotaCreditoController;
 // use App\Http\Controllers\Api\Restaurante\PedidoController; // Migrado a V2
 use App\Http\Controllers\Api\Inventario\RecetaController;
-use App\Http\Controllers\Api\Contabilidad\CatalogoCuentaController;
-use App\Http\Controllers\Api\Contabilidad\ConfiguracionContableController;
-use App\Http\Controllers\Api\Contabilidad\AsientoContableController;
 use App\Http\Controllers\Api\Inventario\CategoriaController;
 use App\Http\Controllers\Api\Inventario\MarcaController;
 use App\Http\Controllers\Api\Inventario\UnidadMedidaController;
@@ -142,10 +138,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/inventario/movimientos', [AjusteInventarioController::class, 'index'])
         ->middleware('permission:ver_inventario');
 
-    // ================= CONTABILIDAD =================
-    Route::get('/contabilidad/mayor-general', [ReporteContableController::class, 'mayorGeneral']);
-    Route::get('/contabilidad/balance-general', [ReporteContableController::class, 'balanceGeneral']);
-    Route::get('/contabilidad/estado-resultados', [ReporteContableController::class, 'estadoResultados']);
 
     // ================= CAJA Y TURNOS =================
     Route::get('/cajas', [CajaController::class, 'index']);
@@ -192,16 +184,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     Route::patch('/empleados/{id}/toggle', [EmpleadoController::class, 'toggleStatus'])
         ->middleware('permission:ver_nomina');
-
-    Route::get('/contabilidad/libro-diario', [ReporteContableController::class, 'libroDiario']);
-    
-    // ================= CONTABILIDAD =================
-    Route::apiResource('catalogo-cuentas', CatalogoCuentaController::class);
-    Route::get('/configuracion-contable', [ConfiguracionContableController::class, 'index']);
-    Route::put('/configuracion-contable/{id}', [ConfiguracionContableController::class, 'update']);
-    Route::post('/configuracion-contable/bulk', [ConfiguracionContableController::class, 'bulkUpdate']);
-    Route::get('/asientos', [AsientoContableController::class, 'index']);
-    Route::post('/asientos/manual', [AsientoContableController::class, 'store']);
 
     // ================= METODOS DE PAGO =================
     Route::get('/metodos-pagos/activos', [\App\Http\Controllers\Api\Finanzas\MetodoPagoController::class, 'activos']);
@@ -252,4 +234,5 @@ Route::prefix('v2')->group(function () {
     require base_path('app/Modules/Pago/Routes/api.php');
     require base_path('app/Modules/Pedido/Routes/api.php');
     require base_path('app/Modules/Mesa/Routes/api.php');
+    require base_path('app/Modules/Contabilidad/Routes/api.php');
 });

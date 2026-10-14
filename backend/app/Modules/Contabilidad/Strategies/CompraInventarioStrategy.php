@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Accounting\Strategies;
+namespace App\Modules\Contabilidad\Strategies;
 
-use App\Accounting\AsientoStrategy;
 use Exception;
 
 class CompraInventarioStrategy implements AsientoStrategy
@@ -23,7 +23,6 @@ class CompraInventarioStrategy implements AsientoStrategy
         }
 
         $detalles = [];
-
         $detallesArray = $configs['detalles'] ?? [];
 
         // Agrupar subtotal por cuenta contable (Gastos vs Inventario)
@@ -46,7 +45,7 @@ class CompraInventarioStrategy implements AsientoStrategy
                 if ($monto > 0) {
                     $detalles[] = [
                         'cuenta_id' => $cId,
-                        'debito' => $monto,
+                        'debito' => round($monto, 2),
                         'credito' => 0.00
                     ];
                 }

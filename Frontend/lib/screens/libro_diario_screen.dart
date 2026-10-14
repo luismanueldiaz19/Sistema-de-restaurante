@@ -6,6 +6,10 @@ import 'package:sistema_restaurante/model/asiento_contable_model.dart';
 import 'package:sistema_restaurante/palletes/app_colors.dart';
 import 'package:sistema_restaurante/providers/auth_provider.dart';
 import 'package:sistema_restaurante/providers/configuracion_contable_provider.dart';
+import 'package:sistema_restaurante/modulo_contabilidad/screens/estado_resultados_screen.dart';
+import 'package:sistema_restaurante/modulo_contabilidad/screens/estado_resultados_tabla_screen.dart';
+import 'package:sistema_restaurante/modulo_contabilidad/screens/balance_general_screen.dart';
+import 'package:sistema_restaurante/modulo_contabilidad/screens/mayor_general_screen.dart';
 
 class LibroDiarioScreen extends ConsumerStatefulWidget {
   const LibroDiarioScreen({super.key});
@@ -104,6 +108,85 @@ class _LibroDiarioScreenState extends ConsumerState<LibroDiarioScreen> {
         backgroundColor: AppColors.azulOscuro,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EstadoResultadosTablaScreen()),
+              ),
+              icon: const Icon(Icons.table_chart_rounded, color: Colors.white, size: 18),
+              label: const Text(
+                'Estado de Resultados',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                elevation: 2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'Más Reportes Contables',
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) {
+              if (value == 'tabla') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const EstadoResultadosTablaScreen()));
+              } else if (value == 'resumen') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const EstadoResultadosScreen()));
+              } else if (value == 'balance') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const BalanceGeneralScreen()));
+              } else if (value == 'mayor') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MayorGeneralScreen()));
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'tabla',
+                child: Row(
+                  children: [
+                    Icon(Icons.table_chart_rounded, color: AppColors.secondary, size: 18),
+                    SizedBox(width: 8),
+                    Text('Estado Resultados (Formato Excel)'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'resumen',
+                child: Row(
+                  children: [
+                    Icon(Icons.bar_chart_rounded, color: AppColors.secondary, size: 18),
+                    SizedBox(width: 8),
+                    Text('Estado Resultados (Tarjetas)'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'balance',
+                child: Row(
+                  children: [
+                    Icon(Icons.account_balance, color: AppColors.secondary, size: 18),
+                    SizedBox(width: 8),
+                    Text('Balance General'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'mayor',
+                child: Row(
+                  children: [
+                    Icon(Icons.menu_book, color: AppColors.secondary, size: 18),
+                    SizedBox(width: 8),
+                    Text('Mayor General'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [

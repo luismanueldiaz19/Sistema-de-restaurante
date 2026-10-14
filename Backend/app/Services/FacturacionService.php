@@ -91,20 +91,31 @@ class FacturacionService {
             ]);
 
             $costoTotalVenta = 0;
+            $lineasContables = [];
 
             // ✅ INSERTAR DETALLES
             foreach ($detallesCalculados as $detalle) {
                 $item = $detalle['item'];
                 $calc = $detalle['calc'];
 
-                // 💰 Calcular costo del producto
+                $cuentaIngresoId = null;
+
+                // 💰 Calcular costo del producto y cuenta de ingreso específica si existe
                 if (!empty($item['producto_id'])) {
                     $producto = Producto::find($item['producto_id']);
                     if ($producto) {
                         $costoUnitario = $producto->costo;
                         $costoTotalVenta += ($costoUnitario * $item['cantidad']);
+                        $cuentaIngresoId = $producto->cuenta_ingreso_id;
                     }
                 }
+
+                $lineasContables[] = [
+                    'cuenta_ingreso_id' => $cuentaIngresoId,
+                    'subtotal' => round($calc['baseConDescuento'], 2),
+                    'itbis' => round($calc['itbis'], 2),
+                    'total' => round($calc['total'], 2),
+                ];
 
                 DB::table('factura_detalle')->insert([
                     'factura_id' => $factura->id,
@@ -127,7 +138,9 @@ class FacturacionService {
                 }
             }
 
-            $customConfigs = [];
+            $customConfigs = [
+                'detalles' => $lineasContables,
+            ];
             $bancoIdAfectado = null;
             $referenciaPago = null;
             $montoDepositado = 0;
@@ -158,6 +171,7 @@ class FacturacionService {
                     if ($metodo) {
                         if ($metodo->catalogo_cuenta_id) {
                             $customConfigs['venta_efectivo_debe'] = $metodo->catalogo_cuenta_id;
+                            $customConfigs['pago_cxc_efectivo_debe'] = $metodo->catalogo_cuenta_id;
                         }
                         if ($metodo->bank_account_id) {
                             $bancoIdAfectado = $metodo->bank_account_id;
@@ -179,13 +193,15 @@ class FacturacionService {
             // que todas las facturas pasen por el subdiario de CxC. Si la venta es 
             // al contado ($tienePago), la deuda nace y se liquida el mismo día, 
             // por lo que su balance_pendiente queda en 0 y su estado en 'PAGADA'.
+            $fechaEmision = substr($data['fecha_emision'] ?? now()->toDateString(), 0, 10);
+
             $cxc = CuentaPorCobrar::create([
                 'cliente_id' => $data['cliente_id'],
                 'factura_id' => $factura->id,
                 'monto_original' => $total,
                 'balance_pendiente' => $tienePago ? 0 : $total,
-                'fecha_emision' => now()->toDateString(),
-                'fecha_vencimiento' => now()->addDays($data['dias_credito'] ?? 30)->toDateString(),
+                'fecha_emision' => $fechaEmision,
+                'fecha_vencimiento' => $data['fecha_vencimiento'] ?? now()->addDays($data['dias_credito'] ?? 30)->toDateString(),
                 'estado' => $tienePago ? 'PAGADA' : 'PENDIENTE',
                 'descripcion' => "Factura NCF: $ncf"
             ]);
@@ -206,9 +222,14 @@ class FacturacionService {
                     "Venta - Factura NCF $ncf",
                     $usuarioId,
                     $customConfigs,
-                    round($costoTotalVenta, 2)
+                    round($costoTotalVenta, 2),
+                    $fechaEmision
                 )
             );
+
+            if ($asientoContable) {
+                $factura->update(['asiento_id' => $asientoContable->id]);
+            }
 
             $asientoPago = null;
 
@@ -221,18 +242,22 @@ class FacturacionService {
                 
                 $pagoData = $data['pago'];
                 
+                // Resolver dinámicamente la cuenta contable de destino (Caja o Banco)
+                $cuentaDestinoId = $customConfigs['venta_efectivo_debe'] 
+                    ?? $this->contabilidadService->obtenerCuentaPorClave('venta_efectivo_debe');
+                
                 $pagoCxc = PagoCxc::create([
                     'cxc_id' => $cxc->id,
                     'monto_pagado' => $pagoData['monto_pagado'],
-                    'fecha_pago' => now()->toDateString(),
+                    'fecha_pago' => $fechaEmision,
                     'metodo_pago' => strtoupper($pagoData['metodo_pago'] ?? 'EFECTIVO'),
                     'referencia' => $referenciaPago,
-                    'cuenta_destino_id' => $customConfigs['venta_efectivo_debe'] ?? 1,
+                    'cuenta_destino_id' => $cuentaDestinoId,
                     'usuario_id' => $usuarioId,
                 ]);
 
-                if (isset($customConfigs['venta_efectivo_debe'])) {
-                    $customConfigs['pago_cxc_efectivo_debe'] = $customConfigs['venta_efectivo_debe'];
+                if (!isset($customConfigs['pago_cxc_efectivo_debe'])) {
+                    $customConfigs['pago_cxc_efectivo_debe'] = $cuentaDestinoId;
                 }
 
                 // ASIENTO #2 (PAGO/COBRO):
@@ -242,11 +267,13 @@ class FacturacionService {
                 $asientoPago = $this->contabilidadService->registrarAsientoAuto(
                     new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
                         'pago_cxc',
-                        0, 0, $total,
+                        0, 0, round($pagoData['monto_pagado'], 2),
                         $ncf,
                         "Cobro de Factura NCF: $ncf",
                         $usuarioId,
-                        $customConfigs
+                        $customConfigs,
+                        0.0,
+                        $fechaEmision
                     )
                 );
 

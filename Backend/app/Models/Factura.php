@@ -21,16 +21,23 @@ class Factura extends Model
         'total',
         'estado',
         'nota',
+        'asiento_id',
         'dias_credito',
     ];
-public function user() {
-    return $this->belongsTo(User::class);
-}
-     public function cliente() {
-            return $this->belongsTo(Cliente::class);
-       }
 
-     public function detalles() {
-           return $this->hasMany(FacturaDetalle::class);
-     }
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
+    public function cliente() {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function detalles() {
+        return $this->hasMany(FacturaDetalle::class);
+    }
+
+    public function asiento() {
+        return $this->belongsTo(AsientoContable::class, 'asiento_id');
+    }
 }

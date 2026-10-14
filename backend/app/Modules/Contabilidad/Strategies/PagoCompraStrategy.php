@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Accounting\Strategies;
+namespace App\Modules\Contabilidad\Strategies;
 
-use App\Accounting\AsientoStrategy;
 use Exception;
 
 class PagoCompraStrategy implements AsientoStrategy

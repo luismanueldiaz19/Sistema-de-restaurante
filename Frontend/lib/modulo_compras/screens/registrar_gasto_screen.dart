@@ -20,6 +20,8 @@ class RegistrarGastoScreen extends ConsumerStatefulWidget {
 }
 
 class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +40,8 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
   }
 
   void _guardarCompra() async {
+    if (_isSaving) return;
+
     final formState = ref.read(nuevaCompraFormProvider);
 
     if (formState.proveedorId == null) {
@@ -66,48 +70,67 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
       return;
     }
 
-    final data = {
-      'proveedor_id': int.tryParse(formState.proveedorId ?? ''),
-      'numero_factura_proveedor': formState.numFactura,
-      'ncf': formState.ncf,
-      'fecha_compra': formState.fechaCompra.toIso8601String().split('T')[0],
-      'fecha_vencimiento': formState.fechaVencimiento?.toIso8601String().split(
-        'G',
-      )[0],
-      'tipo_compra': formState.tipoCompra,
-      'notas': formState.notas,
-      // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
-      // El mismo UUID se envía en cada reintento del formulario.
-      // El backend detecta si ya existe una compra con este key y,
-      // de ser así, devuelve la existente sin duplicar ningún registro.
-      'idempotency_key': formState.idempotencyKey,
-      // ──────────────────────────────────────────────────────────────────────
-      'detalles': formState.detalles.map((d) => d.toJson()).toList(),
-      if (formState.tipoCompra == 'CONTADO')
-        'metodo_pago_id': formState.metodoPagoId,
-    };
+    setState(() {
+      _isSaving = true;
+    });
 
-    print(data);
+    try {
+      final data = {
+        'proveedor_id': int.tryParse(formState.proveedorId ?? ''),
+        'numero_factura_proveedor': formState.numFactura,
+        'ncf': formState.ncf,
+        'fecha_compra': formState.fechaCompra.toIso8601String().split('T')[0],
+        'fecha_vencimiento': formState.fechaVencimiento
+            ?.toIso8601String()
+            .split('T')[0],
+        'tipo_compra': formState.tipoCompra,
+        'notas': formState.notas,
+        // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
+        // El mismo UUID se envía en cada reintento del formulario.
+        // El backend detecta si ya existe una compra con este key y,
+        // de ser así, devuelve la existente sin duplicar ningún registro.
+        'idempotency_key': formState.idempotencyKey,
+        // ──────────────────────────────────────────────────────────────────────
+        'detalles': formState.detalles.map((d) => d.toJson()).toList(),
+        if (formState.tipoCompra == 'CONTADO')
+          'metodo_pago_id': formState.metodoPagoId,
+      };
 
-    final success = await ref.read(comprasProvider.notifier).createCompra(data);
-    if (success && mounted) {
-      showToast(context, 'Gasto registrado con éxito', bgColor: Colors.green);
-      // clearForm() genera un nuevo idempotency_key para el próximo formulario
-      ref.read(nuevaCompraFormProvider.notifier).clearForm();
-      Navigator.pop(context);
-    } else if (mounted) {
-      showToast(
-        context,
-        ref.read(comprasProvider).error ?? 'Error al registrar',
-        bgColor: Colors.red,
-      );
+      final success = await ref
+          .read(comprasProvider.notifier)
+          .createCompra(data);
+      if (!mounted) return;
+
+      if (success) {
+        showToast(
+          context,
+          'Gasto registrado con éxito. Listo para el siguiente.',
+          bgColor: Colors.green,
+        );
+        // Limpia el carrito, campos y genera un nuevo idempotency_key
+        ref.read(nuevaCompraFormProvider.notifier).clearForm();
+      } else {
+        showToast(
+          context,
+          ref.read(comprasProvider).error ?? 'Error al registrar',
+          bgColor: Colors.red,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showToast(context, 'Error al registrar: $e', bgColor: Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
       // backgroundColor: AppColors.light,
       appBar: AppBar(
@@ -192,6 +215,7 @@ class _RegistrarGastoScreenState extends ConsumerState<RegistrarGastoScreen> {
                         CompraPanelTotales(
                           onGuardar: _guardarCompra,
                           textoBoton: 'REGISTRAR GASTO',
+                          isLoading: _isSaving,
                         ),
                       ],
                     ),

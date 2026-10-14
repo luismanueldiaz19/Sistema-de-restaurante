@@ -7,7 +7,7 @@ import 'package:sistema_restaurante/utils/constants.dart';
 
 class ConfiguracionContableService {
   final ApiService _api = ApiService();
-  final String _baseUrl = '$hostName/api';
+  final String _baseUrl = apiUrl;
 
   /// Obtener el catálogo de cuentas con opción de filtrado
   Future<List<CatalogoCuentaModel>> getCatalogoCuentas({

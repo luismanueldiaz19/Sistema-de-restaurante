@@ -23,7 +23,7 @@ class CompraController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar'])
+        $query = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar', 'asiento.detalles.cuenta'])
             ->orderBy('id', 'desc');
 
         if ($request->filled('fecha_desde')) {
@@ -79,7 +79,7 @@ class CompraController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $compra = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar'])->find($id);
+        $compra = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar', 'asiento.detalles.cuenta'])->find($id);
 
         if (!$compra) {
             return $this->errorResponse('Compra no encontrada', 404);

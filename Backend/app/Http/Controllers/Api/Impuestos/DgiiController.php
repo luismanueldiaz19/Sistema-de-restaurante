@@ -11,9 +11,8 @@ use App\Models\Factura;
 use App\Modules\Contabilidad\Services\ContabilidadService;
 use Illuminate\Support\Facades\DB;
 use Exception;
-use App\Models\ConfiguracionContable;
 use App\Models\AsientoContable;
-use App\Accounting\AsientoStrategyFactory;
+use App\Modules\Contabilidad\Strategies\AsientoStrategyFactory;
 use App\Models\NotaCredito;
 use Carbon\Carbon;
 
