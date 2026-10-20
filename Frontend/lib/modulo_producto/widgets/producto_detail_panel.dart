@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/producto.dart';
 import '../../palletes/app_colors.dart';
+import '../screens/nuevo_ajuste_dialog.dart';
 
 class ProductoDetailPanel extends StatelessWidget {
   final Producto producto;
@@ -186,10 +187,51 @@ class ProductoDetailPanel extends StatelessWidget {
                           "RD\$ ${producto.costo?.toStringAsFixed(2) ?? '0.00'}",
                         ),
                         _buildInfoRow(
-                          Icons.inventory_outlined,
-                          "Stock Mínimo",
-                          producto.stockMinimo?.toString() ?? "0",
+                          Icons.inventory_2_outlined,
+                          "Maneja Inventario",
+                          (producto.manejaInventario ?? false) ? "SÍ" : "NO",
+                          valueColor: (producto.manejaInventario ?? false) ? Colors.teal : Colors.grey,
                         ),
+                        if (producto.manejaInventario ?? false) ...[
+                          _buildInfoRow(
+                            Icons.all_inbox_outlined,
+                            "Stock Actual",
+                            (producto.stockActual ?? 0) < 0
+                                ? "${producto.stockActual?.toStringAsFixed(1) ?? '0'} (Déficit)"
+                                : "${producto.stockActual?.toStringAsFixed(1) ?? '0'} ${producto.unidadMedida?.nombre ?? ''}",
+                            valueColor: (producto.stockActual ?? 0) < 0
+                                ? Colors.red.shade700
+                                : ((producto.stockActual ?? 0) <= (producto.stockMinimo ?? 0)
+                                    ? Colors.amber.shade800
+                                    : Colors.green.shade700),
+                          ),
+                          _buildInfoRow(
+                            Icons.warning_amber_rounded,
+                            "Stock Mínimo",
+                            "${producto.stockMinimo?.toStringAsFixed(1) ?? '0'} ${producto.unidadMedida?.nombre ?? ''}",
+                          ),
+                          const SizedBox(height: 6),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => NuevoAjusteDialog(productoInicial: producto),
+                                );
+                              },
+                              icon: const Icon(Icons.tune, size: 15),
+                              label: const Text("Ajustar Stock", style: TextStyle(fontSize: 12)),
+                              style: OutlinedButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary),
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        ],
                         _buildInfoRow(
                           Icons.account_balance_outlined,
                           "Tipo Contable",

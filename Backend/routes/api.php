@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Facturacion\ClienteController;
 use App\Http\Controllers\Api\Facturacion\FacturaController;
 use App\Http\Controllers\Api\Facturacion\NcfSecuenciaController;
-use App\Http\Controllers\Api\Finanzas\CajaController;
+use App\Modules\Caja\Http\Controllers\CajaController;
 use App\Http\Controllers\Api\Inventario\ProductoController;
 use App\Http\Controllers\Api\Compras\OrdenCompraController;
 use App\Http\Controllers\Api\RRHH\NominaController;
@@ -13,10 +13,10 @@ use App\Http\Controllers\Api\Compras\ProveedorController;
 use App\Http\Controllers\Api\Finanzas\CxpController;
 use App\Http\Controllers\Api\Finanzas\CxcController;
 use App\Http\Controllers\Api\Impuestos\DgiiController;
-use App\Http\Controllers\Api\Inventario\AjusteInventarioController;
+use App\Modules\Inventario\Http\Controllers\InventarioController;
+use App\Modules\Inventario\Http\Controllers\RecetaController;
 use App\Http\Controllers\Api\Facturacion\NotaCreditoController;
 // use App\Http\Controllers\Api\Restaurante\PedidoController; // Migrado a V2
-use App\Http\Controllers\Api\Inventario\RecetaController;
 use App\Http\Controllers\Api\Inventario\CategoriaController;
 use App\Http\Controllers\Api\Inventario\MarcaController;
 use App\Http\Controllers\Api\Inventario\UnidadMedidaController;
@@ -128,22 +128,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Route::get('/pedidos/codigo/{codigo}', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'getByCodigo']); // Migrado a V2
     // Route::put('/pedidos/{id}/estado', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'updateStatus']); // Migrado a V2
 
-    // ================= ASIGNACIÓN DE MESAS Y CUENTAS =================
-    Route::post('/cajas/{cajaId}/asignar-mesa', [CajaController::class, 'asignarMesa']);
-
-    // ================= INVENTARIO =================
-    Route::post('/inventario/ajuste', [AjusteInventarioController::class, 'store'])
+    // ================= INVENTARIO (Módulo Inventario) =================
+    Route::post('/inventario/ajuste', [InventarioController::class, 'ajuste'])
         ->middleware('permission:ver_inventario');
     
-    Route::get('/inventario/movimientos', [AjusteInventarioController::class, 'index'])
+    Route::get('/inventario/movimientos', [InventarioController::class, 'movimientos'])
         ->middleware('permission:ver_inventario');
 
+    Route::get('/inventario/existencias', [InventarioController::class, 'existencias'])
+        ->middleware('permission:ver_inventario');
 
-    // ================= CAJA Y TURNOS =================
+    Route::get('/inventario/alertas-stock', [InventarioController::class, 'alertasStock'])
+        ->middleware('permission:ver_inventario');
+
+    // ================= CAJA Y TURNOS (Módulo Caja) =================
     Route::get('/cajas', [CajaController::class, 'index']);
     Route::get('/turnos', [CajaController::class, 'turnos']);
     Route::get('/caja/estado', [CajaController::class, 'estadoActual']);
-    // Route::post('/caja/abrir', [CajaController::class, 'abrir']); // Migrado a v2
     Route::get('/caja/resumen', [CajaController::class, 'resumen']);
     Route::post('/caja/cerrar', [CajaController::class, 'cerrar']);
     Route::get('/caja/historial', [CajaController::class, 'historial']);
@@ -235,4 +236,5 @@ Route::prefix('v2')->group(function () {
     require base_path('app/Modules/Pedido/Routes/api.php');
     require base_path('app/Modules/Mesa/Routes/api.php');
     require base_path('app/Modules/Contabilidad/Routes/api.php');
+    require base_path('app/Modules/Inventario/Routes/api.php');
 });

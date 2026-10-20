@@ -1,0 +1,72 @@
+================================================================================
+RESUMEN DE TRABAJO REALIZADO - SISTEMA DE RESTAURANTE
+FECHA: 2026-10-20
+================================================================================
+
+1. MÓDULO DE CAJA (FINANZAS Y FRONTEND)
+--------------------------------------------------------------------------------
+- Reestructuración modular limpia en `backend/app/Modules/Caja`:
+  * DTOs: AperturaCajaDTO, CierreCajaDTO.
+  * Requests: AperturaCajaRequest, CierreCajaRequest.
+  * Services: CajaService (gestión de cajas físicas, turnos, apertura, resumen y arqueo/cierre).
+  * Controllers: CajaController y rutas API modularizadas.
+- Eliminación de código redundante / huérfano:
+  * Eliminado `backend/app/Http/Controllers/Api/Finanzas/CajaController.php`.
+  * Eliminado `backend/app/Services/CajaService.php`.
+- Corrección de error en Flutter Riverpod:
+  * Resuelto: "Tried to modify a provider while the widget tree was building" utilizando `WidgetsBinding.instance.addPostFrameCallback`.
+- Unificación de UI de Cierre de Caja:
+  * A solicitud del usuario, se mantuvo el modal con desglose de denominaciones de billetes en pesos dominicanos (RD$) `CierreCajaDialog`.
+  * Se eliminó la pantalla duplicada `frontend/lib/facturacion/screens/arqueo_caja_page.dart`.
+  * Se conectó `CierreCajaDialog.show()` tanto en el menú lateral (`menu_builder.dart`) como en el botón flotante de `home_page.dart`.
+
+
+2. MÓDULO DE INVENTARIO - BACKEND (ARQUITECTURA LIMPIA V2)
+--------------------------------------------------------------------------------
+- Estructura implementada en `backend/app/Modules/Inventario`:
+  * Enums: `TipoMovimientoEnum` (ENTRADA, SALIDA).
+  * Exceptions: `InventarioException`.
+  * DTOs: `RegistrarAjusteDTO`, `FiltroKardexDTO`, `GuardarRecetaDTO`.
+  * Requests: `RegistrarAjusteRequest`, `GuardarRecetaRequest`.
+  * Services:
+    - `InventarioService`: Ajustes manuales, Kardex con paginación y filtros, existencias valorizadas (costo y venta), alertas de stock mínimo, salidas por venta con receta y entradas por compra.
+    - `RecetaService`: CRUD de recetas, validación contra recursión (no ser ingrediente de sí mismo) y recálculo automático del costo del plato según ingredientes.
+  * Controllers: `InventarioController`, `RecetaController`.
+  * Routes: `backend/app/Modules/Inventario/Routes/api.php` registrado en `/api/v2/` y manteniendo compatibilidad total con `/api/inventario/*` y `/api/recetas/*`.
+- Limpieza de controladores obsoletos:
+  * Eliminado `backend/app/Http/Controllers/Api/Inventario/AjusteInventarioController.php`.
+  * Eliminado `backend/app/Http/Controllers/Api/Inventario/RecetaController.php`.
+- Compatibilidad y Delegación:
+  * `backend/app/Services/InventoryService.php` adaptado como facade que delega a `InventarioService` y `RecetaService`, preservando la integración con `FacturacionService` y los tests.
+- Reglas Críticas de Negocio Aplicadas:
+  * SALDO NEGATIVO PERMITIDO: El inventario puede quedar en saldo negativo si la disponibilidad física lo requiere (ventas directas o despachos a cocina antes de asentar compras), evitando frenar la facturación.
+  * PRODUCTOS INVENTARIABLES VS SERVICIOS: Solo los productos con `maneja_inventario == true` y distintos de `SERVICIO` mueven stock y permiten ajustes. Los servicios y platos con ingredientes no inventariables se filtran adecuadamente.
+  * EXPLOSIÓN DE RECETAS: En platos y combos, se descuentan las materias primas configuradas proporcionalmente a las unidades vendidas.
+  * COMPRAS DE PROVEEDORES: Conectado en `CompraService` para que al registrar una compra se incremente el stock físico multiplicando por el `factor_conversion`.
+  * MOTOR CONTABLE: Creación de la estrategia `AjusteInventarioStrategy` conectada a `AsientoStrategyFactory` para generar asientos por partida doble en ajustes manuales (Mermas vs Sobrantes), protegida contra caídas si las cuentas aún no están mapeadas.
+- Pruebas Automatizadas:
+  * 11/11 pruebas en verde (`php artisan test --filter=Inventory`).
+
+
+3. MÓDULO DE INVENTARIO - FRONTEND (UI COMPACTA)
+--------------------------------------------------------------------------------
+- Directrices aplicadas: `flutter-small-widgets` (diseño compacto, tipografías entre 11-15px, paddings reducidos de 8-12px, `VisualDensity.compact`).
+- Servicios y Estado:
+  * `InventarioApi`: Ampliado con `fetchExistencias`, `fetchAlertas` y soporte de filtros en `fetchMovimientos`.
+  * `InventarioProvider`: Añadido estado unificado para resumen de existencias, métricas KPI, catálogo valorizado, alertas y movimientos.
+- Pantalla de Control de Inventario & Kardex (`ScreenMovimientosInventario`):
+  * Barra de KPIs en vivo: Ítems Inventariables, Unidades en Almacén, Valorización a Costo (RD$) e Ítems en Alerta / Déficit.
+  * Pestaña 1 (Existencias y Valorización): Listado con badges de color (Verde = Disponible, Ámbar = Bajo mínimo, Rojo = Déficit/Negativo o Sin stock), cálculo de valorización y botón de ajuste rápido directo por fila.
+  * Pestaña 2 (Kardex / Movimientos): Historial cronológico con filtros rápidos (`Todos`, `Entradas (+)`, `Salidas (-)`), buscador y motivo de cada movimiento.
+  * Pestaña 3 (Alertas de Reposición): Filtro de productos bajo mínimo o en negativo con el faltante sugerido a comprar y acción de reorden rápida.
+- Modal de Ajuste Manual (`NuevoAjusteDialog`):
+  * Filtro estricto: Solo permite buscar y seleccionar productos con `manejaInventario == true` y que no sean servicios.
+  * Previsualización en tiempo real del stock proyectado (ej. `3.0 - 5.0 = -2.0 un. (Déficit)`).
+  * Chips rápidos de motivos frecuentes (Merma/Desperdicio, Vencimiento, Avería/Rotura, Conteo físico, Despacho a cocina, Sobrante).
+- Ficha Detallada del Producto (`ProductoDetailPanel`):
+  * Muestra si maneja inventario (SÍ/NO), stock actual con badge de estado y botón directo "Ajustar Stock".
+- Menú Lateral (`menu_builder.dart`):
+  * Enlazados los accesos de "Kardex & Existencias" y "Ajustes de Inventario" a la nueva pantalla centralizada.
+- Verificación de código:
+  * `dart analyze` sin errores ni advertencias en los componentes modificados.
+================================================================================

@@ -22,6 +22,7 @@ class AsientoStrategyFactory
         'pago_dgii'         => PagoDgiiStrategy::class,
         'devolucion_venta'  => DevolucionVentaStrategy::class,
         'pago_cxc'          => PagoCxcStrategy::class,
+        'ajuste_inventario' => AjusteInventarioStrategy::class,
     ];
 
     /**

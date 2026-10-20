@@ -34,6 +34,8 @@ import '../modulo_contabilidad/screens/estado_resultados_tabla_screen.dart';
 import '../modulo_contabilidad/screens/catalogo_cuentas_screen.dart';
 import '../facturacion/screens/metodos_pago_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/historial_caja_screen.dart';
+import 'package:sistema_restaurante/modulo_caja/screens/apertura_caja_screen.dart';
+import 'package:sistema_restaurante/modulo_caja/widgets/cierre_caja_dialog.dart';
 import 'package:sistema_restaurante/screens/libro_diario_screen.dart';
 import 'package:sistema_restaurante/screens/configuracion_contable_screen.dart';
 import 'package:sistema_restaurante/modulo_nomina/screens/nomina_dashboard_screen.dart';
@@ -263,7 +265,15 @@ class MenuBuilder {
                 ),
               ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
-              SidebarSubItem(title: 'Kardex', onTap: () {}),
+              SidebarSubItem(
+                title: 'Kardex & Existencias',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ScreenMovimientosInventario(),
+                  ),
+                ),
+              ),
             if (auth.hasPermission('ver_inventario') || isAdmin)
               SidebarSubItem(
                 title: 'Ajustes de Inventario',
@@ -375,8 +385,19 @@ class MenuBuilder {
             if (auth.hasPermission('gestionar_caja') ||
                 isAdmin ||
                 isCajero) ...[
-              SidebarSubItem(title: 'Apertura de Caja', onTap: () {}),
-              SidebarSubItem(title: 'Cierre de Caja', onTap: () {}),
+              SidebarSubItem(
+                title: 'Apertura de Caja',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AperturaCajaScreen(),
+                  ),
+                ),
+              ),
+              SidebarSubItem(
+                title: 'Cierre de Caja',
+                onTap: () => CierreCajaDialog.show(context, ref),
+              ),
               SidebarSubItem(
                 title: 'Movimientos de Caja',
                 onTap: () => Navigator.push(

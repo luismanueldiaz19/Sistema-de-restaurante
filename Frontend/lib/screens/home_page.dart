@@ -65,56 +65,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   }
 
   void _handleCierreCaja(BuildContext context, WidgetRef ref) async {
-    final auth = ref.read(authProvider);
-
-    // 1. Obtener el resumen del servidor
-    final resumenResult = await ref
-        .read(cajaProvider.notifier)
-        .getResumen(auth.token!);
-
-    if (!resumenResult['success'] && mounted) {
-      showToast(
-        context,
-        'Error al obtener resumen: ${resumenResult['message']}',
-        bgColor: Colors.red,
-      );
-      return;
-    }
-
-    final double montoEsperado =
-        (resumenResult['data']['monto_esperado_efectivo'] as num).toDouble();
-
-    final List<dynamic> ventasPorMetodo =
-        resumenResult['data']['ventas_por_metodo'] ?? [];
-
-    // 2. Mostrar Diálogo de Arqueo
-    if (!mounted) return;
-    final arqueoData = await showDialog<Map<String, dynamic>>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => CierreCajaDialog(
-        montoEsperado: montoEsperado,
-        ventasPorMetodo: ventasPorMetodo,
-      ),
-    );
-
-    if (arqueoData == null) return;
-
-    // 3. Ejecutar Cierre en el Servidor
-    final result = await ref
-        .read(cajaProvider.notifier)
-        .cerrarCaja(
-          token: auth.token!,
-          montoFisico: arqueoData['monto_fisico'],
-          desglose: arqueoData['desglose'],
-          comentario: arqueoData['comentario'],
-        );
-
-    if (result['success'] && mounted) {
-      showToast(context, 'CAJA CERRADA EXITOSAMENTE', bgColor: Colors.green);
-    } else if (mounted) {
-      showToast(context, 'Error: ${result['message']}', bgColor: Colors.red);
-    }
+    await CierreCajaDialog.show(context, ref);
   }
 
   @override

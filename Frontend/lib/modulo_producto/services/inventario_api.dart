@@ -2,18 +2,71 @@ import 'dart:convert';
 import '../../services/api_services.dart';
 import '../../utils/constants.dart';
 import '../models/movimiento_inventario.dart';
+import '../models/producto.dart';
 
 class InventarioApi {
   final ApiService api = ApiService();
   final String baseUrl = "$hostName/api/inventario";
 
-  Future<List<MovimientoInventario>> fetchMovimientos(String token) async {
-    final response = await api.get("$baseUrl/movimientos", token: token);
+  Future<List<MovimientoInventario>> fetchMovimientos(
+    String token, {
+    String? search,
+    String? tipo,
+    String? fechaDesde,
+    String? fechaHasta,
+  }) async {
+    final queryParams = <String, String>{};
+    if (search != null && search.isNotEmpty) queryParams['search'] = search;
+    if (tipo != null && tipo.isNotEmpty && tipo != 'TODOS') queryParams['tipo'] = tipo;
+    if (fechaDesde != null && fechaDesde.isNotEmpty) queryParams['fecha_desde'] = fechaDesde;
+    if (fechaHasta != null && fechaHasta.isNotEmpty) queryParams['fecha_hasta'] = fechaHasta;
+
+    String url = "$baseUrl/movimientos";
+    if (queryParams.isNotEmpty) {
+      final queryString = Uri(queryParameters: queryParams).query;
+      url = "$url?$queryString";
+    }
+
+    final response = await api.get(url, token: token);
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body)['data'];
+      final decoded = jsonDecode(response.body);
+      final List data = decoded['data'] ?? [];
       return data.map((e) => MovimientoInventario.fromJson(e)).toList();
     }
     throw Exception("Error al cargar movimientos: ${response.body}");
+  }
+
+  Future<Map<String, dynamic>> fetchExistencias(
+    String token, {
+    String? search,
+    int? categoriaId,
+  }) async {
+    final queryParams = <String, String>{};
+    if (search != null && search.isNotEmpty) queryParams['search'] = search;
+    if (categoriaId != null) queryParams['categoria_id'] = categoriaId.toString();
+
+    String url = "$baseUrl/existencias";
+    if (queryParams.isNotEmpty) {
+      final queryString = Uri(queryParameters: queryParams).query;
+      url = "$url?$queryString";
+    }
+
+    final response = await api.get(url, token: token);
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return decoded['data'] ?? {};
+    }
+    throw Exception("Error al cargar existencias: ${response.body}");
+  }
+
+  Future<List<Producto>> fetchAlertas(String token) async {
+    final response = await api.get("$baseUrl/alertas-stock", token: token);
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      final List data = decoded['data'] ?? [];
+      return data.map((e) => Producto.fromJson(e)).toList();
+    }
+    throw Exception("Error al cargar alertas de stock: ${response.body}");
   }
 
   Future<MovimientoInventario> registrarAjuste(
@@ -38,6 +91,9 @@ class InventarioApi {
       final value = jsonDecode(response.body);
       return MovimientoInventario.fromJson(value['data']);
     }
-    throw Exception("Error al registrar ajuste: ${response.body}");
+
+    final decoded = jsonDecode(response.body);
+    final errorMsg = decoded['message'] ?? decoded['error'] ?? response.body;
+    throw Exception(errorMsg);
   }
 }

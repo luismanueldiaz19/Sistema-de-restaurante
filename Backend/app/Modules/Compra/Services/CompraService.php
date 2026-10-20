@@ -123,6 +123,16 @@ class CompraService
                     'impuesto_monto'     => $d['impuesto_monto'],
                     'total'              => $d['total'],
                 ]);
+
+                if (!empty($d['producto_id'])) {
+                    $factor = isset($d['factor_conversion']) ? (float) $d['factor_conversion'] : 1.0;
+                    $cantidadFisica = (float) $d['cantidad'] * $factor;
+                    app(\App\Modules\Inventario\Services\InventarioService::class)->procesarEntradaCompra(
+                        productoId: (int) $d['producto_id'],
+                        cantidad: $cantidadFisica,
+                        referencia: $compra->ncf ?? $dto->numero_factura_proveedor ?? "COMPRA-{$compra->id}"
+                    );
+                }
             }
 
             // 6. Determinar monto a pagar al proveedor (en informal con retención 100% ITBIS, la deuda a liquidar es subtotal)

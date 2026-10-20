@@ -52,7 +52,7 @@ class MesaMetricsBar extends StatelessWidget {
             ),
             _buildMetricDivider(),
             _buildMetricItem(
-              'Consumo Salón',
+              'Consumo',
               FormatterNumber.formatCurrency(totalConsumo),
               Icons.payments_outlined,
               AppColors.primary,

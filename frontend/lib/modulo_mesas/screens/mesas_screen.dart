@@ -143,7 +143,7 @@ class _MesasScreenState extends ConsumerState<MesasScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Salón de Mesas',
+                  'Gestión de Mesas',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,

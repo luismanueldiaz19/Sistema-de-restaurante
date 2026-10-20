@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../palletes/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/helpers.dart';
+import '../providers/caja_provider.dart';
 
 class CierreCajaDialog extends StatefulWidget {
   final double montoEsperado;
@@ -10,6 +14,62 @@ class CierreCajaDialog extends StatefulWidget {
     required this.montoEsperado,
     this.ventasPorMetodo = const [],
   });
+
+  static Future<void> show(BuildContext context, WidgetRef ref) async {
+    final auth = ref.read(authProvider);
+    if (auth.token == null) return;
+
+    final resumenResult = await ref
+        .read(cajaProvider.notifier)
+        .getResumen(auth.token!);
+
+    if (!resumenResult['success']) {
+      if (context.mounted) {
+        showToast(
+          context,
+          'No tienes una sesión de caja abierta para cerrar.',
+          bgColor: Colors.orange,
+        );
+      }
+      return;
+    }
+
+    final double montoEsperado =
+        (resumenResult['data']['monto_esperado_efectivo'] as num?)?.toDouble() ?? 0.0;
+
+    final List<dynamic> ventasPorMetodo =
+        resumenResult['data']['ventas_por_metodo'] ?? [];
+
+    if (!context.mounted) return;
+
+    final arqueoData = await showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => CierreCajaDialog(
+        montoEsperado: montoEsperado,
+        ventasPorMetodo: ventasPorMetodo,
+      ),
+    );
+
+    if (arqueoData == null) return;
+
+    final result = await ref
+        .read(cajaProvider.notifier)
+        .cerrarCaja(
+          token: auth.token!,
+          montoFisico: (arqueoData['monto_fisico'] as num).toDouble(),
+          desglose: Map<String, int>.from(arqueoData['desglose'] ?? {}),
+          comentario: arqueoData['comentario'],
+        );
+
+    if (context.mounted) {
+      if (result['success']) {
+        showToast(context, 'CAJA CERRADA EXITOSAMENTE', bgColor: Colors.green);
+      } else {
+        showToast(context, 'Error: ${result['message']}', bgColor: Colors.red);
+      }
+    }
+  }
 
   @override
   State<CierreCajaDialog> createState() => _CierreCajaDialogState();

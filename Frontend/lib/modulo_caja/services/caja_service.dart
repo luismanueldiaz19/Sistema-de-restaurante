@@ -4,13 +4,17 @@ import '../../utils/constants.dart';
 
 class CajaService {
   final ApiService _api = ApiService();
-  final String _baseUrl = "$hostName/api/caja";
+  final String _baseUrl = "$apiUrl/cajas";
 
   Future<Map<String, dynamic>> getEstadoCaja(String token) async {
     try {
       final response = await _api.get("$_baseUrl/estado", token: token);
       final data = jsonDecode(response.body);
-      return {"success": response.statusCode == 200, "data": data['data']};
+      return {
+        "success": response.statusCode == 200,
+        "data": data['data'],
+        "message": data['message'] ?? '',
+      };
     } catch (e) {
       return {"success": false, "message": e.toString()};
     }
@@ -20,7 +24,11 @@ class CajaService {
     try {
       final response = await _api.get("$_baseUrl/resumen", token: token);
       final data = jsonDecode(response.body);
-      return {"success": response.statusCode == 200, "data": data['data']};
+      return {
+        "success": response.statusCode == 200,
+        "data": data['data'],
+        "message": data['message'] ?? '',
+      };
     } catch (e) {
       return {"success": false, "message": e.toString()};
     }
@@ -41,7 +49,8 @@ class CajaService {
       final data = jsonDecode(response.body);
       return {
         "success": response.statusCode == 200,
-        "message": data['message'],
+        "data": data['data'],
+        "message": data['message'] ?? 'Caja cerrada exitosamente',
       };
     } catch (e) {
       return {"success": false, "message": e.toString()};
@@ -55,7 +64,7 @@ class CajaService {
     required double montoInicial,
   }) async {
     try {
-      final response = await _api.post("$apiUrl/cajas/abrir", {
+      final response = await _api.post("$_baseUrl/abrir", {
         "caja_id": cajaId,
         "turno_id": turnoId,
         "monto_inicial": montoInicial,
@@ -64,7 +73,7 @@ class CajaService {
       return {
         "success": response.statusCode == 200 || response.statusCode == 201,
         "data": data['data'],
-        "message": data['message'],
+        "message": data['message'] ?? 'Caja abierta exitosamente',
       };
     } catch (e) {
       return {"success": false, "message": e.toString()};
@@ -73,7 +82,7 @@ class CajaService {
 
   Future<List<dynamic>> getCajas(String token) async {
     try {
-      final response = await _api.get("$hostName/api/cajas", token: token);
+      final response = await _api.get(_baseUrl, token: token);
       final data = jsonDecode(response.body);
       return data['data'] ?? [];
     } catch (e) {
@@ -83,7 +92,7 @@ class CajaService {
 
   Future<List<dynamic>> getTurnos(String token) async {
     try {
-      final response = await _api.get("$hostName/api/turnos", token: token);
+      final response = await _api.get("$_baseUrl/turnos", token: token);
       final data = jsonDecode(response.body);
       return data['data'] ?? [];
     } catch (e) {
@@ -98,8 +107,7 @@ class CajaService {
     try {
       String query = '';
       if (filters != null && filters.isNotEmpty) {
-        query =
-            '?' + filters.entries.map((e) => '${e.key}=${e.value}').join('&');
+        query = '?${filters.entries.map((e) => '${e.key}=${e.value}').join('&')}';
       }
 
       final response = await _api.get(
@@ -107,7 +115,11 @@ class CajaService {
         token: token,
       );
       final data = jsonDecode(response.body);
-      return {"success": response.statusCode == 200, "data": data['data']};
+      return {
+        "success": response.statusCode == 200,
+        "data": data['data'],
+        "message": data['message'] ?? '',
+      };
     } catch (e) {
       return {"success": false, "message": e.toString()};
     }

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\HasIdempotency;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Pago;
-use App\Services\CajaService;
+use App\Modules\Caja\Services\CajaService;
 
 class NotaCreditoController extends Controller
 {
