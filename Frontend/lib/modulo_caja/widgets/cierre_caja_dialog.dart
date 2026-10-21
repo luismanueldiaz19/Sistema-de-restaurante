@@ -357,10 +357,10 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorBillete.withOpacity(0.1)),
+        border: Border.all(color: colorBillete.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: colorBillete.withOpacity(0.05),
+            color: colorBillete.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -372,9 +372,9 @@ class _CierreCajaDialogState extends State<CierreCajaDialog> {
             width: 40,
             height: 25,
             decoration: BoxDecoration(
-              color: colorBillete.withOpacity(0.1),
+              color: colorBillete.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: colorBillete.withOpacity(0.3)),
+              border: Border.all(color: colorBillete.withValues(alpha: 0.3)),
             ),
             child: Center(
               child: Text(

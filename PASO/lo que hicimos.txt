@@ -69,4 +69,88 @@ FECHA: 2026-10-20
   * Enlazados los accesos de "Kardex & Existencias" y "Ajustes de Inventario" a la nueva pantalla centralizada.
 - Verificación de código:
   * `dart analyze` sin errores ni advertencias en los componentes modificados.
+
+
+4. MÓDULO DE CAJA - HISTORIAL DE CIERRES (VISTA DIVIDIDA MASTER-DETAIL)
+--------------------------------------------------------------------------------
+- Rediseño integral de la pantalla `HistorialCajaScreen` replicando el patrón de `ScreenProductos`:
+  * Lado Izquierdo (Panel Maestro):
+    - Buscador reactivo por caja, cajero, turno o ID de sesión.
+    - Tarjetas interactivas `CierreCajaListCard` con franja de estado (Verde: Abierta, Azul/Índigo: Cuadrada, Rojo: Faltante, Turquesa: Sobrante), avatar numérico `#ID`, fecha de apertura, cajero y monto de descuadre/balance.
+    - Paginador con conteo de registros totales y selector de páginas.
+  * Lado Derecho (Panel de Detalle Completo):
+    - Componente `CierreCajaDetailPanel` para ver toda la información de la sesión seleccionada.
+    - Encabezado con estado (ABIERTA / CERRADA), chip de arqueo (Cuadrada / Faltante / Sobrante) y botón directo "Imprimir Ticket".
+    - Fila de 4 tarjetas KPI: Fondo Inicial, Monto Esperado en Efectivo, Monto Físico y Diferencia Neta.
+    - Pestaña 1 (Auditoría & Arqueo): Información de horarios y duración, notas del cajero, desglose de cobros por método de pago con barras de porcentaje, y desglose de billetes y monedas (denominaciones RD$ 2000 a RD$ 1 con cantidad y subtotales).
+    - Pestaña 2 (Facturas Emitidas): Lista interactiva de facturas generadas en la sesión con NCF, cliente, estado y total.
+- Backend & Servicios:
+  * `CajaService::getHistorial` y `CajaController::historial`: Búsqueda multicampo, conteo de facturas (`withCount('facturas')`) y paginación.
+  * `ThermalPrinterService::imprimirCierreCaja`: Impresión térmica directa de comprobante de cierre de caja.
+
+
+5. FACTURACIÓN - UNIFICACIÓN DE DOCUMENTOS E HISTORIAL (MASTER-DETAIL)
+--------------------------------------------------------------------------------
+- Análisis y Unificación:
+  * Se identificó una redundancia del 85% entre "Gestión de Documentos" e "Historial de Ventas" (ambas consultaban `GET /facturas`, pero una tenía la tabla de facturas con acumulados y la otra las acciones operativas y líneas de ítems).
+  * Se unificaron ambas en una sola experiencia fluida bajo arquitectura Master-Detail aplicando las skills `flutter-clean-reusable-ui` y `flutter-small-widgets`.
+- Componentes Creados & Reutilizados:
+  * `FacturaListItem` (`factura_list_item.dart`):
+    - Franja de color vertical por estado (Verde: Pagada, Ámbar: Pendiente, Rojo: Anulada).
+    - Avatar numérico con `#ID`, NCF, nombre del cliente, fecha y hora formateada, badge de estado y total RD$ formateado con `FittedBox`.
+    - Animación interactiva en `hover` y selección destacada con borde primario.
+  * `FacturaDetallePanel` (`factura_detalle_panel.dart`):
+    - Envuelto en `AnimatedSwitcher` + `FadeTransition` con duración de 220ms para una navegación ágil y fluida sin parpadeos.
+    - Encabezado con información del comprobante fiscal (NCF, tipo de comprobante, fecha, cajero/vendedor).
+    - 4 Tarjetas KPI superiores: Subtotal, Descuento, ITBIS y Total a Pagar.
+    - Pestaña 1 (Artículos Vendidos): Lista de ítems con badges de cantidad, precio unitario, tasa de ITBIS y total de línea.
+    - Pestaña 2 (Acciones del Documento): Botones rápidos de acción con iconos y estados interactivos (Imprimir Ticket térmico vía `ThermalPrinterService`, Nota de Crédito, Nota de Débito, Compartir comprobante, Anular Factura).
+    - Pestaña 3 (Totales del Período): Incorporación de las métricas acumuladas de ventas del proveedor (Total Facturado, ITBIS recaudado, facturas emitidas y desglose de ventas por método de pago con barras de progreso).
+  * `GestionDocumentosScreen` (`gestion_documentos_screen.dart`):
+    - Barra superior responsiva con `Wrap` para evitar desbordamientos visuales.
+    - Filtros rápidos por estado con chips (`Todos`, `Pagadas`, `Pendientes`, `Anuladas`).
+    - Selectores de fecha (`Desde`, `Hasta`) con botón de limpieza directa.
+    - Panel izquierdo (Master): Buscador reactivo en tiempo real con `CustomTextField`, resumen de registros filtrados, listado paginado y widget `Paginador`.
+    - Panel derecho (Detail): `FacturaDetallePanel` dinámico.
+- Delegación y Limpieza de Código Huérfano:
+  * `HistorialVentasScreen` simplificado a un widget forwarder hacia `GestionDocumentosScreen`, garantizando retrocompatibilidad con accesos directos de `home_page.dart` y `menu_builder.dart` sin duplicar 900 líneas de código.
+  * Análisis estático con 0 errores y 0 advertencias en los nuevos componentes.
+
+
+6. MÓDULO DE NOTAS DE CRÉDITO (BACKEND, MOTOR CONTABLE Y UI)
+--------------------------------------------------------------------------------
+- Backend & Reglas Fiscales DGII (`NotaCreditoController.php`):
+  * Detección automática del tipo de NCF afectado:
+    - Facturas Electrónicas (e-CF que inician con 'E', como E32/E31): Genera secuencia 'E34' con longitud DGII de 13 caracteres (`E` + `34` + 10 dígitos correlativos con `str_pad`).
+    - Facturas Tradicionales (que inician con 'B', como B01/B02): Genera secuencia 'B04' con 11 caracteres (`B` + `04` + 8 dígitos correlativos).
+  * Control de Devoluciones Parciales y Acumuladas:
+    - Validación matemática contra `NotaCreditoDetalle` para evitar devolver más unidades de las facturadas en múltiples devoluciones parciales.
+  * Reincorporación Automática al Inventario:
+    - Los productos con `maneja_inventario == true` y distintos de `SERVICIO` suman sus unidades de vuelta a `stock_actual` y registran su `MovimientoInventario` de tipo `ENTRADA` con referencia a la Nota de Crédito.
+  * Integración con Caja (Efectivo) y Cuentas por Cobrar (CxC):
+    - Si la factura original se pagó en efectivo, se genera un registro negativo en `pagos` asociado a la sesión de caja activa del cajero, reduciendo con exactitud el efectivo esperado en el arqueo de cierre.
+    - Si la factura fue a crédito, rebaja el `monto_pendiente` de la tabla `cuentas_por_cobrar` y actualiza a `PAGADA` si se cancela la deuda por completo.
+
+- Motor Contable por Partida Doble (`DevolucionVentaStrategy.php`):
+  * Soporte dual para ventas al contado y ventas a crédito:
+    - Ventas al Contado: Acredita la cuenta de Caja General / Efectivo (`venta_efectivo_debe`).
+    - Ventas a Crédito: Acredita Cuentas por Cobrar Clientes (`venta_credito_debe` o `cliente_cxc_debe`) reduciendo el activo exigible.
+  * Reversión de Ingresos e Impuestos:
+    - Debita la cuenta de Ingresos por Ventas (`venta_haber`) por el subtotal devuelto.
+    - Debita la cuenta de ITBIS por Pagar (`venta_itbis_haber`) por el impuesto devuelto (reduciendo el pasivo fiscal de la DGII).
+  * Reversión de Costo de Ventas:
+    - Si el producto devuelto tiene costo unitario, debita Inventario (`venta_inventario_haber`) y acredita Costo de Ventas (`venta_costo_debe`), cuadrando a la perfección los débitos y créditos.
+
+- Frontend y Experiencia de Usuario (`nota_credito_dialog.dart`):
+  * Rediseño completo bajo `flutter-clean-reusable-ui` y `flutter-small-widgets`:
+    - Encabezado elegante con título "Registrar Nota de Crédito", número de factura y cliente (ocultando códigos técnicos como E34/B04 de la UI para una experiencia de usuario limpia y directa).
+    - Botón de acción directo: "Registrar Nota de Crédito".
+    - Banner informativo sobre la reincorporación de stock y el registro en el motor contable.
+    - Tarjetas compactas por artículo con nombre, precio unitario, unidades facturadas, total de la línea y selector numérico `[-]` / `[+]` más botón rápido "Todo".
+    - Chips interactivos con motivos frecuentes de devolución (Devolución por cliente, Producto en mal estado, Error de digitación, Cambio de orden, etc.) que auto-rellenan el campo.
+    - Tarjeta resumen de totales con cálculo proporcional instantáneo de Subtotal, ITBIS (18%) y Total Neto a Reembolsar con `FittedBox`.
+  * Corrección de Error de Base de Datos en Cuentas por Cobrar:
+    - Se corrigió el nombre de la columna en `cuentas_por_cobrar` (utilizaba erróneamente `monto_pendiente` en lugar del campo real `balance_pendiente`).
+    - Se afinó la detección de venta a crédito: solo trata como crédito si `$cxc->balance_pendiente > 0`. Como la Factura #1 fue pagada al contado (`balance_pendiente == 0`), se procesa correctamente como devolución en efectivo con salida de caja y asiento de reversión a `venta_efectivo_debe`.
 ================================================================================
+

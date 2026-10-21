@@ -444,6 +444,354 @@ class ThermalPrinterService {
   }
 
   // ─────────────────────────────────────────────
+  // IMPRIMIR REPORTE DE CIERRE DE CAJA
+  // ─────────────────────────────────────────────
+  Future<ResultadoImpresora> imprimirCierreCaja({
+    required Map<String, dynamic> sesion,
+    Printer? printer,
+  }) async {
+    try {
+      Printer? target = printer ?? _printerConectado;
+
+      if (target == null) {
+        final conexion = await conectarAutomaticamente();
+        if (!conexion.exito) {
+          return ResultadoImpresora(
+            exito: false,
+            mensaje: 'Sin impresora conectada. ${conexion.mensaje}',
+          );
+        }
+        target = _printerConectado!;
+      }
+
+      final profile = await CapabilityProfile.load();
+      final generator = Generator(PaperSize.mm80, profile, spaceBetweenRows: 2);
+      List<int> bytes = [];
+
+      bytes += generator.reset();
+      bytes += generator.text(
+        'REPORTE DE CIERRE DE CAJA',
+        styles: const PosStyles(align: PosAlign.center, bold: true),
+      );
+      bytes += generator.text(
+        'SESION #${sesion['id']}',
+        styles: const PosStyles(align: PosAlign.center, bold: true),
+      );
+      bytes += generator.emptyLines(1);
+
+      bytes += generator.text(
+        'Caja    : ${_limpiarTexto(sesion['caja']?['nombre'] ?? 'N/A')}',
+      );
+      bytes += generator.text(
+        'Turno   : ${_limpiarTexto(sesion['turno']?['nombre'] ?? 'N/A')}',
+      );
+      bytes += generator.text(
+        'Cajero  : ${_limpiarTexto(sesion['usuario']?['name'] ?? 'N/A')}',
+      );
+
+      if (sesion['fecha_apertura'] != null) {
+        bytes += generator.text('Apertura: ${sesion['fecha_apertura']}');
+      }
+      if (sesion['fecha_cierre'] != null) {
+        bytes += generator.text('Cierre  : ${sesion['fecha_cierre']}');
+      } else {
+        bytes += generator.text('Cierre  : EN CURSO');
+      }
+      bytes += generator.hr();
+
+      final mInicial =
+          double.tryParse((sesion['monto_inicial'] ?? 0).toString()) ?? 0;
+      final mEsperado =
+          double.tryParse((sesion['monto_final_esperado'] ?? 0).toString()) ??
+          0;
+      final mFisico = sesion['monto_final_fisico'] != null
+          ? (double.tryParse(sesion['monto_final_fisico'].toString()) ?? 0)
+          : null;
+      final diff = double.tryParse((sesion['diferencia'] ?? 0).toString()) ?? 0;
+
+      bytes += generator.row([
+        PosColumn(text: 'Fondo Inicial:', width: 6),
+        PosColumn(
+          text: _fmtMoneda(mInicial),
+          width: 6,
+          styles: const PosStyles(align: PosAlign.right),
+        ),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: 'Monto Esperado:', width: 6),
+        PosColumn(
+          text: _fmtMoneda(mEsperado),
+          width: 6,
+          styles: const PosStyles(align: PosAlign.right),
+        ),
+      ]);
+      if (mFisico != null) {
+        bytes += generator.row([
+          PosColumn(text: 'Monto Fisico:', width: 6),
+          PosColumn(
+            text: _fmtMoneda(mFisico),
+            width: 6,
+            styles: const PosStyles(align: PosAlign.right),
+          ),
+        ]);
+        bytes += generator.row([
+          PosColumn(
+            text: 'DIFERENCIA:',
+            width: 6,
+            styles: const PosStyles(bold: true),
+          ),
+          PosColumn(
+            text: _fmtMoneda(diff),
+            width: 6,
+            styles: const PosStyles(align: PosAlign.right, bold: true),
+          ),
+        ]);
+      }
+
+      final resumen = sesion['resumen_ventas'];
+      if (resumen is List && resumen.isNotEmpty) {
+        bytes += generator.hr();
+        bytes += generator.text(
+          'VENTAS POR METODO:',
+          styles: const PosStyles(bold: true),
+        );
+        for (final m in resumen) {
+          final metodo = _limpiarTexto(
+            (m['metodo_pago'] ?? '').toString().toUpperCase(),
+          );
+          final total = double.tryParse((m['total'] ?? 0).toString()) ?? 0;
+          bytes += generator.row([
+            PosColumn(text: metodo, width: 6),
+            PosColumn(
+              text: _fmtMoneda(total),
+              width: 6,
+              styles: const PosStyles(align: PosAlign.right),
+            ),
+          ]);
+        }
+      }
+
+      final desglose = sesion['desglose_efectivo'] as Map<String, dynamic>?;
+      if (desglose != null && desglose.isNotEmpty) {
+        bytes += generator.hr();
+        bytes += generator.text(
+          'DESGLOSE DE EFECTIVO:',
+          styles: const PosStyles(bold: true),
+        );
+        for (final e in desglose.entries) {
+          final cant = int.tryParse(e.value.toString()) ?? 0;
+          if (cant > 0) {
+            bytes += generator.text('RD\$ ${e.key} x $cant');
+          }
+        }
+      }
+
+      if (sesion['comentario'] != null &&
+          sesion['comentario'].toString().trim().isNotEmpty) {
+        bytes += generator.hr();
+        bytes += generator.text('NOTAS:');
+        bytes += generator.text(_limpiarTexto(sesion['comentario'].toString()));
+      }
+
+      bytes += generator.emptyLines(2);
+      bytes += generator.cut();
+
+      await _plugin.printData(target, bytes, longData: true);
+      return const ResultadoImpresora(
+        exito: true,
+        mensaje: 'Reporte de cierre impreso correctamente.',
+      );
+    } catch (e) {
+      return ResultadoImpresora(
+        exito: false,
+        mensaje: 'Error al imprimir reporte: $e',
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // IMPRIMIR NOTA DE CRÉDITO (E34 / B04)
+  // ─────────────────────────────────────────────
+  Future<ResultadoImpresora> imprimirNotaCredito({
+    required String nombreNegocio,
+    required String rncOCedula,
+    required String direccion,
+    required String ncfNota,
+    required String ncfFacturaAfectada,
+    required String numeroFactura,
+    required DateTime fecha,
+    required List<ItemFactura> itemsDevueltos,
+    required double subtotal,
+    required double itbis,
+    required double total,
+    required String motivo,
+    String? cliente,
+    String? rncCliente,
+    Printer? printer,
+  }) async {
+    try {
+      Printer? target = printer ?? _printerConectado;
+
+      if (target == null) {
+        final conexion = await conectarAutomaticamente();
+        if (!conexion.exito) {
+          return ResultadoImpresora(
+            exito: false,
+            mensaje: 'Sin impresora conectada. ${conexion.mensaje}',
+          );
+        }
+        target = _printerConectado!;
+      }
+
+      final profile = await CapabilityProfile.load();
+      final generator = Generator(PaperSize.mm80, profile, spaceBetweenRows: 2);
+      List<int> bytes = [];
+
+      bytes += generator.reset();
+
+      // ENCABEZADO
+      bytes += generator.text(
+        _limpiarTexto(nombreNegocio.toUpperCase()),
+        styles: const PosStyles(align: PosAlign.center, bold: true),
+      );
+      bytes += generator.text(
+        _limpiarTexto(direccion),
+        styles: const PosStyles(align: PosAlign.center),
+      );
+      bytes += generator.text(
+        'RNC: $rncOCedula',
+        styles: const PosStyles(align: PosAlign.center),
+      );
+      bytes += generator.emptyLines(1);
+
+      // TITULO DOCUMENTO
+      final esElectronica = ncfNota.toUpperCase().startsWith('E');
+      bytes += generator.text(
+        esElectronica ? 'NOTA DE CREDITO ELECTRONICA' : 'NOTA DE CREDITO',
+        styles: const PosStyles(align: PosAlign.center, bold: true),
+      );
+      bytes += generator.text(
+        'NCF: $ncfNota',
+        styles: const PosStyles(align: PosAlign.center, bold: true),
+      );
+      bytes += generator.text(
+        'AFECTA NCF: $ncfFacturaAfectada',
+        styles: const PosStyles(align: PosAlign.center),
+      );
+      bytes += generator.text(
+        'Factura No.: $numeroFactura',
+        styles: const PosStyles(align: PosAlign.center),
+      );
+      bytes += generator.hr();
+
+      bytes += generator.text('Fecha   : ${_formatFecha(fecha)}');
+      bytes += generator.text(
+        'Cliente : ${_limpiarTexto(cliente ?? "Consumidor Final")}',
+      );
+      if (rncCliente != null && rncCliente.isNotEmpty) {
+        bytes += generator.text('RNC/Ced.: $rncCliente');
+      }
+      bytes += generator.hr();
+
+      // CABECERA TABLA
+      bytes += generator.row([
+        PosColumn(
+          text: 'CANT DESCRIPCION',
+          width: 7,
+          styles: const PosStyles(bold: true),
+        ),
+        PosColumn(
+          text: 'PRECIO',
+          width: 2,
+          styles: const PosStyles(bold: true, align: PosAlign.right),
+        ),
+        PosColumn(
+          text: 'TOTAL',
+          width: 3,
+          styles: const PosStyles(bold: true, align: PosAlign.right),
+        ),
+      ]);
+      bytes += generator.hr();
+
+      // ÍTEMS DEVUELTOS
+      for (final item in itemsDevueltos) {
+        final cantStr = _fmtCant(item.cantidad);
+        final descStr = _limpiarTexto(_truncate(item.descripcion, 16));
+        final precioStr = _fmtMoneda(
+          item.precioUnitario,
+        ).replaceAll('RD\$ ', '');
+        final totalStr = _fmtMoneda(item.total).replaceAll('RD\$ ', '');
+
+        bytes += generator.row([
+          PosColumn(text: '$cantStr $descStr', width: 7),
+          PosColumn(
+            text: precioStr,
+            width: 2,
+            styles: const PosStyles(align: PosAlign.right),
+          ),
+          PosColumn(
+            text: totalStr,
+            width: 3,
+            styles: const PosStyles(align: PosAlign.right),
+          ),
+        ]);
+      }
+
+      bytes += generator.hr();
+
+      // TOTALES
+      bytes += generator.row([
+        PosColumn(text: 'SUBTOTAL:', width: 6),
+        PosColumn(
+          text: _fmtMoneda(subtotal),
+          width: 6,
+          styles: const PosStyles(align: PosAlign.right),
+        ),
+      ]);
+      if (itbis > 0) {
+        bytes += generator.row([
+          PosColumn(text: 'ITBIS (18%):', width: 6),
+          PosColumn(
+            text: _fmtMoneda(itbis),
+            width: 6,
+            styles: const PosStyles(align: PosAlign.right),
+          ),
+        ]);
+      }
+      bytes += generator.row([
+        PosColumn(
+          text: 'TOTAL DEVUELTO:',
+          width: 6,
+          styles: const PosStyles(bold: true),
+        ),
+        PosColumn(
+          text: _fmtMoneda(total),
+          width: 6,
+          styles: const PosStyles(align: PosAlign.right, bold: true),
+        ),
+      ]);
+
+      bytes += generator.hr();
+      bytes += generator.text('MOTIVO:');
+      bytes += generator.text(_limpiarTexto(motivo));
+
+      bytes += generator.emptyLines(2);
+      bytes += generator.cut();
+
+      await _plugin.printData(target, bytes, longData: true);
+      return const ResultadoImpresora(
+        exito: true,
+        mensaje: 'Nota de Crédito impresa exitosamente.',
+      );
+    } catch (e) {
+      return ResultadoImpresora(
+        exito: false,
+        mensaje: 'Error al imprimir nota de crédito: $e',
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // HELPERS PRIVADOS
   // ─────────────────────────────────────────────
 

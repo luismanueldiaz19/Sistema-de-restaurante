@@ -9,6 +9,10 @@ class CajaState {
   final Map<String, String> filters;
 
   final Map<String, dynamic>? resumenSesion;
+  final int currentPage;
+  final int totalPages;
+  final int totalRecords;
+  final String searchQuery;
 
   CajaState({
     this.isLoading = false,
@@ -17,6 +21,10 @@ class CajaState {
     this.historial = const [],
     this.errorMessage,
     this.filters = const {},
+    this.currentPage = 1,
+    this.totalPages = 1,
+    this.totalRecords = 0,
+    this.searchQuery = '',
   });
 
   CajaState copyWith({
@@ -28,6 +36,10 @@ class CajaState {
     Map<String, dynamic>? resumenSesion,
     bool clearResumen = false,
     Map<String, String>? filters,
+    int? currentPage,
+    int? totalPages,
+    int? totalRecords,
+    String? searchQuery,
   }) {
     return CajaState(
       isLoading: isLoading ?? this.isLoading,
@@ -38,6 +50,10 @@ class CajaState {
       historial: historial ?? this.historial,
       errorMessage: errorMessage,
       filters: filters ?? this.filters,
+      currentPage: currentPage ?? this.currentPage,
+      totalPages: totalPages ?? this.totalPages,
+      totalRecords: totalRecords ?? this.totalRecords,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 }
@@ -130,23 +146,45 @@ class CajaNotifier extends StateNotifier<CajaState> {
     }
   }
 
-  Future<void> fetchHistorial(String token) async {
+  Future<void> fetchHistorial(String token, {int page = 1}) async {
     state = state.copyWith(isLoading: true);
+    final queryParams = Map<String, String>.from(state.filters);
+    if (page > 1) {
+      queryParams['page'] = page.toString();
+    }
+    if (state.searchQuery.trim().isNotEmpty) {
+      queryParams['search'] = state.searchQuery.trim();
+    }
+
     final result = await _service.getHistorial(
       token: token,
-      filters: state.filters,
+      filters: queryParams,
     );
 
     if (!mounted) return;
 
     if (result['success']) {
+      final pData = result['data'];
+      final List<dynamic> list = pData is Map ? (pData['data'] ?? []) : (pData is List ? pData : []);
+      final int current = pData is Map ? (pData['current_page'] ?? page) : 1;
+      final int last = pData is Map ? (pData['last_page'] ?? 1) : 1;
+      final int total = pData is Map ? (pData['total'] ?? list.length) : list.length;
+
       state = state.copyWith(
         isLoading: false,
-        historial: result['data']['data'] ?? [],
+        historial: list,
+        currentPage: current,
+        totalPages: last,
+        totalRecords: total,
       );
     } else {
       state = state.copyWith(isLoading: false, errorMessage: result['message']);
     }
+  }
+
+  void searchHistorial(String query, String token) {
+    state = state.copyWith(searchQuery: query);
+    fetchHistorial(token, page: 1);
   }
 
   void updateFilters(
@@ -157,12 +195,12 @@ class CajaNotifier extends StateNotifier<CajaState> {
     state = state.copyWith(
       filters: replace ? newFilters : {...state.filters, ...newFilters},
     );
-    fetchHistorial(token);
+    fetchHistorial(token, page: 1);
   }
 
   void clearFilters(String token) {
-    state = state.copyWith(filters: {});
-    fetchHistorial(token);
+    state = state.copyWith(filters: {}, searchQuery: '');
+    fetchHistorial(token, page: 1);
   }
 }
 

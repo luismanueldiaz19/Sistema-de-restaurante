@@ -390,7 +390,7 @@ class _AperturaCajaScreenState extends ConsumerState<AperturaCajaScreen> {
     required IconData icon,
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       style: const TextStyle(fontSize: 12, color: Colors.black87),

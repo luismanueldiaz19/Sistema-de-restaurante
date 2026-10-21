@@ -142,7 +142,7 @@ class FacturacionService {
     }
   }
 
-  Future<int> generarNotaCredito(
+  Future<Map<String, dynamic>> generarNotaCredito(
     String token,
     int facturaId,
     List<Map<String, dynamic>> detalles,
@@ -155,11 +155,34 @@ class FacturacionService {
     );
 
     if (response.statusCode != 201 && response.statusCode != 200) {
-      throw Exception('Error al generar la nota de crédito: ${response.body}');
+      try {
+        final decoded = jsonDecode(response.body);
+        final errMsg = decoded['error'] ?? decoded['message'] ?? response.body;
+        throw Exception(errMsg);
+      } catch (e) {
+        if (e is Exception && !e.toString().contains('FormatException')) {
+          rethrow;
+        }
+        throw Exception('Error al generar la nota de crédito: ${response.body}');
+      }
     }
 
     final data = jsonDecode(response.body);
-    return data['data']['id'];
+    return (data['data'] as Map<String, dynamic>?) ?? <String, dynamic>{'id': data['data']?['id']};
+  }
+
+  Future<String?> getNotaCreditoPdfUrl(String token, int id) async {
+    try {
+      final response = await _api.get(
+        '$_baseUrl/notas-credito/$id/pdf-url',
+        token: token,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['url'] as String?;
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<Map<String, dynamic>> getNotasCredito({

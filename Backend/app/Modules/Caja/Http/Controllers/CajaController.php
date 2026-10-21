@@ -131,7 +131,7 @@ class CajaController extends Controller
     public function historial(Request $request): JsonResponse
     {
         try {
-            $filters = $request->only(['fecha_desde', 'fecha_hasta', 'user_id', 'estado', 'caja_id', 'per_page']);
+            $filters = $request->only(['fecha_desde', 'fecha_hasta', 'user_id', 'estado', 'caja_id', 'per_page', 'page', 'search']);
             $isAdmin = method_exists($request->user(), 'hasRole') ? $request->user()->hasRole('admin') : false;
 
             $historial = $this->cajaService->getHistorial(

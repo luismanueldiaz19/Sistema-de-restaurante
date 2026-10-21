@@ -9,15 +9,18 @@ import '../../utils/helpers.dart';
 import '../providers/notas_credito_provider.dart';
 import 'widgets/nota_credito_list_item.dart';
 import 'widgets/nota_credito_detalle_panel.dart';
+import '../services/facturacion_service.dart';
 
 class HistorialNotasCreditoScreen extends ConsumerStatefulWidget {
   const HistorialNotasCreditoScreen({super.key});
 
   @override
-  ConsumerState<HistorialNotasCreditoScreen> createState() => _HistorialNotasCreditoScreenState();
+  ConsumerState<HistorialNotasCreditoScreen> createState() =>
+      _HistorialNotasCreditoScreenState();
 }
 
-class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCreditoScreen> {
+class _HistorialNotasCreditoScreenState
+    extends ConsumerState<HistorialNotasCreditoScreen> {
   NotaCreditoModel? _selectedNota;
   String _selectedDateFilter = 'Todos';
 
@@ -32,9 +35,17 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
 
   Future<void> _verPdf(String id) async {
     final auth = ref.read(authProvider);
-    final urlWithToken = Uri.parse("$hostName/api/notas-credito/$id/pdf?token=${auth.token}");
-    if (await canLaunchUrl(urlWithToken)) {
-      await launchUrl(urlWithToken, mode: LaunchMode.externalApplication);
+    final idNum = int.tryParse(id) ?? 0;
+    final urlCifrada = await FacturacionService().getNotaCreditoPdfUrl(
+      auth.token!,
+      idNum,
+    );
+    final targetUrl = Uri.parse(
+      urlCifrada ?? "$hostName/api/notas-credito/$id/pdf?token=${auth.token}",
+    );
+
+    if (await canLaunchUrl(targetUrl)) {
+      await launchUrl(targetUrl, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) showToast(context, 'No se pudo abrir el PDF');
     }
@@ -49,7 +60,10 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
       appBar: AppBar(
         title: const Text(
           'Notas de Crédito',
-          style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w900),
+          style: TextStyle(
+            color: AppColors.secondary,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -58,12 +72,14 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
             icon: const Icon(Icons.refresh, color: AppColors.primary),
             onPressed: () {
               final auth = ref.read(authProvider);
-              ref.read(notasCreditoProvider.notifier).fetchHistorial(auth.token!);
+              ref
+                  .read(notasCreditoProvider.notifier)
+                  .fetchHistorial(auth.token!);
               setState(() {
                 _selectedNota = null;
               });
             },
-          )
+          ),
         ],
       ),
       body: LayoutBuilder(
@@ -71,66 +87,72 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
           final isTablet = constraints.maxWidth > 800;
 
           return state.isLoading && state.historial.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                )
               : state.error != null
-                  ? Center(child: Text(state.error!))
-                  : Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: isTablet ? 4 : 1,
-                            child: Column(
-                              children: [
-                                _buildDateFilters(),
-                                const SizedBox(height: 16),
-                                _buildResumenTarjetas(state),
-                                const SizedBox(height: 24),
-                                Expanded(
-                                  child: state.historial.isEmpty
-                                      ? const Center(child: Text('No hay notas de crédito'))
-                                      : ListView.separated(
-                                          itemCount: state.historial.length,
-                                          separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                          itemBuilder: (context, index) {
-                                            final nota = state.historial[index];
-                                            final isSelected = _selectedNota?.id == nota.id;
-
-                                            return NotaCreditoListItem(
-                                              nota: nota,
-                                              isSelected: isSelected,
-                                              onTap: () {
-                                                setState(() {
-                                                  _selectedNota = nota;
-                                                });
-                                              },
-                                            );
-                                          },
-                                        ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          if (isTablet) const SizedBox(width: 24),
-
-                          if (isTablet)
+              ? Center(child: Text(state.error!))
+              : Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: isTablet ? 4 : 1,
+                        child: Column(
+                          children: [
+                            _buildDateFilters(),
+                            const SizedBox(height: 16),
+                            _buildResumenTarjetas(state),
+                            const SizedBox(height: 24),
                             Expanded(
-                              flex: 5,
-                              child: NotaCreditoDetallePanel(
-                                nota: _selectedNota,
-                                isLoading: false,
-                                onPdfTap: () {
-                                  if (_selectedNota != null) {
-                                    _verPdf(_selectedNota!.id.toString());
-                                  }
-                                },
-                              ),
+                              child: state.historial.isEmpty
+                                  ? const Center(
+                                      child: Text('No hay notas de crédito'),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: state.historial.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final nota = state.historial[index];
+                                        final isSelected =
+                                            _selectedNota?.id == nota.id;
+
+                                        return NotaCreditoListItem(
+                                          nota: nota,
+                                          isSelected: isSelected,
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedNota = nota;
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
-                    );
+
+                      if (isTablet) const SizedBox(width: 24),
+
+                      if (isTablet)
+                        Expanded(
+                          flex: 5,
+                          child: NotaCreditoDetallePanel(
+                            nota: _selectedNota,
+                            isLoading: false,
+                            onPdfTap: () {
+                              if (_selectedNota != null) {
+                                _verPdf(_selectedNota!.id.toString());
+                              }
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                );
         },
       ),
     );
@@ -162,24 +184,39 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
                     color: Colors.red.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.assignment_return, color: Colors.red, size: 28),
+                  child: const Icon(
+                    Icons.assignment_return,
+                    color: Colors.red,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Total en Notas de Crédito', style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Total en Notas de Crédito',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       FormatterNumber.formatCurrency(totales['total'] ?? 0),
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.secondary),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.secondary,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }
@@ -191,7 +228,7 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
       'Últimos 7 días',
       'Este mes',
       'Mes pasado',
-      'Este año'
+      'Este año',
     ];
 
     return SizedBox(
@@ -215,7 +252,9 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
             side: BorderSide(
               color: isSelected ? AppColors.primary : Colors.grey.shade300,
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             onSelected: (selected) {
               if (selected) {
                 _applyDateFilter(label);
@@ -275,6 +314,8 @@ class _HistorialNotasCreditoScreenState extends ConsumerState<HistorialNotasCred
         newFilters = {};
     }
 
-    ref.read(notasCreditoProvider.notifier).updateFilters(auth.token!, newFilters, replace: true);
+    ref
+        .read(notasCreditoProvider.notifier)
+        .updateFilters(auth.token!, newFilters, replace: true);
   }
 }

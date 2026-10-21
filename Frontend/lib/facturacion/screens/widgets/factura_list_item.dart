@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../model/factura.dart';
 import '../../../palletes/app_colors.dart';
-import 'package:intl/intl.dart';
+import '../../../utils/helpers.dart';
 
 class FacturaListItem extends StatelessWidget {
   final Factura factura;
@@ -15,101 +15,185 @@ class FacturaListItem extends StatelessWidget {
     required this.onTap,
   });
 
+  Color _getStatusColor() {
+    final estado = factura.estado?.toLowerCase() ?? '';
+    if (estado == 'pagada') {
+      return Colors.green.shade600;
+    } else if (estado == 'pendiente') {
+      return Colors.orange.shade700;
+    } else if (estado == 'anulada') {
+      return Colors.red.shade600;
+    }
+    return AppColors.azulOscuro;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat.currency(symbol: 'RD\$ ', decimalDigits: 2);
+    final statusColor = _getStatusColor();
     final total = double.tryParse(factura.total ?? '0') ?? 0;
-    
-    return InkWell(
+    final estado = (factura.estado ?? 'Emitida').toUpperCase();
+    final ncf = factura.ncf?.isNotEmpty == true ? factura.ncf! : 'Sin NCF';
+    final cliente = factura.cliente?.nombre ?? 'Consumidor Final';
+    final fechaStr = factura.fechaEmision != null
+        ? FormatterNumber.formatFechaHora(factura.fechaEmision!)
+        : (factura.createdAt != null
+            ? FormatterNumber.formatFechaHora(factura.createdAt!)
+            : 'N/A');
+
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: isSelected ? statusColor.withValues(alpha: 0.06) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey.shade200,
-            width: isSelected ? 2 : 1,
+            color: isSelected ? statusColor : Colors.grey.shade200,
+            width: isSelected ? 1.5 : 1,
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Factura #${factura.id}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                _buildEstadoBadge(factura.estado ?? 'Desconocido'),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.person, size: 14, color: Colors.grey.shade500),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    'Cliente: ${factura.cliente?.nombre ?? 'Consumidor Final'}',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Fecha: ${factura.createdAt != null ? DateFormat('yyyy-MM-dd').format(factura.createdAt!) : 'N/A'}',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              formatter.format(total),
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                color: AppColors.secondary,
-                fontSize: 16,
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildEstadoBadge(String estado) {
-    Color color;
-    switch (estado.toUpperCase()) {
-      case 'PAGADA':
-        color = Colors.green;
-        break;
-      case 'ANULADA':
-        color = Colors.red;
-        break;
-      case 'PENDIENTE':
-        color = Colors.orange;
-        break;
-      default:
-        color = Colors.grey;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        estado.toUpperCase(),
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                // Franja de color indicadora según estado
+                Container(
+                  width: 5,
+                  color: statusColor,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    child: Row(
+                      children: [
+                        // Avatar identificador con ID
+                        CircleAvatar(
+                          backgroundColor: statusColor.withValues(alpha: 0.12),
+                          radius: 18,
+                          child: Text(
+                            "#${factura.id}",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: statusColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Información de la factura
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "Factura #${factura.id} • $ncf",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12.5,
+                                        color: AppColors.azulOscuro,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: statusColor.withValues(alpha: 0.4),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      estado,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: statusColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.person_outline,
+                                    size: 13,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      cliente,
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        color: Colors.grey.shade700,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time_rounded,
+                                    size: 13,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      fechaStr,
+                                      style: TextStyle(
+                                        fontSize: 9.5,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    FormatterNumber.formatCurrency(total),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: statusColor,
+                                      fontSize: 12.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

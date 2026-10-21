@@ -42,7 +42,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf']);
+Route::get('/documentos/ver/{token}', [\App\Http\Controllers\Api\DocumentoVisorController::class, 'ver'])->name('documentos.ver');
+Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf'])->name('notas-credito.pdf');
 // Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf']); // Migrado a V2
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
@@ -109,6 +110,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('permission:editar_facturas');
 
     Route::get('/notas-credito', [NotaCreditoController::class, 'index'])
+        ->middleware('permission:ver_facturas');
+
+    Route::get('/notas-credito/{id}/pdf-url', [NotaCreditoController::class, 'pdfUrl'])
+        ->middleware('permission:ver_facturas');
+
+    Route::get('/documentos/{tipo}/{id}/url-temporal', [\App\Http\Controllers\Api\DocumentoVisorController::class, 'generarUrl'])
         ->middleware('permission:ver_facturas');
 
 

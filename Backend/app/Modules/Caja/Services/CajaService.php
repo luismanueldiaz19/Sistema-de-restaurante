@@ -168,6 +168,7 @@ class CajaService
     public function getHistorial(array $filters = [], int $currentUserId = 0, bool $isAdmin = false): LengthAwarePaginator
     {
         $query = CajaSesion::with(['caja', 'turno', 'usuario'])
+            ->withCount('facturas')
             ->orderBy('fecha_apertura', 'desc');
 
         if (!$isAdmin && $currentUserId > 0) {
@@ -192,6 +193,28 @@ class CajaService
             $query->where('caja_id', $filters['caja_id']);
         }
 
-        return $query->paginate((int) ($filters['per_page'] ?? 15));
+        if (!empty($filters['search'])) {
+            $search = trim($filters['search']);
+            $query->where(function ($q) use ($search) {
+                if (is_numeric($search)) {
+                    $q->where('id', $search);
+                }
+                $q->orWhere('comentario', 'like', "%{$search}%")
+                  ->orWhereHas('caja', function ($cq) use ($search) {
+                      $cq->where('nombre', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('usuario', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('turno', function ($tq) use ($search) {
+                      $tq->where('nombre', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $perPage = (int) ($filters['per_page'] ?? 15);
+        $page = !empty($filters['page']) ? (int) $filters['page'] : null;
+
+        return $query->paginate(perPage: $perPage, page: $page);
     }
 }

@@ -131,7 +131,7 @@ class FacturacionHistorialNotifier extends StateNotifier<FacturacionHistorialSta
     fetchHistorial(token);
   }
 
-  Future<int?> generarNotaCredito(
+  Future<Map<String, dynamic>?> generarNotaCredito(
     String token,
     int facturaId,
     List<Map<String, dynamic>> detalles,
@@ -139,9 +139,9 @@ class FacturacionHistorialNotifier extends StateNotifier<FacturacionHistorialSta
   ) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final id = await _service.generarNotaCredito(token, facturaId, detalles, motivo);
+      final data = await _service.generarNotaCredito(token, facturaId, detalles, motivo);
       await fetchHistorial(token);
-      return id;
+      return data;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return null;

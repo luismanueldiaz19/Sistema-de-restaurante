@@ -9,12 +9,16 @@ class DevolucionVentaStrategy implements AsientoStrategy
 {
     public function generarDetalles(array $configs, float $subtotal, float $itbis, float $total, float $costo = 0.0): array
     {
-        $cuentaCobro = $configs['venta_efectivo_debe'] ?? null;
+        $esCredito = !empty($configs['es_credito']);
+        $cuentaCobro = $esCredito
+            ? ($configs['venta_credito_debe'] ?? $configs['cliente_cxc_debe'] ?? $configs['venta_efectivo_debe'] ?? null)
+            : ($configs['venta_efectivo_debe'] ?? null);
+
         $cuentaVenta = $configs['venta_haber'] ?? null;
         $cuentaItbis = $configs['venta_itbis_haber'] ?? null;
 
         if (!$cuentaCobro) {
-            throw new Exception("Falta configurar la cuenta de Efectivo/Caja para procesar devoluciones.");
+            throw new Exception("Falta configurar la cuenta de " . ($esCredito ? "Cuentas por Cobrar (Crédito)" : "Efectivo/Caja") . " para procesar devoluciones.");
         }
         if (!$cuentaVenta) {
             throw new Exception("Falta configurar la cuenta de Ventas para revertir.");
@@ -22,7 +26,7 @@ class DevolucionVentaStrategy implements AsientoStrategy
 
         $detalles = [];
 
-        // CRÉDITO: Caja General / Efectivo -> Total (El dinero sale)
+        // CRÉDITO: Caja General / Efectivo o CxC -> Total (Sale dinero o se reduce deuda)
         $detalles[] = [
             'cuenta_id' => $cuentaCobro,
             'debito' => 0.00,
