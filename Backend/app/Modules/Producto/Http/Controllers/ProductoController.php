@@ -7,13 +7,17 @@ namespace App\Modules\Producto\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Producto\DTOs\CreateProductoDTO;
 use App\Modules\Producto\DTOs\UpdateProductoDTO;
+use App\Modules\Producto\Exceptions\ProductoException;
 use App\Modules\Producto\Http\Requests\StoreProductoRequest;
 use App\Modules\Producto\Http\Requests\UpdateProductoRequest;
 use App\Modules\Producto\Http\Resources\ProductoResource;
 use App\Modules\Producto\Services\ProductoService;
 use App\Modules\Shared\Traits\ApiResponseTrait;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Rap2hpoutre\FastExcel\FastExcel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProductoController extends Controller
 {
@@ -101,6 +105,80 @@ class ProductoController extends Controller
         );
     }
 
+    /**
+     * Descarga la plantilla base Excel (.xlsx) para productos inventariables.
+     */
+    public function downloadTemplate(): BinaryFileResponse|JsonResponse
+    {
+        try {
+            $filas = collect($this->productoService->obtenerFilasPlantillaBase());
+            $tempPath = storage_path('app/plantilla_productos_inventariables_' . uniqid() . '.xlsx');
+
+            (new FastExcel($filas))->export($tempPath);
+
+            return response()->download(
+                $tempPath,
+                'plantilla_productos_inventariables.xlsx',
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ]
+            )->deleteFileAfterSend(true);
+        } catch (Exception $e) {
+            return $this->errorResponse('Error generando la plantilla: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Previsualiza y valida el archivo Excel/CSV antes de guardarlo en la base de datos.
+     */
+    public function previewImport(Request $request): JsonResponse
+    {
+        $request->validate([
+            'documento' => 'required|file|max:20480',
+        ]);
+
+        $file = $request->file('documento');
+        $path = $file->getRealPath();
+
+        try {
+            $resultado = $this->productoService->previsualizarImportacion((string) $path);
+
+            return $this->successResponse(
+                data: $resultado,
+                message: 'Archivo validado exitosamente para previsualización.'
+            );
+        } catch (ProductoException $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        } catch (Exception $e) {
+            return $this->errorResponse('Error procesando el archivo: ' . $e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Confirma y guarda masivamente los productos revisados por el usuario en la previsualización.
+     */
+    public function confirmImport(Request $request): JsonResponse
+    {
+        $request->validate([
+            'productos' => 'required|array|min:1',
+            'productos.*.nombre' => 'required|string',
+        ]);
+
+        try {
+            $resultado = $this->productoService->confirmarImportacionMasiva($request->input('productos'));
+
+            return $this->successResponse(
+                data: $resultado,
+                message: "Importación completada exitosamente: {$resultado['creados']} productos registrados."
+            );
+        } catch (Exception $e) {
+            return $this->errorResponse('Error en la importación masiva: ' . $e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Endpoint directo de importación (compatibilidad).
+     */
     public function import(Request $request): JsonResponse
     {
         $request->validate([
@@ -111,90 +189,26 @@ class ProductoController extends Controller
         $path = $file->getRealPath();
 
         try {
-            $data = (new \Rap2hpoutre\FastExcel\FastExcel)->import($path);
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error leyendo el archivo: ' . $e->getMessage(), 400);
+            $preview = $this->productoService->previsualizarImportacion((string) $path);
+            $filasListas = array_values(array_filter(
+                $preview['filas'],
+                fn ($f) => ($f['estado'] ?? '') === 'LISTO'
+            ));
+
+            if (empty($filasListas)) {
+                return $this->errorResponse('No se encontraron productos nuevos válidos para importar (verifique duplicados o errores).', 400, $preview);
+            }
+
+            $resultado = $this->productoService->confirmarImportacionMasiva($filasListas);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Importación completada: {$resultado['creados']} creados, {$preview['resumen']['duplicados']} duplicados omitidos.",
+                'data'    => $resultado,
+                'errores' => $resultado['errores'],
+            ], 200);
+        } catch (Exception $e) {
+            return $this->errorResponse('Error al importar: ' . $e->getMessage(), 400);
         }
-
-        if ($data->isEmpty()) {
-            return $this->errorResponse('El archivo está vacío o no tiene el formato correcto', 400);
-        }
-
-        $exitosos = 0;
-        $errores = [];
-
-        foreach ($data as $index => $row) {
-            $normalizedRow = [];
-            foreach ($row as $key => $value) {
-                $normalizedRow[trim(strtolower((string)$key))] = $value;
-            }
-
-            $nombre = $normalizedRow['nombre'] ?? null;
-            $codigo = $normalizedRow['codigo'] ?? null;
-            $descripcion = $normalizedRow['descripcion'] ?? $normalizedRow['destalle'] ?? $normalizedRow['detalle'] ?? null;
-            $tipo_producto = $normalizedRow['tipo_producto'] ?? $normalizedRow['tipo'] ?? null;
-            $tipo_contable = $normalizedRow['tipo_contable'] ?? $normalizedRow['contable'] ?? null;
-            $precio_venta = $normalizedRow['precio_venta'] ?? $normalizedRow['precio'] ?? null;
-            $costo = $normalizedRow['costo'] ?? 0;
-            $impuesto_id = $normalizedRow['impuesto_id'] ?? $normalizedRow['itbis'] ?? null;
-            $stock_actual = $normalizedRow['stock_actual'] ?? $normalizedRow['stock'] ?? 0;
-            $stock_minimo = $normalizedRow['stock_minimo'] ?? 0;
-            $maneja_inventario = $normalizedRow['maneja_inventario'] ?? $normalizedRow['inventario'] ?? true;
-
-            if (empty($nombre) || empty($tipo_producto) || empty($tipo_contable) || !isset($precio_venta) || $precio_venta === '') {
-                $errores[] = "Fila " . ($index + 2) . ": Faltan campos requeridos (nombre, tipo, contable, precio).";
-                continue;
-            }
-
-            if (is_string($maneja_inventario)) {
-                $maneja_inventario = filter_var($maneja_inventario, FILTER_VALIDATE_BOOLEAN);
-            }
-
-            try {
-                if ($codigo) {
-                    $producto = \App\Models\Producto::where('codigo', $codigo)->first();
-                    if ($producto) {
-                        $producto->update([
-                            'nombre' => $nombre,
-                            'descripcion' => $descripcion ?? $producto->descripcion,
-                            'tipo_producto' => $tipo_producto,
-                            'tipo_contable' => $tipo_contable,
-                            'precio_venta' => $precio_venta,
-                            'costo' => $costo !== 0 ? $costo : $producto->costo,
-                            'stock_actual' => $stock_actual !== 0 ? $stock_actual : $producto->stock_actual,
-                            'stock_minimo' => $stock_minimo !== 0 ? $stock_minimo : $producto->stock_minimo,
-                            'impuesto_id'  => !empty($impuesto_id) ? $impuesto_id : $producto->impuesto_id,
-                            'maneja_inventario' => $maneja_inventario,
-                        ]);
-                        $exitosos++;
-                        continue;
-                    }
-                }
-
-                \App\Models\Producto::create([
-                    'nombre' => $nombre,
-                    'codigo' => $codigo,
-                    'descripcion' => $descripcion,
-                    'tipo_producto' => $tipo_producto,
-                    'tipo_contable' => $tipo_contable,
-                    'precio_venta' => $precio_venta,
-                    'costo' => $costo,
-                    'stock_actual' => $stock_actual,
-                    'stock_minimo' => $stock_minimo,
-                    'impuesto_id'  => !empty($impuesto_id) ? $impuesto_id : null,
-                    'maneja_inventario' => $maneja_inventario,
-                    'activo' => true,
-                ]);
-                $exitosos++;
-            } catch (\Exception $e) {
-                $errores[] = "Fila " . ($index + 2) . ": Error - " . $e->getMessage();
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Importación completada. $exitosos procesados con éxito.",
-            'errores' => $errores
-        ], 200);
     }
 }

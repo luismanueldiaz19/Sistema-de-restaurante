@@ -1,22 +1,22 @@
+import 'dart:io' as io;
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../modulo_cliente/widgets/paginador.dart';
 import '../../palletes/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_confirm_dialog.dart';
 import '../../widgets/custom_loading.dart';
 import '../../widgets/custom_text_field.dart';
-import '../providers/producto_provider.dart';
-import '../providers/catalogo_provider.dart';
-import '../widgets/dialog_instrucciones_importacion.dart';
-import 'add_producto.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io' as io;
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 import '../models/producto.dart';
-import '../widgets/producto_list_card.dart';
+import '../providers/catalogo_provider.dart';
+import '../providers/producto_provider.dart';
+import '../widgets/dialog_instrucciones_importacion.dart';
 import '../widgets/producto_detail_panel.dart';
-import '../../modulo_cliente/widgets/paginador.dart';
+import '../widgets/producto_list_card.dart';
+import 'add_producto.dart';
+import 'screen_preview_import_productos.dart';
 
 class ScreenProductos extends ConsumerStatefulWidget {
   const ScreenProductos({super.key});
@@ -65,12 +65,13 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
           style: TextStyle(
             color: AppColors.azulOscuro,
             fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         iconTheme: const IconThemeData(color: AppColors.azulOscuro),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, size: 20),
             tooltip: 'Recargar Productos',
             onPressed: () {
               ref
@@ -80,32 +81,67 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
           ),
           if (auth.hasPermission('crear_productos'))
             Padding(
-              padding: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.only(right: 8),
               child: OutlinedButton.icon(
-                onPressed: () => _showImportInstructions(),
-                icon: const Icon(Icons.upload_file, size: 18),
-                label: const Text("Importar"),
+                onPressed: _descargarPlantilla,
+                icon: Icon(
+                  Icons.download_rounded,
+                  size: 16,
+                  color: Colors.green.shade700,
+                ),
+                label: Text(
+                  "Plantilla",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green.shade700,
+                  ),
+                ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.azulOscuro,
-                  side: const BorderSide(color: AppColors.azulOscuro),
+                  visualDensity: VisualDensity.compact,
+                  side: BorderSide(color: Colors.green.shade600),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
             ),
           if (auth.hasPermission('crear_productos'))
             Padding(
-              padding: const EdgeInsets.only(right: 20),
+              padding: const EdgeInsets.only(right: 8),
+              child: OutlinedButton.icon(
+                onPressed: _showImportInstructions,
+                icon: const Icon(Icons.upload_file, size: 16),
+                label: const Text(
+                  "Importar",
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: AppColors.azulOscuro,
+                  side: const BorderSide(color: AppColors.azulOscuro),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          if (auth.hasPermission('crear_productos'))
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
               child: ElevatedButton.icon(
                 onPressed: () => _showAddEditDialog(),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text("Nuevo Producto"),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text(
+                  "Nuevo Producto",
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                ),
                 style: ElevatedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
                   backgroundColor: AppColors.azulOscuro,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
@@ -163,14 +199,15 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                                   children: [
                                     Icon(
                                       Icons.inventory_2_outlined,
-                                      size: 50,
+                                      size: 44,
                                       color: Colors.grey.shade300,
                                     ),
-                                    const SizedBox(height: 10),
+                                    const SizedBox(height: 8),
                                     Text(
                                       "No hay productos",
                                       style: TextStyle(
                                         color: Colors.grey.shade500,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ],
@@ -184,7 +221,7 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                                   vertical: 4,
                                 ),
                                 itemCount: state.productos.length,
-                                separatorBuilder: (_, __) =>
+                                separatorBuilder: (_, _) =>
                                     const SizedBox(height: 4),
                                 itemBuilder: (context, index) {
                                   final p = state.productos[index];
@@ -235,8 +272,8 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                       if (state.productos.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                            horizontal: 15,
+                            vertical: 8,
+                            horizontal: 12,
                           ),
                           child: Column(
                             children: [
@@ -253,7 +290,7 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                                       );
                                 },
                               ),
-                              const SizedBox(height: 5),
+                              const SizedBox(height: 4),
                               Text(
                                 'Total de registros: ${state.totalRecords}',
                                 style: TextStyle(
@@ -277,16 +314,16 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                             children: [
                               Icon(
                                 Icons.touch_app_outlined,
-                                size: 100,
+                                size: 80,
                                 color: Colors.grey.shade300,
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 16),
                               Text(
                                 "Selecciona un producto de la lista\npara ver sus detalles",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.grey.shade500,
-                                  fontSize: 18,
+                                  fontSize: 15,
                                 ),
                               ),
                             ],
@@ -367,50 +404,119 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     showDialog(
       context: context,
       builder: (context) {
-        return DialogInstruccionesImportacion(onImport: _importarMasivo);
+        return DialogInstruccionesImportacion(
+          onImport: _importarMasivoConPreview,
+          onDownloadTemplate: _descargarPlantilla,
+        );
       },
     );
   }
 
-  Future<void> _importarMasivo() async {
+  Future<void> _descargarPlantilla() async {
+    try {
+      final auth = ref.read(authProvider);
+      final bytes = await ref
+          .read(productoProvider.notifier)
+          .downloadTemplateBytes(auth.token!);
+
+      String? outputPath = await FilePicker.saveFile(
+        dialogTitle: 'Guardar Plantilla Base de Productos Inventariables',
+        fileName: 'plantilla_productos_inventariables.xlsx',
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+        bytes: bytes,
+      );
+
+      if (!kIsWeb && outputPath != null) {
+        if (!outputPath.toLowerCase().endsWith('.xlsx')) {
+          outputPath = '$outputPath.xlsx';
+        }
+        final file = io.File(outputPath);
+        await file.writeAsBytes(bytes, flush: true);
+      }
+
+      if (mounted && (kIsWeb || outputPath != null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              outputPath != null
+                  ? 'Plantilla descargada en: $outputPath'
+                  : 'Plantilla descargada exitosamente.',
+            ),
+            backgroundColor: Colors.green.shade700,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error descargando plantilla: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _importarMasivoConPreview() async {
     try {
       FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx', 'xls', 'csv'],
+        withData: true,
       );
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
 
-        List<int>? fileBytes;
-        if (kIsWeb) {
-          fileBytes = file.bytes;
-        } else {
+        List<int>? fileBytes = file.bytes;
+        if (fileBytes == null && !kIsWeb && file.path != null) {
           fileBytes = await io.File(file.path!).readAsBytes();
         }
 
         if (fileBytes != null) {
           final auth = ref.read(authProvider);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Importando productos...')),
-          );
-
-          final msg = await ref
-              .read(productoProvider.notifier)
-              .importProductos(fileBytes, file.name, auth.token!);
-
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(msg), backgroundColor: Colors.green),
+              const SnackBar(
+                content: Text('Analizando y validando archivo...'),
+                duration: Duration(seconds: 1),
+              ),
             );
+          }
+
+          final previewData = await ref
+              .read(productoProvider.notifier)
+              .previewImportProductos(fileBytes, file.name, auth.token!);
+
+          if (!mounted) return;
+
+          final imported = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ScreenPreviewImportProductos(
+                filename: file.name,
+                previewData: previewData,
+              ),
+            ),
+          );
+
+          if (imported == true && mounted) {
+            setState(() {
+              selectedProducto = null;
+            });
           }
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -434,7 +540,7 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
             "Categorías:",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 13,
+              fontSize: 12,
               color: Colors.grey,
             ),
           ),
@@ -459,12 +565,12 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                           .read(productoProvider.notifier)
                           .setCategoriaFilter(c.id, auth.token!),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           _buildCompactDropdown(
             label: "Marca",
             value: prodState.marcaId,
@@ -478,13 +584,18 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
                 .read(productoProvider.notifier)
                 .setMarcaFilter(val as int?, auth.token!),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           _buildCompactDropdown(
             label: "Tipo",
             value: prodState.tipoProducto,
             items: const [
               DropdownMenuItem(value: null, child: Text("Todos")),
               DropdownMenuItem(value: "PRODUCTO", child: Text("Productos")),
+              DropdownMenuItem(
+                value: "MATERIA_PRIMA",
+                child: Text("Materia Prima"),
+              ),
+              DropdownMenuItem(value: "PLATO", child: Text("Platos")),
               DropdownMenuItem(value: "SERVICIO", child: Text("Servicios")),
               DropdownMenuItem(value: "COMBO", child: Text("Combos")),
             ],
@@ -503,15 +614,15 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
+      padding: const EdgeInsets.only(right: 6.0),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.azulOscuro : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected ? AppColors.azulOscuro : Colors.grey.shade300,
             ),
@@ -519,7 +630,7 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               color: isSelected ? Colors.white : Colors.black87,
             ),
@@ -536,10 +647,10 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
     required Function(dynamic) onChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
@@ -548,17 +659,17 @@ class _ScreenProductosState extends ConsumerState<ScreenProductos> {
           Text(
             "$label:",
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           DropdownButtonHideUnderline(
             child: DropdownButton<dynamic>(
               value: items.any((e) => e.value == value) ? value : null,
               isDense: true,
-              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              style: const TextStyle(fontSize: 11.5, color: Colors.black87),
               icon: const Icon(Icons.arrow_drop_down, size: 16),
               items: items,
               onChanged: onChanged,

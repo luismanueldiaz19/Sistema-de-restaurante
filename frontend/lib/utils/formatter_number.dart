@@ -15,6 +15,13 @@ class FormatterNumber {
     ).format(amount);
   }
 
+  static String formatNumber(double value) {
+    if (value == value.roundToDouble()) {
+      return NumberFormat('#,##0', 'en_US').format(value);
+    }
+    return NumberFormat('#,##0.00', 'en_US').format(value);
+  }
+
   static String formatFechaLatina(DateTime date) {
     return DateFormat('dd/MM/yyyy').format(date);
   }

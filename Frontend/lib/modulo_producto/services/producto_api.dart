@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../../services/api_services.dart';
 import '../../utils/constants.dart';
@@ -30,7 +31,6 @@ class ProductoApi {
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
 
-      // Manejar respuesta paginada de Laravel
       if (responseData.containsKey('data')) {
         var dataField = responseData['data'];
         List dataList = [];
@@ -39,7 +39,6 @@ class ProductoApi {
         int total = 0;
 
         if (dataField is Map && dataField.containsKey('data')) {
-          // Estructura modular (ApiResponseTrait + Pagination)
           dataList = dataField['data'] is List ? dataField['data'] : [];
           var meta = dataField['meta'];
           if (meta is Map) {
@@ -53,7 +52,6 @@ class ProductoApi {
             total = dataList.length;
           }
         } else if (dataField is List) {
-          // Estructura antigua
           dataList = dataField;
           current =
               int.tryParse(responseData['current_page']?.toString() ?? '1') ??
@@ -96,7 +94,6 @@ class ProductoApi {
     if (categoriaId != null) queryParams += "&categoria_id=$categoriaId";
     if (marcaId != null) queryParams += "&marca_id=$marcaId";
 
-    // Llamamos al nuevo endpoint creado en el backend
     final response = await api.get(
       "$apiUrl/productos-compras$queryParams",
       token: token,
@@ -197,6 +194,75 @@ class ProductoApi {
   Future<bool> deleteProducto(int id, String token) async {
     final response = await api.delete("$baseUrl/$id", token: token);
     return response.statusCode == 200 || response.statusCode == 204;
+  }
+
+  /// Descarga los bytes del archivo Excel (.xlsx) de la plantilla base de productos inventariables
+  Future<Uint8List> downloadTemplateBytes(String token) async {
+    final uri = Uri.parse("$baseUrl/template");
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept':
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    }
+    throw Exception("Error al descargar plantilla (${response.statusCode})");
+  }
+
+  /// Envía el archivo Excel/CSV para validar y previsualizar las filas antes de guardar
+  Future<Map<String, dynamic>> previewImportProductos(
+    List<int> bytes,
+    String filename,
+    String token,
+  ) async {
+    final uri = Uri.parse("$baseUrl/import/preview");
+    final request = http.MultipartRequest('POST', uri)
+      ..headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      })
+      ..files.add(
+        http.MultipartFile.fromBytes('documento', bytes, filename: filename),
+      );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && decoded['success'] == true) {
+      return Map<String, dynamic>.from(decoded['data']);
+    }
+
+    final msg = decoded['message'] ?? 'Error al procesar el archivo';
+    throw Exception(msg);
+  }
+
+  /// Confirma la importación masiva enviando las filas revisadas por el usuario
+  Future<Map<String, dynamic>> confirmImportProductos(
+    List<Map<String, dynamic>> productos,
+    String token,
+  ) async {
+    final response = await api.post(
+      "$baseUrl/import/confirm",
+      {'productos': productos},
+      token: token,
+    );
+
+    final decoded = jsonDecode(response.body);
+    if (response.statusCode == 200 && decoded['success'] == true) {
+      return {
+        'message': decoded['message'] ?? 'Importación completada',
+        'data': decoded['data'] ?? {},
+      };
+    }
+
+    final msg = decoded['message'] ?? 'Error al confirmar la importación';
+    throw Exception(msg);
   }
 
   Future<String> importProductos(

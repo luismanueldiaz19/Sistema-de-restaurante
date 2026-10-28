@@ -15,9 +15,10 @@ class UserSeeder extends Seeder
     {
         // Crear usuario administrador
         $admin = User::firstOrCreate(
-            ['email' => 'lwader@gmail.com'],
+            ['username' => 'lwader'],
             [
                 'name'     => 'Administrador',
+                'email'    => 'lwader@gmail.com',
                 'password' => Hash::make('199512'), // Cambiar en producción
             ]
         );
@@ -27,9 +28,10 @@ class UserSeeder extends Seeder
 
         // Crear usuario cajero
         $cajero = User::firstOrCreate(
-            ['email' => 'cajero@gmail.com'],
+            ['username' => 'cajero'],
             [
                 'name'     => 'Cajero de Prueba',
+                'email'    => 'cajero@gmail.com',
                 'password' => Hash::make('cajero123'),
             ]
         );
@@ -37,9 +39,10 @@ class UserSeeder extends Seeder
 
         // Crear segundo usuario cajero
         $cajero2 = User::firstOrCreate(
-            ['email' => 'cajero2@gmail.com'],
+            ['username' => 'cajero2'],
             [
                 'name'     => 'Cajero Dos',
+                'email'    => 'cajero2@gmail.com',
                 'password' => Hash::make('cajero123'),
             ]
         );

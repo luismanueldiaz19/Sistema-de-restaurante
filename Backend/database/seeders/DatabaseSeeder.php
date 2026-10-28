@@ -20,9 +20,9 @@ class DatabaseSeeder extends Seeder
             CajaAndTurnoSeeder::class,
             ClienteSeeder::class,
             CatalogosSeeder::class,
-            ProductosSeeder::class,
+            // ProductosSeeder::class,
             ConfiguracionContableSeeder::class,
-            ProveedorSeeder::class,
+            // ProveedorSeeder::class,
             BankSeeder::class,
             MetodoPagoCajaGeneralSeeder::class,
         // ProductosDominicanosSeeder::class

@@ -24,7 +24,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   bool? obscureText = true;
   final FocusNode _focusNode = FocusNode();
   late TextEditingController controllerUsuario = TextEditingController(
-    text: 'lwader@gmail.com',
+    text: 'lwader',
   );
   late TextEditingController controllerClave = TextEditingController(
     text: '199512',
@@ -33,29 +33,23 @@ class _LoginPageState extends ConsumerState<LoginPage>
   final List<Map<String, dynamic>> _profiles = [
     {
       'name': 'Admin',
-      'email': 'lwader@gmail.com',
+      'username': 'lwader',
       'pass': '199512',
       'icon': Icons.admin_panel_settings_outlined,
     },
     {
-      'name': 'Cajero',
-      'email': 'cajero@gmail.com',
+      'name': 'Cajero 1',
+      'username': 'cajero',
       'pass': 'cajero123',
-      'icon': Icons.person_outline,
+      'icon': Icons.point_of_sale_outlined,
     },
-    // {
-    //   'name': 'Cajero 2',
-    //   'email': 'cajero2@gmail.com',
-    //   'pass': 'cajero123',
-    //   'icon': Icons.person_add_alt_1_outlined,
-    // },
   ];
   int _selectedProfileIndex = 0;
 
   void _selectProfile(int index) {
     setState(() {
       _selectedProfileIndex = index;
-      controllerUsuario.text = _profiles[index]['email']!;
+      controllerUsuario.text = _profiles[index]['username']!;
       controllerClave.text = _profiles[index]['pass']!;
     });
   }
@@ -97,14 +91,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
           backgroundColor: Colors.transparent,
           elevation: 0,
           content: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: const CustomLoading(
               text: 'Autenticando sesión...',
-              size: 110,
+              size: 90,
             ),
           ),
         ),
@@ -114,15 +108,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
     final auth = ref.read(authProvider.notifier);
 
     final success = await auth.login(
-      controllerUsuario.text,
-      controllerClave.text,
+      controllerUsuario.text.trim(),
+      controllerClave.text.trim(),
     );
 
     if (!mounted) return;
 
     if (success) {
-      // Esperar 3 segundos solo si el login es correcto
-      await Future.delayed(const Duration(seconds: 3));
+      // Esperar brevemente solo si el login es correcto
+      await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
     }
 
@@ -164,25 +158,24 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
           // 2. Overlay for readability
           Positioned.fill(
-            child: Container(color: Colors.black.withValues(alpha: 0.3)),
+            child: Container(color: Colors.black.withValues(alpha: 0.35)),
           ),
           // 3. Center Content
           Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: ZoomIn(
                 animate: showBorderGlow,
                 duration: const Duration(milliseconds: 600),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 650),
+                  constraints: const BoxConstraints(maxWidth: 620),
                   child: AnimatedBuilder(
                     animation: _animationController,
                     builder: (context, child) {
                       return Container(
-                        // Grosor del borde (1.5px)
-                        padding: const EdgeInsets.all(10.0),
+                        padding: const EdgeInsets.all(3.0),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25.5),
+                          borderRadius: BorderRadius.circular(21),
                           gradient: showBorderGlow
                               ? SweepGradient(
                                   center: Alignment.center,
@@ -205,19 +198,29 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
                         color: AppColors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
                       child: IntrinsicHeight(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // 1. Left Section (Branding)
-                            if (size.width > 850)
+                            if (size.width > 750)
                               Expanded(
-                                flex: 1,
+                                flex: 4,
                                 child: Container(
                                   color: AppColors.white,
-                                  padding: const EdgeInsets.all(20),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 20,
+                                  ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -225,10 +228,19 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                       Text(
                                         appName[0].toUpperCase(),
                                         style: TextStyle(
-                                          fontSize: 100,
+                                          fontSize: 72,
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.primary,
                                           fontFamily: 'Serif',
+                                        ),
+                                      ),
+                                      Text(
+                                        appName.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 2.0,
+                                          color: AppColors.azulOscuro,
                                         ),
                                       ),
                                       const Spacer(),
@@ -237,17 +249,18 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                         textAlign: TextAlign.center,
                                         style: textTheme.labelSmall?.copyWith(
                                           color: Colors.grey.shade500,
-                                          letterSpacing: 1.1,
+                                          fontSize: 9.5,
+                                          letterSpacing: 1.0,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 2),
                                       Text(
                                         'HANDCRAFTED BY ${developer.toUpperCase()}',
                                         textAlign: TextAlign.center,
                                         style: textTheme.labelSmall?.copyWith(
                                           color: Colors.grey.shade400,
-                                          fontSize: 9,
-                                          letterSpacing: 1.5,
+                                          fontSize: 8,
+                                          letterSpacing: 1.2,
                                         ),
                                       ),
                                     ],
@@ -257,134 +270,179 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
                             // 2. Right Section (Form)
                             Expanded(
-                              flex: 1,
-                              child: Padding(
+                              flex: 5,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  border: Border(
+                                    left: BorderSide(
+                                      color: Colors.grey.shade100,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 32,
+                                  horizontal: 20,
+                                  vertical: 22,
                                 ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: size.width > 850
-                                      ? CrossAxisAlignment.start
-                                      : CrossAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       '¡Bienvenido!',
-                                      style: textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.w900,
+                                      style: textTheme.titleLarge?.copyWith(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
                                         color: AppColors.azulOscuro,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 2),
                                     Text(
                                       'Inicia sesión para continuar',
-                                      style: textTheme.bodyMedium?.copyWith(
+                                      style: textTheme.bodySmall?.copyWith(
                                         color: Colors.grey.shade600,
+                                        fontSize: 12,
                                       ),
                                     ),
 
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 14),
 
-                                    /// 👤 SELECTOR DE PERFIL (SLIDER / TABS)
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children: List.generate(
-                                          _profiles.length,
-                                          (index) {
-                                            final isSelected =
-                                                _selectedProfileIndex == index;
-                                            final profile = _profiles[index];
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                right: 10,
+                                    /// 👤 SELECTOR DE PERFIL (CHIPS RÁPIDOS COMPACTOS)
+                                    Text(
+                                      'ACCESO RÁPIDO',
+                                      style: TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.grey.shade500,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children: List.generate(_profiles.length, (
+                                        index,
+                                      ) {
+                                        final isSelected =
+                                            _selectedProfileIndex == index;
+                                        final profile = _profiles[index];
+                                        return InkWell(
+                                          onTap: () => _selectProfile(index),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 200,
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? AppColors.azulOscuro
+                                                  : Colors.grey.shade50,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? AppColors.azulOscuro
+                                                    : Colors.grey.shade300,
+                                                width: 1,
                                               ),
-                                              child: InkWell(
-                                                onTap: () =>
-                                                    _selectProfile(index),
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                child: AnimatedContainer(
-                                                  duration: const Duration(
-                                                    milliseconds: 300,
+                                              boxShadow: isSelected
+                                                  ? [
+                                                      BoxShadow(
+                                                        color: AppColors
+                                                            .azulOscuro
+                                                            .withValues(
+                                                              alpha: 0.25,
+                                                            ),
+                                                        blurRadius: 4,
+                                                        offset: const Offset(
+                                                          0,
+                                                          1.5,
+                                                        ),
+                                                      ),
+                                                    ]
+                                                  : [],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  profile['icon'] as IconData,
+                                                  size: 13,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : Colors.grey.shade700,
+                                                ),
+                                                const SizedBox(width: 5),
+                                                Text(
+                                                  profile['name'] as String,
+                                                  style: TextStyle(
+                                                    color: isSelected
+                                                        ? Colors.white
+                                                        : Colors.grey.shade800,
+                                                    fontWeight: isSelected
+                                                        ? FontWeight.w700
+                                                        : FontWeight.w500,
+                                                    fontSize: 11,
                                                   ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Container(
                                                   padding:
                                                       const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 8,
+                                                        horizontal: 4,
+                                                        vertical: 1,
                                                       ),
                                                   decoration: BoxDecoration(
                                                     color: isSelected
-                                                        ? AppColors.azulOscuro
-                                                        : Colors.grey.shade100,
+                                                        ? Colors.white
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              )
+                                                        : Colors.grey.shade200,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          15,
+                                                          4,
                                                         ),
-                                                    boxShadow: isSelected
-                                                        ? [
-                                                            BoxShadow(
-                                                              color: AppColors
-                                                                  .azulOscuro
-                                                                  .withValues(
-                                                                    alpha: 0.3,
-                                                                  ),
-                                                              blurRadius: 8,
-                                                              offset:
-                                                                  const Offset(
-                                                                    0,
-                                                                    4,
-                                                                  ),
-                                                            ),
-                                                          ]
-                                                        : [],
                                                   ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        profile['icon'],
-                                                        size: 18,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : Colors
-                                                                  .grey
-                                                                  .shade600,
-                                                      ),
-                                                      const SizedBox(width: 8),
-                                                      Text(
-                                                        profile['name'],
-                                                        style: TextStyle(
-                                                          color: isSelected
-                                                              ? Colors.white
-                                                              : Colors
-                                                                    .grey
-                                                                    .shade600,
-                                                          fontWeight: isSelected
-                                                              ? FontWeight.bold
-                                                              : FontWeight
-                                                                    .normal,
-                                                          fontSize: 13,
-                                                        ),
-                                                      ),
-                                                    ],
+                                                  child: Text(
+                                                    '@${profile['username']}',
+                                                    style: TextStyle(
+                                                      color: isSelected
+                                                          ? Colors.white
+                                                                .withValues(
+                                                                  alpha: 0.95,
+                                                                )
+                                                          : Colors
+                                                                .grey
+                                                                .shade600,
+                                                      fontSize: 9.5,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }),
                                     ),
 
-                                    const SizedBox(height: 24),
+                                    const SizedBox(height: 10),
 
                                     // USER FIELD
                                     textFieldWidgetUI(
-                                      label: 'Código de empleado',
-                                      prefixIcon: Icons.badge_outlined,
+                                      width: double.infinity,
+                                      label: 'Usuario',
+                                      prefixIcon: Icons.account_circle_outlined,
                                       controller: controllerUsuario,
                                       onEditingComplete: () =>
                                           _focusNode.requestFocus(),
@@ -392,7 +450,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
                                     // PASSWORD FIELD
                                     textFieldWidgetUI(
-                                      label: 'Clave / PIN',
+                                      width: double.infinity,
+                                      label: 'Contraseña / PIN',
                                       prefixIcon: Icons.lock_outline,
                                       obscureText: obscureText,
                                       focusNode: _focusNode,
@@ -408,26 +467,36 @@ class _LoginPageState extends ConsumerState<LoginPage>
                                       onEditingComplete: iniciarSeccion,
                                     ),
 
-                                    const SizedBox(height: 24),
+                                    const SizedBox(height: 14),
 
-                                    // LOGIN BUTTON
+                                    // LOGIN BUTTON (SMALL / COMPACT)
                                     CustomButton(
                                       width: double.infinity,
+                                      height: 42,
+                                      borderRadius: 8,
+                                      fontSize: 13.5,
                                       title: 'INGRESAR',
                                       isLoading: isLoading,
                                       onPressed: iniciarSeccion,
                                       backgroundColor: AppColors.secondary,
                                     ),
 
-                                    const SizedBox(height: 24),
+                                    const SizedBox(height: 10),
                                     Center(
                                       child: TextButton(
                                         onPressed: () {},
+                                        style: TextButton.styleFrom(
+                                          visualDensity: VisualDensity.compact,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                        ),
                                         child: Text(
                                           '¿Olvidaste tu acceso? Contacta a Soporte',
                                           style: TextStyle(
                                             color: Colors.red.shade400,
-                                            fontSize: 13,
+                                            fontSize: 11,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),

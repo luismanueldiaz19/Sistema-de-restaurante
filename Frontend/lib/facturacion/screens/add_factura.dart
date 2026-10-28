@@ -63,19 +63,20 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
 
   void _cargarMesaAlCarrito(MesaModel mesa) {
     _mesaVinculada = mesa;
-    final items = mesa.ordenActiva?.detalles.map((det) {
-      return FacturaItem(
-        id: (det.productoId ?? 0).toString(),
-        descripcion: det.nombreProducto,
-        precio: det.precioUnitario,
-        cantidad: det.cantidad,
-      );
-    }).toList() ?? [];
+    final items =
+        mesa.ordenActiva?.detalles.map((det) {
+          return FacturaItem(
+            id: (det.productoId ?? 0).toString(),
+            descripcion: det.nombreProducto,
+            precio: det.precioUnitario,
+            cantidad: det.cantidad,
+          );
+        }).toList() ??
+        [];
 
-    ref.read(facturacionProvider.notifier).cargarItemsDeMesa(
-      items,
-      nota: 'Mesa: ${mesa.nombre} (${mesa.area})',
-    );
+    ref
+        .read(facturacionProvider.notifier)
+        .cargarItemsDeMesa(items, nota: 'Mesa: ${mesa.nombre} (${mesa.area})');
 
     if (mounted) {
       showToast(
@@ -307,9 +308,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
         final mesaNombre = _mesaVinculada!.nombre;
         _mesaVinculada = null;
         try {
-          await ref
-              .read(mesasProvider)
-              .liberarMesa(mesaId, porFactura: true);
+          await ref.read(mesasProvider).liberarMesa(mesaId, porFactura: true);
           if (mounted) {
             showToast(
               context,
@@ -336,8 +335,6 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     Map<String, dynamic>? facturaData,
     Map<String, dynamic>? pagoInfo,
   ) async {
-    // Construir número de factura desde la respuesta del servidor
-
     final resultado = await _printer.imprimirFactura(
       nombreNegocio: Company.current.nombre,
       direccion: Company.current.direccionCompleta,
@@ -406,7 +403,7 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Punto de Venta',
+              'Vender',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
@@ -664,8 +661,8 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
                       hintText:
                           'Buscar producto o escanear ticket de pedido...',
                       border: InputBorder.none,
-                      hintStyle: const TextStyle(fontSize: 13),
-                      icon: const Icon(
+                      hintStyle: TextStyle(fontSize: 13),
+                      icon: Icon(
                         Icons.qr_code_scanner,
                         color: Colors.grey,
                         size: 16,
@@ -690,10 +687,10 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
               : GridView.builder(
                   padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 140,
+                    maxCrossAxisExtent: 160,
                     mainAxisSpacing: 8,
                     crossAxisSpacing: 8,
-                    childAspectRatio: 0.85,
+                    childAspectRatio: 0.88,
                   ),
                   itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
@@ -707,108 +704,141 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   }
 
   Widget _buildProductCard(Producto prod, FacturacionNotifier factNotifier) {
-    return InkWell(
-      onTap: () {
-        factNotifier.agregarProducto(
-          FacturaItem(
-            id: prod.id.toString(),
-            descripcion: prod.nombre ?? 'Sin nombre',
-            precio: prod.precioVenta ?? 0,
-            itbisPorcentaje: prod.impuesto?.tasa ?? 0.0,
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade100),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+    final bool controlaStock = prod.manejaInventario ?? false;
+    final double stock = prod.stockActual ?? 0;
+    final double stockMin = prod.stockMinimo ?? 0;
+
+    Color stockColor = AppColors.success;
+    if (controlaStock) {
+      if (stock <= 0) {
+        stockColor = Colors.redAccent;
+      } else if (stock <= stockMin) {
+        stockColor = Colors.orange.shade700;
+      }
+    }
+
+    return Tooltip(
+      message: prod.nombre ?? '',
+      waitDuration: const Duration(milliseconds: 500),
+      child: InkWell(
+        onTap: () {
+          factNotifier.agregarProducto(
+            FacturaItem(
+              id: prod.id.toString(),
+              descripcion: prod.nombre ?? 'Sin nombre',
+              precio: prod.precioVenta ?? 0,
+              itbisPorcentaje: prod.impuesto?.tasa ?? 0.0,
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.05),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(8),
+          );
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.05),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(8),
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.fastfood_outlined,
-                    size: 32,
-                    color: AppColors.primary.withValues(alpha: 0.5),
+                  child: Center(
+                    child: Icon(
+                      Icons.fastfood_outlined,
+                      size: 28,
+                      color: AppColors.primary.withValues(alpha: 0.5),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    prod.nombre ?? 'Sin nombre',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 28,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          prod.nombre ?? 'Sin nombre',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            height: 1.18,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            FormatterNumber.formatCurrency(prod.precioVenta ?? 0),
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 13,
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              FormatterNumber.formatCurrency(
+                                prod.precioVenta ?? 0,
+                              ),
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12.5,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'S: --',
-                          style: const TextStyle(
-                            color: AppColors.success,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                        if (controlaStock) ...[
+                          const SizedBox(width: 4),
+                          Tooltip(
+                            message:
+                                'Stock disponible: ${FormatterNumber.formatNumber(stock)}',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: stockColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'S: ${FormatterNumber.formatNumber(stock)}',
+                                style: TextStyle(
+                                  color: stockColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -826,31 +856,6 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
             style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return TextButton.icon(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-      ),
-      icon: Icon(icon, color: AppColors.primary, size: 14),
-      label: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.primary,
-          fontWeight: FontWeight.w900,
-          fontSize: 11,
-        ),
       ),
     );
   }

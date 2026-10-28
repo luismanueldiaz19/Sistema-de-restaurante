@@ -11,14 +11,15 @@ class AuthService {
 
   /// LOGIN
   Future<AuthResponse?> login({
-    required String email,
+    required String username,
     required String password,
   }) async {
     final url = "$baseUrl/login";
 
     try {
       final response = await api.post(url, {
-        "email": email,
+        "username": username,
+        "email": username,
         "password": password,
       }, checkUnauthorized: false);
 
@@ -39,6 +40,7 @@ class AuthService {
   /// REGISTER (opcional)
   Future<Map<String, dynamic>> register({
     required String name,
+    required String username,
     required String email,
     required String password,
   }) async {
@@ -47,7 +49,12 @@ class AuthService {
     try {
       final response = await api.post(
         url,
-        jsonEncode({"name": name, "email": email, "password": password}),
+        jsonEncode({
+          "name": name,
+          "username": username,
+          "email": email,
+          "password": password,
+        }),
       );
 
       final data = jsonDecode(response.body);

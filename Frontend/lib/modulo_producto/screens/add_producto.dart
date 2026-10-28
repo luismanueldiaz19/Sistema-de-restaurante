@@ -9,6 +9,7 @@ import '../providers/producto_provider.dart';
 import '../providers/catalogo_provider.dart';
 import '../enums/tipo_producto_enum.dart';
 import '../enums/tipo_contable_enum.dart';
+import 'screen_preview_import_productos.dart';
 
 class AddProductoDialog extends ConsumerStatefulWidget {
   final Producto? producto;
@@ -27,6 +28,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
   final precioCtrl = TextEditingController(text: '0');
   final precioCompraCtrl = TextEditingController(text: '0');
   final costoCtrl = TextEditingController(text: '0');
+  final stockInicialCtrl = TextEditingController(text: '0');
   final stockMinimoCtrl = TextEditingController(text: '0');
   final presentacionCompraCtrl = TextEditingController(text: '');
   final factorCompraCtrl = TextEditingController(text: '1.0');
@@ -62,12 +64,13 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
 
     if (isEdit) {
       final p = widget.producto!;
-      nombreCtrl.text = p.nombre ?? '';
-      codigoCtrl.text = p.codigo ?? '';
+      nombreCtrl.text = (p.nombre ?? '').toUpperCase();
+      codigoCtrl.text = (p.codigo ?? '').toUpperCase();
       descCtrl.text = p.descripcion ?? '';
       precioCtrl.text = p.precioVenta?.toString() ?? '0';
       precioCompraCtrl.text = p.precioCompra?.toString() ?? '0';
       costoCtrl.text = p.costo?.toString() ?? '0';
+      stockInicialCtrl.text = p.stockActual?.toString() ?? '0';
       stockMinimoCtrl.text = p.stockMinimo?.toString() ?? '0';
       presentacionCompraCtrl.text = p.presentacionCompraPorDefecto ?? '';
       factorCompraCtrl.text = p.factorCompraPorDefecto?.toString() ?? '1.0';
@@ -89,8 +92,8 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
   }
 
   void _generarSKU() {
-    String name = nombreCtrl.text.trim();
-    String prefix = 'PROD';
+    String name = nombreCtrl.text.trim().toUpperCase();
+    String prefix = 'PRD';
     if (name.isNotEmpty) {
       final words = name.split(' ').where((w) => w.isNotEmpty).toList();
       if (words.length == 1) {
@@ -105,10 +108,8 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       }
     }
 
-    // Clean prefix to keep only letters and numbers
     prefix = prefix.replaceAll(RegExp(r'[^A-Z0-9]'), '');
-
-    if (prefix.isEmpty) prefix = 'PROD';
+    if (prefix.isEmpty) prefix = 'PRD';
 
     final randomNum = (1000 + DateTime.now().millisecondsSinceEpoch % 9000)
         .toString();
@@ -116,19 +117,6 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       codigoCtrl.text = '$prefix-$randomNum';
     });
   }
-
-  // String get _margenGanancia {
-  //   final precio = double.tryParse(precioCtrl.text) ?? 0;
-  //   final costo = double.tryParse(costoCtrl.text) ?? 0;
-
-  //   if (precio <= 0) return '';
-  //   if (costo == 0 && precio > 0) return ' (100% Margen)';
-  //   if (precio > 0) {
-  //     final margen = ((precio - costo) / precio) * 100;
-  //     return ' (${margen.toStringAsFixed(1)}% Margen)';
-  //   }
-  //   return '';
-  // }
 
   void _mostrarCalculadoraCosto() {
     final calcCtrl = TextEditingController();
@@ -140,6 +128,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
           style: TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
         ),
         content: Column(
@@ -148,8 +137,9 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
           children: [
             const Text(
               'Ingresa el costo total (CON ITBIS) que le pagas al proveedor por unidad:',
+              style: TextStyle(fontSize: 12),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             TextField(
               controller: calcCtrl,
               keyboardType: TextInputType.number,
@@ -159,8 +149,9 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
               decoration: InputDecoration(
                 labelText: 'Costo total con ITBIS',
                 prefixText: 'RD\$ ',
+                isDense: true,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
@@ -175,14 +166,14 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
             onPressed: () {
               final val = double.tryParse(calcCtrl.text) ?? 0;
               if (val > 0) {
-                final base = val / 1.18; // Extraer ITBIS 18%
+                final base = val / 1.18;
                 setState(() {
                   costoCtrl.text = base.toStringAsFixed(2);
                 });
               }
               Navigator.pop(ctx);
             },
-            icon: const Icon(Icons.calculate, size: 18),
+            icon: const Icon(Icons.calculate, size: 16),
             label: const Text('Extraer ITBIS (18%)'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -205,9 +196,9 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
     final impuestos = ref.watch(impuestosProvider).items;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        width: 700,
+        width: 680,
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -222,43 +213,46 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     Text(
                       isEdit ? 'Editar Producto' : 'Nuevo Producto',
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.azulOscuro,
                       ),
                     ),
                     IconButton(
+                      visualDensity: VisualDensity.compact,
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Icons.close, size: 18),
                     ),
                   ],
                 ),
-                const Divider(),
-                const SizedBox(height: 8),
+                const Divider(height: 16),
                 Row(
                   children: [
                     Expanded(
                       flex: 2,
                       child: CustomTextField(
                         controller: nombreCtrl,
-                        label: 'Nombre del Producto',
-                        hintText: 'Ej: Hamburguesa con Queso',
-                        validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                        label: 'Nombre del Producto (UPPERCASE) *',
+                        hintText: 'EJ: HAMBURGUESA CON QUESO',
+                        inputFormatters: [UpperCaseTextFormatter()],
+                        validator: (v) =>
+                            v == null || v.trim().isEmpty ? 'Requerido' : null,
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: CustomTextField(
                         controller: codigoCtrl,
-                        label: 'Codigo / SKU',
-                        hintText: 'HAM-001',
+                        label: 'Código / SKU (Opcional)',
+                        hintText: 'Vacío = Auto',
+                        inputFormatters: [UpperCaseTextFormatter()],
                         suffixIcon: Icons.autorenew,
                         onSuffixIconTap: _generarSKU,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 Row(
                   children: [
@@ -287,7 +281,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _buildDropdown(
                         label: 'Tipo Contable',
@@ -306,13 +300,13 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 Row(
                   children: [
                     Expanded(
                       child: _buildDropdown(
-                        label: 'Categoria',
+                        label: 'Categoría',
                         value: categoriaId,
                         items: categorias
                             .map(
@@ -326,7 +320,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                             setState(() => categoriaId = val as int?),
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _buildDropdown(
                         label: 'Marca',
@@ -343,7 +337,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                             setState(() => marcaId = val as int?),
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _buildDropdown(
                         label: 'Unidad de Medida',
@@ -363,16 +357,16 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 const Text(
-                  'CONFIGURACION FINANCIERA',
+                  'CONFIGURACIÓN FINANCIERA',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blueGrey,
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
                 ),
-                const Divider(),
+                const Divider(height: 12),
 
                 Row(
                   children: [
@@ -382,10 +376,15 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                         label: 'Precio de Venta',
                         prefixIcon: Icons.attach_money,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ],
                         enabled: tipoProducto != 'MATERIA_PRIMA',
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: CustomTextField(
                         controller: precioCompraCtrl,
@@ -402,10 +401,9 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Row(
                   children: [
-                    const SizedBox(width: 15),
                     Expanded(
                       child: CustomTextField(
                         controller: costoCtrl,
@@ -423,12 +421,13 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                           icon: const Icon(
                             Icons.calculate,
                             color: Colors.orange,
+                            size: 18,
                           ),
                           onPressed: _mostrarCalculadoraCosto,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _buildDropdown(
                         label: 'Impuesto General',
@@ -447,18 +446,17 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 const Text(
                   'INVENTARIO Y COMPRAS',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blueGrey,
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
                 ),
-                const Divider(),
+                const Divider(height: 12),
 
                 Row(
                   children: [
@@ -469,7 +467,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                         hintText: 'Ej: Fardo, Caja, Saco',
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: CustomTextField(
                         controller: factorCompraCtrl,
@@ -480,7 +478,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 Row(
                   children: [
@@ -491,7 +489,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                           const Text(
                             'Maneja Inventario',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -499,31 +497,55 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                             value: manejaInventario,
                             onChanged: (v) =>
                                 setState(() => manejaInventario = v),
-                            activeColor: AppColors.primary,
+                            activeThumbColor: AppColors.primary,
                           ),
                         ],
                       ),
                     ),
+                    if (!isEdit) ...[
+                      Expanded(
+                        child: CustomTextField(
+                          controller: stockInicialCtrl,
+                          label: 'Cantidad (Stock Inicial)',
+                          enabled: manejaInventario,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
                     Expanded(
                       child: CustomTextField(
                         controller: stockMinimoCtrl,
-                        label: 'Stock Minimo (Alerta)',
+                        label: 'Stock Mínimo (Alerta)',
                         enabled: manejaInventario,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d*'),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 15),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Row(
                         children: [
                           const Text(
                             'Activo',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
                           ),
                           Switch(
                             value: activo,
                             onChanged: (v) => setState(() => activo = v),
-                            activeColor: Colors.green,
+                            activeThumbColor: Colors.green,
                           ),
                         ],
                       ),
@@ -531,7 +553,7 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
                   height: 40,
@@ -541,11 +563,15 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
                       backgroundColor: AppColors.azulOscuro,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     child: Text(
                       isEdit ? 'Actualizar Producto' : 'Crear Producto',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -576,10 +602,10 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
         ),
         const SizedBox(height: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: DropdownButtonHideUnderline(
@@ -587,7 +613,11 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
               value: items.any((e) => e.value == value) ? value : null,
               isExpanded: true,
               isDense: true,
-              hint: const Text("Seleccionar..."),
+              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              hint: const Text(
+                "Seleccionar...",
+                style: TextStyle(fontSize: 12),
+              ),
               items: items,
               onChanged: onChanged,
             ),
@@ -604,9 +634,9 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
     final provider = ref.read(productoProvider.notifier);
 
     final data = {
-      "nombre": nombreCtrl.text.trim(),
-      "codigo": codigoCtrl.text.trim(),
-      "descripcion": descCtrl.text.trim(),
+      "nombre": nombreCtrl.text.trim().toUpperCase(),
+      "codigo": codigoCtrl.text.trim().toUpperCase(),
+      "descripcion": descCtrl.text.trim().toUpperCase(),
       "categoria_id": categoriaId,
       "marca_id": marcaId,
       "unidad_medida_id": unidadMedidaId,
@@ -617,9 +647,11 @@ class _AddProductoDialogState extends ConsumerState<AddProductoDialog> {
       "precio_compra": double.tryParse(precioCompraCtrl.text) ?? 0,
       "costo": double.tryParse(costoCtrl.text) ?? 0,
       "maneja_inventario": manejaInventario,
+      if (!isEdit) "stock_actual": double.tryParse(stockInicialCtrl.text) ?? 0,
       "stock_minimo": double.tryParse(stockMinimoCtrl.text) ?? 0,
       "presentacion_compra_por_defecto": presentacionCompraCtrl.text.trim(),
-      "factor_compra_por_defecto": double.tryParse(factorCompraCtrl.text) ?? 1.0,
+      "factor_compra_por_defecto":
+          double.tryParse(factorCompraCtrl.text) ?? 1.0,
       "activo": activo,
     };
 

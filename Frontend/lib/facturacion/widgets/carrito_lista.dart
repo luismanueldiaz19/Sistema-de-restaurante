@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../palletes/app_colors.dart';
-import '../../utils/helpers.dart'; // 🔥 Importar helpers
+import '../../utils/helpers.dart';
 import '../models/factura_item.dart';
 
 class CarritoLista extends StatelessWidget {
@@ -27,7 +27,7 @@ class CarritoLista extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.light,
                 shape: BoxShape.circle,
               ),
@@ -41,7 +41,7 @@ class CarritoLista extends StatelessWidget {
             Text(
               'Carrito Vacío',
               style: TextStyle(
-                color: AppColors.secondary.withOpacity(0.5),
+                color: AppColors.secondary.withValues(alpha: 0.5),
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -60,7 +60,7 @@ class CarritoLista extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
           child: Row(
             children: [
               const Text(
@@ -78,7 +78,7 @@ class CarritoLista extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -114,18 +114,19 @@ class CarritoLista extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade50),
+        border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.01),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 28,
@@ -143,20 +144,22 @@ class CarritoLista extends StatelessWidget {
                   children: [
                     Text(
                       item.descripcion,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
-                        fontSize: 12,
+                        fontSize: 11.5,
+                        height: 1.18,
                         color: AppColors.secondary,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Row(
                       children: [
                         Text(
                           FormatterNumber.formatCurrency(item.precio),
                           style: TextStyle(
-                            color: Colors.grey.shade400,
+                            color: Colors.grey.shade500,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -166,7 +169,7 @@ class CarritoLista extends StatelessWidget {
                           InkWell(
                             onTap: () =>
                                 _mostrarDialogoEdicionPrecio(context, item),
-                            child: Icon(
+                            child: const Icon(
                               Icons.edit,
                               size: 14,
                               color: AppColors.primary,
@@ -178,6 +181,7 @@ class CarritoLista extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 4),
               _buildCircleBtn(
                 icon: Icons.close,
                 color: Colors.redAccent,
@@ -281,7 +285,7 @@ class CarritoLista extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: color, size: size * 0.6),
@@ -290,16 +294,16 @@ class CarritoLista extends StatelessWidget {
   }
 
   void _mostrarDialogoEdicionPrecio(BuildContext context, FacturaItem item) {
-    final TextEditingController _precioController = TextEditingController(
+    final TextEditingController precioController = TextEditingController(
       text: item.precio.toStringAsFixed(2),
     );
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Editar Precio'),
+          title: const Text('Editar Precio'),
           content: TextField(
-            controller: _precioController,
+            controller: precioController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -317,7 +321,7 @@ class CarritoLista extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 final double? newPrecio = double.tryParse(
-                  _precioController.text,
+                  precioController.text,
                 );
                 if (newPrecio != null && newPrecio >= 0) {
                   onUpdatePrecio!(item.id, newPrecio);
@@ -333,7 +337,7 @@ class CarritoLista extends StatelessWidget {
   }
 
   void _mostrarDialogoEdicionCantidad(BuildContext context, FacturaItem item) {
-    final TextEditingController _qtyController = TextEditingController(
+    final TextEditingController qtyController = TextEditingController(
       text: item.cantidad.toString().replaceAll(RegExp(r'\.0$'), ''),
     );
     showDialog(
@@ -342,7 +346,7 @@ class CarritoLista extends StatelessWidget {
         return AlertDialog(
           title: const Text('Ingresar Cantidad'),
           content: TextField(
-            controller: _qtyController,
+            controller: qtyController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -363,7 +367,7 @@ class CarritoLista extends StatelessWidget {
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
-                final double? newQty = double.tryParse(_qtyController.text);
+                final double? newQty = double.tryParse(qtyController.text);
                 if (newQty != null && newQty > 0 && newQty <= 20000) {
                   onUpdateCantidad(item.id, newQty);
                   Navigator.pop(context);

@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
 
-            // GENERAL
-            $table->string('nombre');
+            // GENERAL (Nombre en UPPERCASE y único, Código único autogenerable)
+            $table->string('nombre')->unique();
             $table->string('codigo')->unique()->nullable();
             $table->text('descripcion')->nullable();
 
             // RELACIONES
-            $table->foreignId('categoria_id')->nullable();
-            $table->foreignId('marca_id')->nullable();
-            $table->foreignId('unidad_medida_id')->nullable();
+            $table->foreignId('categoria_id')->nullable()->constrained('categorias')->nullOnDelete();
+            $table->foreignId('marca_id')->nullable()->constrained('marcas')->nullOnDelete();
+            $table->foreignId('unidad_medida_id')->nullable()->constrained('unidades_medida')->nullOnDelete();
 
             // TIPOS
             $table->enum('tipo_producto', [
@@ -31,14 +31,14 @@ return new class extends Migration
                 'COMBO',
                 'MATERIA_PRIMA',
                 'PLATO'
-            ]);
+            ])->default('PRODUCTO');
 
             $table->enum('tipo_contable', [
                 'INVENTARIO',
                 'GASTO',
                 'ACTIVO_FIJO',
                 'SERVICIO'
-            ]);
+            ])->default('INVENTARIO');
 
             // INVENTARIO
             $table->boolean('maneja_inventario')->default(true);
@@ -48,7 +48,7 @@ return new class extends Migration
 
             // COMPRAS
             $table->string('presentacion_compra_por_defecto')->nullable();
-            $table->decimal('factor_compra_por_defecto', 10, 4)->nullable();
+            $table->decimal('factor_compra_por_defecto', 10, 4)->nullable()->default(1);
 
             // PRECIOS
             $table->decimal('precio_venta', 15, 2)->default(0);
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->decimal('costo', 15, 2)->default(0);
 
             // IMPUESTOS
-            $table->foreignId('impuesto_id')->nullable();
+            $table->foreignId('impuesto_id')->nullable()->constrained('impuestos')->nullOnDelete();
             $table->foreignId('impuesto_venta_id')->nullable();
             $table->foreignId('impuesto_compra_id')->nullable();
 

@@ -16,8 +16,8 @@ final readonly class CreateProductoDTO
         public ?int $marcaId,
         public ?int $unidadMedidaId,
         public ?int $impuestoId,
-        public ?string $tipoProducto,
-        public ?string $tipoContable,
+        public string $tipoProducto,
+        public string $tipoContable,
         public float $precioVenta,
         public float $precioCompra,
         public float $costo,
@@ -35,20 +35,26 @@ final readonly class CreateProductoDTO
 
     public static function fromRequest(StoreProductoRequest $request): self
     {
+        $nombre = mb_strtoupper(trim((string) $request->validated('nombre')), 'UTF-8');
+        $codigo = $request->validated('codigo');
+        $codigo = ($codigo !== null && trim((string) $codigo) !== '')
+            ? mb_strtoupper(trim((string) $codigo), 'UTF-8')
+            : null;
+
         return new self(
-            nombre: $request->validated('nombre'),
-            codigo: $request->validated('codigo'),
+            nombre: $nombre,
+            codigo: $codigo,
             descripcion: $request->validated('descripcion'),
             categoriaId: $request->validated('categoria_id') ? (int) $request->validated('categoria_id') : null,
             marcaId: $request->validated('marca_id') ? (int) $request->validated('marca_id') : null,
             unidadMedidaId: $request->validated('unidad_medida_id') ? (int) $request->validated('unidad_medida_id') : null,
             impuestoId: $request->validated('impuesto_id') ? (int) $request->validated('impuesto_id') : null,
-            tipoProducto: $request->validated('tipo_producto'),
-            tipoContable: $request->validated('tipo_contable'),
+            tipoProducto: (string) ($request->validated('tipo_producto') ?: 'PRODUCTO'),
+            tipoContable: (string) ($request->validated('tipo_contable') ?: 'INVENTARIO'),
             precioVenta: (float) $request->validated('precio_venta', 0.0),
             precioCompra: (float) $request->validated('precio_compra', 0.0),
             costo: (float) $request->validated('costo', 0.0),
-            manejaInventario: (bool) $request->validated('maneja_inventario', false),
+            manejaInventario: (bool) $request->validated('maneja_inventario', true),
             stockActual: (float) $request->validated('stock_actual', 0.0),
             stockMinimo: (float) $request->validated('stock_minimo', 0.0),
             cuentaIngresoId: $request->validated('cuenta_ingreso_id') ? (int) $request->validated('cuenta_ingreso_id') : null,
@@ -57,7 +63,7 @@ final readonly class CreateProductoDTO
             cuentaGastoId: $request->validated('cuenta_gasto_id') ? (int) $request->validated('cuenta_gasto_id') : null,
             activo: (bool) $request->validated('activo', true),
             presentacionCompraPorDefecto: $request->validated('presentacion_compra_por_defecto'),
-            factorCompraPorDefecto: $request->validated('factor_compra_por_defecto') ? (float) $request->validated('factor_compra_por_defecto') : null
+            factorCompraPorDefecto: $request->validated('factor_compra_por_defecto') ? (float) $request->validated('factor_compra_por_defecto') : 1.0
         );
     }
 

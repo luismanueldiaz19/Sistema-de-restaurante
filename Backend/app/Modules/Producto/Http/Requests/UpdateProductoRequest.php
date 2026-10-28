@@ -14,12 +14,29 @@ class UpdateProductoRequest extends FormRequest
         return $this->user() && $this->user()->can('update', Producto::class);
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('nombre') && is_string($this->nombre)) {
+            $nombreLimpio = preg_replace('/\s+/', ' ', trim($this->nombre));
+            $this->merge([
+                'nombre' => mb_strtoupper((string) $nombreLimpio, 'UTF-8'),
+            ]);
+        }
+
+        if ($this->has('codigo')) {
+            $codigo = is_string($this->codigo) ? trim($this->codigo) : '';
+            $this->merge([
+                'codigo' => $codigo !== '' ? mb_strtoupper($codigo, 'UTF-8') : null,
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         $id = $this->route('producto');
 
         return [
-            'nombre' => ['sometimes', 'required', 'string', 'max:255'],
+            'nombre' => ['sometimes', 'required', 'string', 'max:255', 'unique:productos,nombre,' . $id],
             'codigo' => ['nullable', 'string', 'max:100', 'unique:productos,codigo,' . $id],
             'descripcion' => ['nullable', 'string'],
             'categoria_id' => ['nullable', 'integer', 'exists:categorias,id'],
@@ -41,6 +58,15 @@ class UpdateProductoRequest extends FormRequest
             'activo' => ['nullable', 'boolean'],
             'presentacion_compra_por_defecto' => ['nullable', 'string', 'max:100'],
             'factor_compra_por_defecto' => ['nullable', 'numeric', 'min:0'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nombre.required' => 'El nombre del producto es obligatorio.',
+            'nombre.unique' => 'Ya existe otro producto con este nombre.',
+            'codigo.unique' => 'Ya existe otro producto con este código.',
         ];
     }
 

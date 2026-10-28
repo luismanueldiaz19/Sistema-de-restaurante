@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/producto.dart';
 import '../services/producto_api.dart';
@@ -9,11 +10,10 @@ final productoProvider = StateNotifierProvider<ProductoNotifier, ProductoState>(
   },
 );
 
-final productosCompraProvider = StateNotifierProvider<ProductosCompraNotifier, ProductoState>(
-  (ref) {
-    return ProductosCompraNotifier();
-  },
-);
+final productosCompraProvider =
+    StateNotifierProvider<ProductosCompraNotifier, ProductoState>((ref) {
+      return ProductosCompraNotifier();
+    });
 
 class ProductoNotifier extends StateNotifier<ProductoState> {
   ProductoNotifier() : super(ProductoState());
@@ -56,7 +56,7 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
   }
 
   void setCategoriaFilter(int? id, String token) {
-    state = state.copyWith(categoriaId: id ?? -1); // -1 means clear
+    state = state.copyWith(categoriaId: id ?? -1);
     loadProductos(token, page: 1, silent: true, search: '');
   }
 
@@ -66,7 +66,7 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
   }
 
   void setTipoProductoFilter(String? tipo, String token) {
-    state = state.copyWith(tipoProducto: tipo ?? ''); // '' means clear
+    state = state.copyWith(tipoProducto: tipo ?? '');
     loadProductos(token, page: 1, silent: true, search: '');
   }
 
@@ -132,6 +132,42 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
     }
   }
 
+  Future<Uint8List> downloadTemplateBytes(String token) async {
+    return await _api.downloadTemplateBytes(token);
+  }
+
+  Future<Map<String, dynamic>> previewImportProductos(
+    List<int> bytes,
+    String filename,
+    String token,
+  ) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final result = await _api.previewImportProductos(bytes, filename, token);
+      state = state.copyWith(isLoading: false);
+      return result;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> confirmImportProductos(
+    List<Map<String, dynamic>> productos,
+    String token,
+  ) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final result = await _api.confirmImportProductos(productos, token);
+      await loadProductos(token, silent: true, search: '');
+      state = state.copyWith(isLoading: false);
+      return result;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
   Future<String> importProductos(
     List<int> bytes,
     String filename,
@@ -144,7 +180,7 @@ class ProductoNotifier extends StateNotifier<ProductoState> {
       return message;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
-      throw e;
+      rethrow;
     }
   }
 }
@@ -153,7 +189,7 @@ class ProductosCompraNotifier extends StateNotifier<ProductoState> {
   ProductosCompraNotifier() : super(ProductoState());
 
   final _api = ProductoApi();
-  
+
   Future<void> loadProductosCompras(
     String token, {
     int page = 1,

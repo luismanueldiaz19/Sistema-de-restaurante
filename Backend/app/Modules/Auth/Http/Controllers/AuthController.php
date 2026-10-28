@@ -1,58 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Auth\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Modules\Auth\Exceptions\InvalidCredentialsException;
 use App\Modules\Auth\Http\Requests\LoginRequest;
+use App\Modules\Auth\Services\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /**
-     * Authenticate user and generate a Sanctum token.
-     */
-    public function login(LoginRequest $request)
-    {
-        $user = User::where('email', $request->email)->first();
+    public function __construct(
+        private readonly AuthService $authService
+    ) {}
 
-        // Verificamos si el usuario existe y si la contraseña es correcta
-        if (!$user || !Hash::check($request->password, $user->password)) {
+    /**
+     * Authenticate user by username & password and generate a Sanctum token.
+     */
+    public function login(LoginRequest $request): JsonResponse
+    {
+        try {
+            $data = $this->authService->login(
+                username: (string) $request->input('username'),
+                password: (string) $request->input('password')
+            );
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Autenticación exitosa',
+                'data'    => $data,
+            ], 200);
+        } catch (InvalidCredentialsException $e) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Credenciales incorrectas'
+                'message' => $e->getMessage(),
             ], 401);
         }
-
-        // Creamos el token de acceso
-        $token = $user->createToken('api_v2_token')->plainTextToken;
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Autenticación exitosa',
-            'data' => [
-                'user' => [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
-                    'email' => $user->email,
-                ],
-                'token' => $token
-            ]
-        ], 200);
     }
 
     /**
      * Revoke the current user's token.
      */
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        // Revocamos el token con el que se hizo esta petición
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
         return response()->json([
             'status'  => true,
-            'message' => 'Sesión cerrada correctamente (Token revocado)'
+            'message' => 'Sesión cerrada correctamente (Token revocado)',
         ], 200);
     }
 }

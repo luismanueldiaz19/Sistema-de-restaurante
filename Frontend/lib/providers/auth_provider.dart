@@ -25,11 +25,11 @@ class Auth extends _$Auth {
   }
 
   /// 🔐 LOGIN
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String username, String password) async {
     state = state.copyWith(isLoading: true);
 
     final AuthResponse? result = await _authService.login(
-      email: email,
+      username: username,
       password: password,
     );
 

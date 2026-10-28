@@ -8,7 +8,6 @@ import 'package:sistema_restaurante/widgets/custom_sidebar.dart';
 // Importaciones de pantallas y dialogos
 import 'package:sistema_restaurante/screens/profile_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/add_factura.dart';
-import 'package:sistema_restaurante/facturacion/screens/historial_ventas_screen.dart';
 import 'package:sistema_restaurante/pedidos/screens/pedidos_screen.dart';
 import 'package:sistema_restaurante/pedidos/screens/add_pedido.dart';
 import 'package:sistema_restaurante/pedidos/providers/pedidos_provider.dart';
@@ -47,7 +46,6 @@ import 'package:sistema_restaurante/facturacion/screens/reporte_ventas_screen.da
 import 'package:sistema_restaurante/modulo_cotizaciones/screens/crear_cotizacion_screen.dart';
 import 'package:sistema_restaurante/modulo_cotizaciones/screens/historial_cotizaciones_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/gestion_documentos_screen.dart';
-import 'package:sistema_restaurante/facturacion/screens/historial_notas_credito_screen.dart';
 
 class MenuBuilder {
   /// Retorna la lista de [SidebarItem] basada en la estructura de módulos de negocio y los permisos del usuario.
@@ -139,27 +137,7 @@ class MenuBuilder {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const HistorialVentasScreen(),
-                  ),
-                ),
-              ),
-            if (!isCajero)
-              SidebarSubItem(
-                title: 'Gestión de Documentos',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
                     builder: (_) => const GestionDocumentosScreen(),
-                  ),
-                ),
-              ),
-            if (!isCajero)
-              SidebarSubItem(
-                title: 'Notas de Crédito',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HistorialNotasCreditoScreen(),
                   ),
                 ),
               ),
@@ -314,26 +292,6 @@ class MenuBuilder {
                   MaterialPageRoute(builder: (_) => const NuevaCompraScreen()),
                 ),
               ),
-            // if (auth.hasPermission('ver_compras') || isAdmin)
-            //   SidebarSubItem(
-            //     title: 'Nueva O. Compra',
-            //     onTap: () => Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (_) => const CrearOrdenCompraScreen(),
-            //       ),
-            //     ),
-            //   ),
-            // if (auth.hasPermission('ver_compras') || isAdmin)
-            //   SidebarSubItem(
-            //     title: 'Órdenes de Compra',
-            //     onTap: () => Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (_) => const HistorialOrdenesCompraScreen(),
-            //       ),
-            //     ),
-            //   ),
             if (auth.hasPermission('ver_compras') || isAdmin)
               SidebarSubItem(
                 title: 'Historial de Compras',
@@ -389,9 +347,7 @@ class MenuBuilder {
                 title: 'Apertura de Caja',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const AperturaCajaScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const AperturaCajaScreen()),
                 ),
               ),
               SidebarSubItem(
