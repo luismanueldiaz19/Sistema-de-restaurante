@@ -18,6 +18,7 @@ class Compra {
   final String estado; // PENDIENTE, PAGADA, ANULADA
   final String? notas;
   final List<CompraDetalle> detalles;
+  final String? pdfUrl;
 
   Compra({
     required this.id,
@@ -35,6 +36,7 @@ class Compra {
     required this.estado,
     this.notas,
     this.detalles = const [],
+    this.pdfUrl,
   });
 
   factory Compra.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class Compra {
       total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
       estado: json['estado'] ?? 'PENDIENTE',
       notas: json['notas'],
+      pdfUrl: json['pdf_url'],
       detalles: json['detalles'] != null
           ? (json['detalles'] as List).map((d) => CompraDetalle.fromJson(d)).toList()
           : [],

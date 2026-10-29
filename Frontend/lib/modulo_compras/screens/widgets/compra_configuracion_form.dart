@@ -205,10 +205,9 @@ class _CompraConfiguracionFormState
   Widget _buildProveedor(formState, provState, formNotifier) {
     return InkWell(
       onTap: () async {
-        final prov = await showDialog(
-          context: context,
-          builder: (ctx) =>
-              BuscadorProveedorDialog(proveedores: provState.proveedores),
+        final prov = await BuscadorProveedorDialog.show(
+          context,
+          selectedId: int.tryParse(formState.proveedorId ?? ''),
         );
         if (prov != null) formNotifier.setProveedor(prov.id.toString());
       },

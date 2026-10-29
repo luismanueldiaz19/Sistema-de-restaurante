@@ -24,43 +24,85 @@ class CompraFiltros extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filters = ['Todos', 'Hoy', 'Ayer', 'Este Mes'];
+    const filters = ['Todos', 'Hoy', 'Ayer', 'Este Mes'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
+        // Fila 1: Buscador y Filtro de Estado
         Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: searchCtrl,
-                decoration: InputDecoration(
-                  hintText: 'Buscar factura, proveedor o NCF...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              child: SizedBox(
+                height: 36,
+                child: TextField(
+                  controller: searchCtrl,
+                  style: const TextStyle(fontSize: 12.5),
+                  decoration: InputDecoration(
+                    hintText: 'Buscar factura, proveedor o NCF...',
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade400,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      size: 18,
+                      color: Colors.grey.shade500,
+                    ),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 34,
+                      minHeight: 34,
+                    ),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
+                    ),
                   ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 0,
-                  ),
+                  onSubmitted: onSearchSubmitted,
                 ),
-                onSubmitted: onSearchSubmitted,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: selectedStatus,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: Colors.grey.shade600,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondary,
+                  ),
                   items: const [
                     DropdownMenuItem(
                       value: 'todos',
@@ -70,8 +112,14 @@ class CompraFiltros extends StatelessWidget {
                       value: 'PENDIENTE',
                       child: Text('Pendiente'),
                     ),
-                    DropdownMenuItem(value: 'PAGADA', child: Text('Pagada')),
-                    DropdownMenuItem(value: 'ANULADA', child: Text('Anulada')),
+                    DropdownMenuItem(
+                      value: 'PAGADA',
+                      child: Text('Pagada'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'ANULADA',
+                      child: Text('Anulada'),
+                    ),
                   ],
                   onChanged: onStatusChanged,
                 ),
@@ -79,7 +127,10 @@ class CompraFiltros extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+
+        const SizedBox(height: 8),
+
+        // Fila 2: Chips Compactos de Fecha
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -87,31 +138,63 @@ class CompraFiltros extends StatelessWidget {
               ...filters.map((filter) {
                 final isSelected = selectedDateFilter == filter;
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (bool selected) {
-                      if (selected) {
-                        onDateFilterSelected(filter);
-                      }
-                    },
-                    selectedColor: AppColors.primary.withOpacity(0.2),
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? AppColors.primary
-                          : Colors.grey.shade700,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
+                  padding: const EdgeInsets.only(right: 6.0),
+                  child: InkWell(
+                    onTap: () => onDateFilterSelected(filter),
+                    borderRadius: BorderRadius.circular(6),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primary
-                            : Colors.grey.shade300,
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : Colors.grey.shade300,
+                          width: 1,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isSelected) ...[
+                            const Icon(
+                              Icons.check_rounded,
+                              size: 13,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Text(
+                            filter,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -120,8 +203,8 @@ class CompraFiltros extends StatelessWidget {
               CustomDateRangePicker(
                 text: 'Rango...',
                 isPersonalizado: selectedDateFilter == 'Rango...',
-                height: 32,
-                width: 90,
+                height: 28,
+                width: 85,
                 onDateRangeSelected: onDateRangeSelected,
               ),
             ],

@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/nueva_compra_form_provider.dart';
 import '../../../modulo_producto/providers/producto_provider.dart';
 import '../../../modulo_producto/models/producto.dart';
-import '../../../widgets/custom_text_field.dart';
+import '../../../../palletes/app_colors.dart';
+import '../../../../utils/helpers.dart';
 import 'compra_catalogo_productos.dart';
 
 class CompraDetalleDataGrid extends ConsumerStatefulWidget {
@@ -74,10 +75,11 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -88,7 +90,7 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
         children: [
           // Búsqueda tipo Autocomplete
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(12.0),
             child: Autocomplete<Producto>(
               optionsBuilder: (TextEditingValue textEditingValue) {
                 if (textEditingValue.text.isEmpty) {
@@ -115,33 +117,41 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
                     return TextField(
                       controller: fieldTextEditingController,
                       focusNode: fieldFocusNode,
+                      style: const TextStyle(fontSize: 13),
                       decoration: InputDecoration(
+                        isDense: true,
                         hintText: 'Buscar producto por nombre o código...',
                         hintStyle: TextStyle(
                           color: Colors.grey.shade400,
-                          fontSize: 13,
+                          fontSize: 12.5,
                         ),
                         prefixIcon: Icon(
                           Icons.search,
                           color: Colors.grey.shade500,
+                          size: 18,
+                        ),
+                        prefixIconConstraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
                         ),
                         suffixIcon: IconButton(
-                          icon: const Icon(Icons.list_alt),
+                          icon: const Icon(Icons.list_alt, size: 20),
                           color: Theme.of(context).primaryColor,
                           tooltip: 'Abrir catálogo de productos',
+                          splashRadius: 18,
                           onPressed: () {
                             showDialog(
                               context: context,
                               builder: (context) => const Dialog(
+                                clipBehavior: Clip.antiAlias,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
+                                    Radius.circular(16),
                                   ),
                                 ),
                                 child: SizedBox(
-                                  width: 600,
-                                  height: 450,
-
+                                  width: 640,
+                                  height: 480,
                                   child: CompraCatalogoProductos(),
                                 ),
                               ),
@@ -149,15 +159,15 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
                           },
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: Colors.grey.shade200),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: Colors.grey.shade200),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(
                             color: Theme.of(context).primaryColor,
                             width: 1.5,
@@ -166,8 +176,8 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
+                          horizontal: 12,
+                          vertical: 10,
                         ),
                       ),
                       onSubmitted: (String value) {
@@ -177,141 +187,37 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
                   },
             ),
           ),
-          Divider(height: 1, color: Colors.grey.shade200),
-          // Tabla de detalles
+
+          // Tabla Empresarial de Detalles
           if (formState.detalles.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(
-                child: Text(
-                  'Busque y agregue productos a la factura',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            )
+            _buildEmptyState()
           else
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
+                  const minTableWidth = 920.0;
+                  final tableWidth = constraints.maxWidth > minTableWidth
+                      ? constraints.maxWidth
+                      : minTableWidth;
+
                   return SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(
-                        width: constraints.maxWidth > 900
-                            ? constraints.maxWidth
-                            : 900,
-                        child: Column(
-                          children: [
-                            // HEADERS
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 28,
-                                vertical: 8,
-                              ),
-                              child: Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 40,
-                                  ), // Spacing for delete icon
-                                  const Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      'Producto / Ítem',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      'Presentación',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    flex: 1,
-                                    child: Text(
-                                      'Factor',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    flex: 1,
-                                    child: Text(
-                                      'Cant',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      'Precio de Compra',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    flex: 1,
-                                    child: Text(
-                                      'ITBIS',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                      'Subtotal',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                      textAlign: TextAlign.right,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(height: 1, color: Colors.grey.shade200),
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              padding: const EdgeInsets.all(16),
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: tableWidth,
+                      child: Column(
+                        children: [
+                          // Cabecera de la tabla
+                          _buildTableHeader(),
+
+                          // Filas de la tabla
+                          Expanded(
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
                               itemCount: formState.detalles.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 8),
                               itemBuilder: (context, index) {
                                 final item = formState.detalles[index];
                                 return _LineaCompraItem(
+                                  key: ValueKey(item.productoId ?? index),
                                   item: item,
                                   index: index,
                                   onUpdate: (updatedItem) {
@@ -327,8 +233,11 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
                                 );
                               },
                             ),
-                          ],
-                        ),
+                          ),
+
+                          // Pie de la tabla
+                          _buildTableFooter(formState.detalles),
+                        ],
                       ),
                     ),
                   );
@@ -336,6 +245,214 @@ class _CompraDetalleDataGridState extends ConsumerState<CompraDetalleDataGrid> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTableHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FA),
+        border: Border(
+          top: BorderSide(color: Colors.grey.shade200),
+          bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+        ),
+      ),
+      child: const Row(
+        children: [
+          SizedBox(
+            width: 32,
+            child: Center(
+              child: Text(
+                '#',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                  color: Color(0xFF4B5563),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            flex: 7,
+            child: Text(
+              'PRODUCTO / ÍTEM',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Color(0xFF4B5563),
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'EMPAQUE',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Color(0xFF4B5563),
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'UNID. X EMP.',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Color(0xFF4B5563),
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'CANT.',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Color(0xFF4B5563),
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'PRECIO COMPRA',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Color(0xFF4B5563),
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'ITBIS',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Color(0xFF4B5563),
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'SUBTOTAL',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Color(0xFF4B5563),
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          SizedBox(width: 8),
+          SizedBox(
+            width: 36,
+            child: Center(
+              child: Icon(
+                Icons.settings_outlined,
+                size: 14,
+                color: Color(0xFF6B7280),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableFooter(List<NuevaCompraDetalleItem> detalles) {
+    final double totalCantidad =
+        detalles.fold(0.0, (acc, item) => acc + item.cantidad);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FA),
+        border: Border(
+          top: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '${detalles.length} ${detalles.length == 1 ? 'ítem en lista' : 'ítems en lista'}',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          Text(
+            'Total cantidad: ${FormatterNumber.formatNumber(totalCantidad)}',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 20),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 42,
+              color: Color(0xFFD1D5DB),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'No hay productos en esta compra',
+              style: TextStyle(
+                color: Color(0xFF4B5563),
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Usa el buscador superior o abre el catálogo para agregar artículos a la factura.',
+              style: TextStyle(
+                color: Color(0xFF9CA3AF),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -348,6 +465,7 @@ class _LineaCompraItem extends StatefulWidget {
   final VoidCallback onDelete;
 
   const _LineaCompraItem({
+    super.key,
     required this.item,
     required this.index,
     required this.onUpdate,
@@ -364,6 +482,7 @@ class _LineaCompraItemState extends State<_LineaCompraItem> {
   late TextEditingController _cantidadCtrl;
   late TextEditingController _costoCtrl;
   late TextEditingController _impuestoCtrl;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -446,145 +565,242 @@ class _LineaCompraItemState extends State<_LineaCompraItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    final rowColor = _isHovered
+        ? AppColors.primary.withValues(alpha: 0.04)
+        : (widget.index.isEven ? Colors.white : const Color(0xFFFAFBFC));
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: rowColor,
+          border: Border(
+            bottom: BorderSide(color: Colors.grey.shade200, width: 0.8),
           ),
-        ],
-        border: Border.all(color: Colors.grey.shade100, width: 1.5),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Delete
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.delete_outline,
-                color: Colors.red.shade600,
-                size: 20,
-              ),
-              onPressed: widget.onDelete,
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Nombre + Info de equivalencia
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.item.descripcionGasto ??
-                      widget.item.productoNombre ??
-                      'Item',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Equivale a: ${(widget.item.cantidad * widget.item.factorConversion).toStringAsFixed(2)} unid. (Costo: \$${(widget.item.costoUnitario / (widget.item.factorConversion > 0 ? widget.item.factorConversion : 1)).toStringAsFixed(2)}/u)',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Presentación
-          Expanded(
-            flex: 2,
-            child: CustomTextField(
-              label: '',
-              hintText: 'Presentación',
-              controller: _presentacionCtrl,
-              onChanged: (_) => _notificarCambio(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Factor
-          Expanded(
-            flex: 1,
-            child: CustomTextField(
-              label: '',
-              hintText: 'Factor',
-              controller: _factorCtrl,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => _notificarCambio(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Cantidad
-          Expanded(
-            flex: 1,
-            child: CustomTextField(
-              label: '',
-              hintText: 'Cant',
-              controller: _cantidadCtrl,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => _onCostoOCantidadChanged(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Costo
-          Expanded(
-            flex: 2,
-            child: CustomTextField(
-              label: '',
-              hintText: '\$ 0.00',
-              controller: _costoCtrl,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => _onCostoOCantidadChanged(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // ITBIS
-          Expanded(
-            flex: 1,
-            child: CustomTextField(
-              label: '',
-              hintText: 'ITBIS',
-              controller: _impuestoCtrl,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => _notificarCambio(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Total (Readonly)
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(color: Colors.transparent),
-                child: Text(
-                  '\$${widget.item.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // # Índice
+            SizedBox(
+              width: 32,
+              child: Center(
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  textAlign: TextAlign.right,
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${widget.index + 1}',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                 ),
               ),
             ),
+            const SizedBox(width: 8),
+
+            // Producto / Ítem
+            Expanded(
+              flex: 7,
+              child: Text(
+                widget.item.descripcionGasto ??
+                    widget.item.productoNombre ??
+                    'Item',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: AppColors.secondary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Empaque
+            Expanded(
+              flex: 3,
+              child: _TableInputCell(
+                controller: _presentacionCtrl,
+                hintText: 'Empaque',
+                onChanged: (_) => _notificarCambio(),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Unid. x Empaque
+            Expanded(
+              flex: 2,
+              child: _TableInputCell(
+                controller: _factorCtrl,
+                hintText: 'Unidades',
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                onChanged: (_) => _notificarCambio(),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Cantidad
+            Expanded(
+              flex: 2,
+              child: _TableInputCell(
+                controller: _cantidadCtrl,
+                hintText: 'Cant',
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                onChanged: (_) => _onCostoOCantidadChanged(),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Precio Compra (Costo)
+            Expanded(
+              flex: 3,
+              child: _TableInputCell(
+                controller: _costoCtrl,
+                hintText: '0.00',
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.right,
+                prefixText: '\$ ',
+                onChanged: (_) => _onCostoOCantidadChanged(),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // ITBIS
+            Expanded(
+              flex: 2,
+              child: _TableInputCell(
+                controller: _impuestoCtrl,
+                hintText: '0.00',
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.right,
+                prefixText: '\$ ',
+                onChanged: (_) => _notificarCambio(),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Subtotal
+            Expanded(
+              flex: 3,
+              child: Text(
+                FormatterNumber.formatCurrency(widget.item.total),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12.5,
+                  color: AppColors.secondary,
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Acción Eliminar
+            SizedBox(
+              width: 36,
+              child: Center(
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 17,
+                  ),
+                  color: Colors.grey.shade400,
+                  hoverColor: Colors.red.shade50,
+                  tooltip: 'Eliminar fila',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 28,
+                    minHeight: 28,
+                  ),
+                  splashRadius: 14,
+                  onPressed: widget.onDelete,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TableInputCell extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final TextInputType keyboardType;
+  final TextAlign textAlign;
+  final ValueChanged<String>? onChanged;
+  final String? prefixText;
+
+  const _TableInputCell({
+    required this.controller,
+    this.hintText = '',
+    this.keyboardType = TextInputType.text,
+    this.textAlign = TextAlign.start,
+    this.onChanged,
+    this.prefixText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 32,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        textAlign: textAlign,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.secondary,
+        ),
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: hintText,
+          prefixText: prefixText,
+          prefixStyle: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade500,
           ),
-        ],
+          hintStyle: TextStyle(
+            fontSize: 11,
+            color: Colors.grey.shade400,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 7,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(
+              color: AppColors.primary,
+              width: 1.5,
+            ),
+          ),
+        ),
       ),
     );
   }

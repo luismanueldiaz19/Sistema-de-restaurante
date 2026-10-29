@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Compra\DTOs\CreateCompraDTO;
 use App\Modules\Compra\Http\Requests\StoreCompraRequest;
 use App\Modules\Compra\Services\CompraService;
+use App\Modules\Compra\Services\CompraPdfService;
 use App\Modules\Shared\Traits\ApiResponseTrait;
 use App\Models\Compra;
 use Illuminate\Http\Request;
@@ -18,39 +19,29 @@ class CompraController extends Controller
     use ApiResponseTrait;
 
     public function __construct(
-        private readonly CompraService $compraService
+        private readonly CompraService $compraService,
+        private readonly CompraPdfService $compraPdfService
     ) {}
 
     public function index(Request $request): JsonResponse
     {
-        $query = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar', 'asiento.detalles.cuenta'])
-            ->orderBy('id', 'desc');
-
-        if ($request->filled('fecha_desde')) {
-            $query->where('fecha_compra', '>=', $request->fecha_desde);
-        }
-
-        if ($request->filled('fecha_hasta')) {
-            $query->where('fecha_compra', '<=', $request->fecha_hasta . ' 23:59:59');
-        }
-
-        if ($request->filled('estado') && $request->estado !== 'todos') {
-            $query->where('estado', $request->estado);
-        }
-
-        if ($request->filled('search')) {
-            $search = strtolower($request->search);
-            $query->where(function($q) use ($search) {
-                $q->whereRaw('LOWER(numero_factura_proveedor) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(ncf) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(notas) LIKE ?', ["%{$search}%"])
-                  ->orWhereHas('proveedor', function($p) use ($search) {
-                      $p->whereRaw('LOWER(nombre) LIKE ?', ["%{$search}%"]);
-                  });
-            });
-        }
+        $query = $this->compraPdfService->buildFilteredQuery($request->all());
 
         $compras = $query->paginate((int)$request->input('per_page', 20));
+
+        // Si se solicitan URLs de PDF para cada compra (igual que en Cotizaciones)
+        $companyData = [
+            'company_name'    => $request->company_name,
+            'company_rnc'     => $request->company_rnc,
+            'company_address' => $request->company_address,
+            'company_phone'   => $request->company_phone,
+        ];
+
+        $compras->getCollection()->transform(function ($compra) use ($companyData) {
+            $token = $this->compraPdfService->generarTokenCompra($compra->id, $companyData);
+            $compra->pdf_url = "/d/{$token}";
+            return $compra;
+        });
 
         return $this->successResponse(
             data: $compras,
@@ -63,6 +54,19 @@ class CompraController extends Controller
         try {
             $dto = CreateCompraDTO::fromRequest($request);
             $result = $this->compraService->create($dto);
+
+            // Generar pdf_url para la compra recién creada
+            $companyData = [
+                'company_name'    => $request->company_name,
+                'company_rnc'     => $request->company_rnc,
+                'company_address' => $request->company_address,
+                'company_phone'   => $request->company_phone,
+            ];
+
+            if (isset($result['id'])) {
+                $token = $this->compraPdfService->generarTokenCompra((int)$result['id'], $companyData);
+                $result['pdf_url'] = "/d/{$token}";
+            }
 
             return $this->successResponse(
                 data: $result,
@@ -77,7 +81,7 @@ class CompraController extends Controller
         }
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $compra = Compra::with(['proveedor', 'detalles.producto', 'usuario', 'cuentaPorPagar', 'asiento.detalles.cuenta'])->find($id);
 
@@ -85,9 +89,107 @@ class CompraController extends Controller
             return $this->errorResponse('Compra no encontrada', 404);
         }
 
+        $companyData = [
+            'company_name'    => $request->company_name,
+            'company_rnc'     => $request->company_rnc,
+            'company_address' => $request->company_address,
+            'company_phone'   => $request->company_phone,
+        ];
+
+        $token = $this->compraPdfService->generarTokenCompra($compra->id, $companyData);
+        $compra->pdf_url = "/d/{$token}";
+
         return $this->successResponse(
             data: $compra,
             message: 'Detalle de la compra'
+        );
+    }
+
+    /**
+     * Genera y transmite directamente el PDF del reporte filtrado de compras.
+     */
+    public function pdfReporte(Request $request)
+    {
+        $companyData = [
+            'company_name'    => $request->company_name,
+            'company_rnc'     => $request->company_rnc,
+            'company_address' => $request->company_address,
+            'company_phone'   => $request->company_phone,
+        ];
+
+        $pdf = $this->compraPdfService->generarReportePdf(
+            $request->all(),
+            $companyData,
+            $request->user()?->name
+        );
+
+        return $pdf->stream('reporte_compras_' . now()->format('Ymd_His') . '.pdf');
+    }
+
+    /**
+     * Genera un token temporal para abrir el reporte en navegador mediante /d/{token}.
+     */
+    public function generarTokenReporte(Request $request): JsonResponse
+    {
+        $companyData = [
+            'company_name'    => $request->company_name,
+            'company_rnc'     => $request->company_rnc,
+            'company_address' => $request->company_address,
+            'company_phone'   => $request->company_phone,
+        ];
+
+        $token = $this->compraPdfService->generarTokenReporte(
+            $request->all(),
+            $companyData,
+            $request->user()?->name
+        );
+
+        return $this->successResponse(
+            data: [
+                'token'   => $token,
+                'pdf_url' => "/d/{$token}",
+            ],
+            message: 'Enlace para reporte generado correctamente'
+        );
+    }
+
+    /**
+     * Genera y transmite directamente el PDF individual de una factura de compra.
+     */
+    public function pdf(Request $request, int $id)
+    {
+        $companyData = [
+            'company_name'    => $request->company_name,
+            'company_rnc'     => $request->company_rnc,
+            'company_address' => $request->company_address,
+            'company_phone'   => $request->company_phone,
+        ];
+
+        $pdf = $this->compraPdfService->generarCompraPdf($id, $companyData);
+
+        return $pdf->stream("compra_{$id}.pdf");
+    }
+
+    /**
+     * Genera un token temporal para abrir una factura individual mediante /d/{token}.
+     */
+    public function generarTokenCompra(Request $request, int $id): JsonResponse
+    {
+        $companyData = [
+            'company_name'    => $request->company_name,
+            'company_rnc'     => $request->company_rnc,
+            'company_address' => $request->company_address,
+            'company_phone'   => $request->company_phone,
+        ];
+
+        $token = $this->compraPdfService->generarTokenCompra($id, $companyData);
+
+        return $this->successResponse(
+            data: [
+                'token'   => $token,
+                'pdf_url' => "/d/{$token}",
+            ],
+            message: 'Enlace para factura de compra generado correctamente'
         );
     }
 }

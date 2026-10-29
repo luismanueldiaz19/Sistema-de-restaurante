@@ -10,10 +10,14 @@ class CxpApi {
     final response = await api.get(baseUrl, token: token);
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> body = jsonDecode(response.body);
-      return body['data'] ?? [];
+      final dynamic body = jsonDecode(response.body);
+      if (body is List) return body;
+      if (body is Map) {
+        return body['data'] is List ? body['data'] : [];
+      }
+      return [];
     }
-    throw Exception('Error al cargar cuentas por pagar');
+    throw Exception('Error al cargar cuentas por pagar: ${response.body}');
   }
 
   Future<dynamic> registrarPago(
@@ -24,9 +28,12 @@ class CxpApi {
     final api = ApiService();
     final response = await api.post("$baseUrl/$id/pagar", data, token: token);
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> body = jsonDecode(response.body);
-      return body['data'] ?? body['pago'] ?? {};
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final dynamic body = jsonDecode(response.body);
+      if (body is Map) {
+        return body['data'] ?? body['pago'] ?? body;
+      }
+      return body;
     }
     throw Exception('Error al registrar pago: ${response.body}');
   }
@@ -41,10 +48,18 @@ class CxpApi {
     final response = await api.get("$baseUrl/pagos/historial$query", token: token);
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> body = jsonDecode(response.body);
-      return body['data'] is Map<String, dynamic> ? body['data'] : {};
+      final dynamic body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) {
+        return body['data'] is Map<String, dynamic>
+            ? body['data']
+            : (body['data'] is List ? {'data': body['data']} : body);
+      }
+      if (body is List) {
+        return {'data': body};
+      }
+      return {};
     }
-    throw Exception('Error al cargar historial de pagos');
+    throw Exception('Error al cargar historial de pagos: ${response.body}');
   }
 
   Future<List<dynamic>> getPagosPorCompra(String token, int compraId) async {

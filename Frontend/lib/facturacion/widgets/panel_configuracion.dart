@@ -122,7 +122,7 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
                       color: AppColors.primary.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
-                    )
+                    ),
                 ],
               ),
               child: Row(
@@ -189,7 +189,7 @@ class _PanelConfiguracionState extends State<PanelConfiguracion> {
           const SizedBox(height: 24),
 
           // Tipo de Factura (Contado/Crédito)
-          const _Label(text: 'CONDICIÓN DE PAGO'),
+          const _Label(text: 'TIPO DE PAGO'),
           const SizedBox(height: 8),
           Row(
             children: [

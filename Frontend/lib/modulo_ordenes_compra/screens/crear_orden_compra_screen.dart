@@ -15,7 +15,6 @@ import '../../utils/normalize.dart';
 import '../providers/orden_compra_form_provider.dart';
 import '../../modulo_compras/providers/proveedores_provider.dart';
 import '../../modulo_compras/screens/widgets/buscador_proveedor_dialog.dart';
-import '../../modulo_compras/models/proveedor.dart';
 import 'widgets/add_producto_orden_compra_dialog.dart';
 
 class CrearOrdenCompraScreen extends ConsumerStatefulWidget {
@@ -224,11 +223,9 @@ class _CrearOrdenCompraScreenState
                       state.proveedorSeleccionado?.nombre ??
                       'Seleccionar Proveedor',
                   onTap: () async {
-                    final proveedor = await showDialog<Proveedor>(
-                      context: context,
-                      builder: (ctx) => BuscadorProveedorDialog(
-                        proveedores: proveedoresState.proveedores,
-                      ),
+                    final proveedor = await BuscadorProveedorDialog.show(
+                      context,
+                      selectedId: state.proveedorSeleccionado?.id,
                     );
                     if (proveedor != null) {
                       notifier.seleccionarProveedor(proveedor);
@@ -512,13 +509,17 @@ class _CrearOrdenCompraScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    prod.nombre ?? 'Sin nombre',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                  SizedBox(
+                    height: 32,
+                    child: Text(
+                      prod.nombre ?? 'Sin nombre',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        height: 1.18,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),

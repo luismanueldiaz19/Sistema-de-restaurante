@@ -6,6 +6,7 @@ namespace App\Modules\Shared\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cotizacion;
+use App\Modules\Compra\Services\CompraPdfService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -21,7 +22,26 @@ class DocumentLinkController extends Controller
         }
 
         if ($data['type'] === 'cotizacion') {
-            return $this->generarPdfCotizacion((int) $data['id'], $data['companyData']);
+            return $this->generarPdfCotizacion((int) $data['id'], $data['companyData'] ?? []);
+        }
+
+        if ($data['type'] === 'compras_reporte') {
+            $compraPdfService = app(CompraPdfService::class);
+            $pdf = $compraPdfService->generarReportePdf(
+                $data['filters'] ?? [],
+                $data['companyData'] ?? [],
+                $data['usuarioName'] ?? null
+            );
+            return $pdf->stream('reporte_compras_' . now()->format('Ymd_His') . '.pdf');
+        }
+
+        if ($data['type'] === 'compra') {
+            $compraPdfService = app(CompraPdfService::class);
+            $pdf = $compraPdfService->generarCompraPdf(
+                (int) $data['id'],
+                $data['companyData'] ?? []
+            );
+            return $pdf->stream('factura_compra_' . $data['id'] . '.pdf');
         }
 
         abort(404, 'Tipo de documento no soportado.');

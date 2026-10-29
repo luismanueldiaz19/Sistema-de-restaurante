@@ -12,12 +12,16 @@ class CxpState {
   final List<CuentaPorPagar> cxps;
   final List<PagoCompra> historialPagos;
   final String? error;
+  final bool isLoadingHistorial;
+  final String? errorHistorial;
 
   CxpState({
     this.isLoading = false,
     this.cxps = const [],
     this.historialPagos = const [],
     this.error,
+    this.isLoadingHistorial = false,
+    this.errorHistorial,
   });
 
   CxpState copyWith({
@@ -25,12 +29,16 @@ class CxpState {
     List<CuentaPorPagar>? cxps,
     List<PagoCompra>? historialPagos,
     String? error,
+    bool? isLoadingHistorial,
+    String? errorHistorial,
   }) {
     return CxpState(
       isLoading: isLoading ?? this.isLoading,
       cxps: cxps ?? this.cxps,
       historialPagos: historialPagos ?? this.historialPagos,
       error: error ?? this.error,
+      isLoadingHistorial: isLoadingHistorial ?? this.isLoadingHistorial,
+      errorHistorial: errorHistorial ?? this.errorHistorial,
     );
   }
 }
@@ -58,15 +66,15 @@ class CxpNotifier extends StateNotifier<CxpState> {
   }
 
   Future<void> fetchHistorialPagos() async {
-    state = state.copyWith(isLoading: true, error: '');
+    state = state.copyWith(isLoadingHistorial: true, errorHistorial: '');
     if (token == null) return;
     try {
       final data = await api.getHistorialPagos(token!);
       final listData = data['data'] as List<dynamic>? ?? [];
       final pagos = listData.map((e) => PagoCompra.fromJson(e as Map<String, dynamic>)).toList();
-      state = state.copyWith(isLoading: false, historialPagos: pagos, error: '');
+      state = state.copyWith(isLoadingHistorial: false, historialPagos: pagos, errorHistorial: '');
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoadingHistorial: false, errorHistorial: e.toString());
     }
   }
 

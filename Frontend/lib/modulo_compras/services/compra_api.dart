@@ -41,4 +41,38 @@ class CompraApi {
     }
     throw Exception('Error al registrar compra: ${response.body}');
   }
+
+  Future<String?> getReportePdfUrl(
+    String token, {
+    String? fechaDesde,
+    String? fechaHasta,
+    String? estado,
+    String? search,
+  }) async {
+    final api = ApiService();
+    String query = '$baseUrl/reporte/pdf-token?';
+    if (fechaDesde != null && fechaDesde.isNotEmpty) query += '&fecha_desde=$fechaDesde';
+    if (fechaHasta != null && fechaHasta.isNotEmpty) query += '&fecha_hasta=$fechaHasta';
+    if (estado != null && estado.isNotEmpty && estado != 'todos') query += '&estado=$estado';
+    if (search != null && search.isNotEmpty) query += '&search=$search';
+
+    final response = await api.get(query, token: token);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return decoded['data']?['pdf_url'];
+    }
+    return null;
+  }
+
+  Future<String?> getCompraPdfUrl(String token, int compraId) async {
+    final api = ApiService();
+    final response = await api.get('$baseUrl/$compraId/pdf-token', token: token);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return decoded['data']?['pdf_url'];
+    }
+    return null;
+  }
 }

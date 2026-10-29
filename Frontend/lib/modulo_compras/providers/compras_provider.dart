@@ -219,6 +219,30 @@ class ComprasNotifier extends StateNotifier<ComprasState> {
       return false;
     }
   }
+
+  Future<String?> obtenerPdfReporteUrl() async {
+    if (token == null) return null;
+    try {
+      return await api.getReportePdfUrl(
+        token!,
+        fechaDesde: state.fechaDesde,
+        fechaHasta: state.fechaHasta,
+        estado: state.estado,
+        search: state.search,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> obtenerPdfCompraUrl(int compraId) async {
+    if (token == null) return null;
+    try {
+      return await api.getCompraPdfUrl(token!, compraId);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 final comprasProvider = StateNotifierProvider<ComprasNotifier, ComprasState>((

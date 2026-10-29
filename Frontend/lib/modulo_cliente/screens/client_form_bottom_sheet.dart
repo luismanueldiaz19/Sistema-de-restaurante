@@ -16,6 +16,14 @@ class ClientFormBottomSheet extends ConsumerStatefulWidget {
   const ClientFormBottomSheet({super.key, this.cliente});
 
   static Future<bool?> show(BuildContext context, {Cliente? cliente}) {
+    final isDesktop = MediaQuery.of(context).size.width > 600;
+    if (isDesktop) {
+      return showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => ClientFormBottomSheet(cliente: cliente),
+      );
+    }
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -54,7 +62,9 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = ref.read(authProvider);
       if (auth.token != null) {
-        ref.read(configuracionContableProvider.notifier).loadAllData(auth.token!);
+        ref
+            .read(configuracionContableProvider.notifier)
+            .loadAllData(auth.token!);
       }
     });
 
@@ -65,16 +75,16 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
     telefonoCtrl = TextEditingController(text: c?.telefono ?? '');
     direccionCtrl = TextEditingController(text: c?.direccion ?? '');
     limiteCreditoCtrl = TextEditingController(
-      text: (c?.limiteCredito ?? 0).toString(),
+      text: (c?.limiteCredito ?? 0) > 0 ? c!.limiteCredito.toString() : '0',
     );
     diasCreditoCtrl = TextEditingController(
-      text: (c?.diasCredito ?? 0).toString(),
+      text: (c?.diasCredito ?? 0) > 0 ? c!.diasCredito.toString() : '0',
     );
     cuentaContableCtrl = TextEditingController(
       text: c?.cuentaContable ?? '1.1.03.01',
     );
     descuentoFijoCtrl = TextEditingController(
-      text: (c?.descuentoFijo ?? 0).toString(),
+      text: (c?.descuentoFijo ?? 0) > 0 ? c!.descuentoFijo.toString() : '0',
     );
     notasCtrl = TextEditingController(text: c?.notas ?? '');
     tipoCliente = c?.tipoCliente ?? 'consumidor_final';
@@ -100,6 +110,7 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
     if (!_formKey.currentState!.validate()) return;
 
     final auth = ref.read(authProvider);
+    final isAdmin = auth.isAdmin || auth.roles.contains('admin');
     final provider = ref.read(clienteAdminProvider.notifier);
 
     final data = {
@@ -108,13 +119,23 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
       "email": emailCtrl.text.trim(),
       "telefono": telefonoCtrl.text.trim(),
       "direccion": direccionCtrl.text.trim(),
-      "tipo_cliente": tipoCliente,
-      "limite_credito": double.tryParse(limiteCreditoCtrl.text) ?? 0,
-      "dias_credito": int.tryParse(diasCreditoCtrl.text) ?? 0,
-      "cuenta_contable": cuentaContableCtrl.text.trim(),
-      "descuento_fijo": double.tryParse(descuentoFijoCtrl.text) ?? 0,
-      "activo": activo,
-      "notas": notasCtrl.text.trim(),
+      "tipo_cliente": isAdmin
+          ? tipoCliente
+          : (widget.cliente?.tipoCliente ?? 'consumidor_final'),
+      "limite_credito": isAdmin
+          ? (double.tryParse(limiteCreditoCtrl.text) ?? 0)
+          : (widget.cliente?.limiteCredito ?? 0),
+      "dias_credito": isAdmin
+          ? (int.tryParse(diasCreditoCtrl.text) ?? 0)
+          : (widget.cliente?.diasCredito ?? 0),
+      "cuenta_contable": isAdmin
+          ? cuentaContableCtrl.text.trim()
+          : (widget.cliente?.cuentaContable ?? '1.1.03.01'),
+      "descuento_fijo": isAdmin
+          ? (double.tryParse(descuentoFijoCtrl.text) ?? 0)
+          : (widget.cliente?.descuentoFijo ?? 0),
+      "activo": isAdmin ? activo : (widget.cliente?.activo ?? true),
+      "notas": isAdmin ? notasCtrl.text.trim() : (widget.cliente?.notas ?? ''),
     };
 
     final success = isEdit
@@ -138,7 +159,9 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
 
     if (cuentas.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay cuentas transaccionales disponibles.')),
+        const SnackBar(
+          content: Text('No hay cuentas transaccionales disponibles.'),
+        ),
       );
       return;
     }
@@ -157,378 +180,542 @@ class _ClientFormBottomSheetState extends ConsumerState<ClientFormBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.watch(authProvider);
+    final isAdmin = auth.isAdmin || auth.roles.contains('admin');
     final isLoading = ref.watch(clienteAdminProvider).isLoading;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final auth = ref.watch(authProvider);
-    final isAdmin = auth.roles.contains('admin');
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width > 600;
 
-    return Container(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      decoration: const BoxDecoration(
+    final content = Container(
+      width: isDesktop ? 580 : size.width,
+      constraints: BoxConstraints(
+        maxHeight: size.height * 0.88,
+      ),
+      margin: EdgeInsets.only(bottom: bottomInset),
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        borderRadius: isDesktop
+            ? BorderRadius.circular(14)
+            : const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: isDesktop
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : null,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handlebar
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            height: 4,
-            width: 40,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+          if (!isDesktop) ...[
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              height: 4,
+              width: 36,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
+          ],
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  isEdit ? 'Editar Cliente' : 'Nuevo Cliente',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.azulOscuro,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
+          // Cabecera Enterprise
+          _buildHeader(context),
 
-          const Divider(height: 1),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
 
+          // Contenido del Formulario
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionCard(
-                      title: "Información Básica",
+                    _buildSectionHeader(
                       icon: Icons.person_outline,
+                      title: 'Datos Básicos del Cliente',
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: CustomTextField(
-                                controller: nombreCtrl,
-                                label: 'Nombre Completo',
-                                prefixIcon: Icons.person_outline,
-                                validator: (v) =>
-                                    v!.isEmpty ? 'El nombre es obligatorio' : null,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 1,
-                              child: CustomTextField(
-                                controller: telefonoCtrl,
-                                label: 'Teléfono',
-                                prefixIcon: Icons.phone_outlined,
-                                validator: (v) => v!.isEmpty
-                                    ? 'El teléfono es obligatorio'
-                                    : null,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  PhoneInputFormatter(),
-                                ],
-                              ),
-                            ),
-                          ],
+                        Expanded(
+                          flex: 3,
+                          child: CustomTextField(
+                            controller: nombreCtrl,
+                            label: 'Nombre Completo / Razón Social',
+                            hintText: 'Ej. Juan Pérez o Empresa S.R.L.',
+                            prefixIcon: Icons.person_outline,
+                            validator: (v) => v!.trim().isEmpty
+                                ? 'El nombre es obligatorio'
+                                : null,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: CustomTextField(
-                                controller: rncCtrl,
-                                label: 'RNC / Cédula',
-                                prefixIcon: Icons.badge_outlined,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 1,
-                              child: CustomTextField(
-                                controller: emailCtrl,
-                                label: 'Correo Electrónico',
-                                prefixIcon: Icons.email_outlined,
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        CustomTextField(
-                          controller: direccionCtrl,
-                          label: 'Dirección',
-                          prefixIcon: Icons.location_on_outlined,
-                          maxLines: 2,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 2,
+                          child: CustomTextField(
+                            controller: telefonoCtrl,
+                            label: 'Teléfono',
+                            hintText: '(809) 000-0000',
+                            prefixIcon: Icons.phone_outlined,
+                            validator: (v) => v!.trim().isEmpty
+                                ? 'El teléfono es obligatorio'
+                                : null,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              PhoneInputFormatter(),
+                            ],
+                          ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: CustomTextField(
+                            controller: rncCtrl,
+                            label: 'RNC / Cédula',
+                            hintText: 'Ej. 001-0000000-0',
+                            prefixIcon: Icons.badge_outlined,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: CustomTextField(
+                            controller: emailCtrl,
+                            label: 'Correo Electrónico',
+                            hintText: 'correo@ejemplo.com',
+                            prefixIcon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    CustomTextField(
+                      controller: direccionCtrl,
+                      label: 'Dirección',
+                      hintText: 'Calle, número, sector o ciudad...',
+                      prefixIcon: Icons.location_on_outlined,
+                      maxLines: 1,
+                    ),
 
+                    // SECCIONES AVANZADAS: EXCLUSIVO PARA ADMINISTRADORES
                     if (isAdmin) ...[
-                      const SizedBox(height: 24),
-                      _buildSectionCard(
-                        title: "Configuración Contable y Avanzada",
-                        icon: Icons.account_balance_wallet_outlined,
+                      const SizedBox(height: 18),
+                      _buildSectionHeader(
+                        icon: Icons.credit_card_outlined,
+                        title: 'Condiciones Comerciales y Crédito',
+                        badgeText: 'ADMIN',
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Tipo de Cliente',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey.shade700,
-                                      ),
+                          // Dropdown Tipo Cliente
+                          Expanded(
+                            flex: 2,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Tipo de Cliente',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                DropdownButtonFormField<String>(
+                                  initialValue: tipoCliente,
+                                  style: const TextStyle(
+                                    fontSize: 11.5,
+                                    color: Color(0xFF0F172A),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'consumidor_final',
+                                      child: Text('Consumidor Final'),
                                     ),
-                                    const SizedBox(height: 4),
-                                    DropdownButtonFormField<String>(
-                                      value: tipoCliente,
-                                      style: const TextStyle(fontSize: 12, color: Colors.black87),
-                                      items: const [
-                                        DropdownMenuItem(
-                                          value: 'consumidor_final',
-                                          child: Text('Consumidor Final'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: 'credito',
-                                          child: Text('Crédito'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: 'gubernamental',
-                                          child: Text('Gubernamental'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: 'especial',
-                                          child: Text('Especial'),
-                                        ),
-                                      ],
-                                      onChanged: (v) => setState(() => tipoCliente = v!),
-                                      decoration: InputDecoration(
-                                        prefixIcon: Icon(Icons.category_outlined, size: 16, color: AppColors.azulOscuro.withValues(alpha: 0.6)),
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                        filled: true,
-                                        fillColor: Colors.grey.shade50,
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey.shade200),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey.shade200),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                            color: AppColors.azulOscuro,
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                      ),
+                                    DropdownMenuItem(
+                                      value: 'credito',
+                                      child: Text('Crédito'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'gubernamental',
+                                      child: Text('Gubernamental'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'especial',
+                                      child: Text('Especial'),
                                     ),
                                   ],
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                flex: 1,
-                                child: GestureDetector(
-                                  onTap: _seleccionarCuentaContable,
-                                  child: AbsorbPointer(
-                                    child: CustomTextField(
-                                      controller: cuentaContableCtrl,
-                                      label: 'Cuenta Contable',
-                                      prefixIcon: Icons.account_tree_outlined,
-                                      hintText: 'Buscar...',
+                                  onChanged: (v) {
+                                    if (v != null) {
+                                      setState(() {
+                                        tipoCliente = v;
+                                        if (tipoCliente == 'credito' &&
+                                            (int.tryParse(
+                                                        diasCreditoCtrl.text) ??
+                                                    0) ==
+                                                0) {
+                                          diasCreditoCtrl.text = '30';
+                                        }
+                                      });
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(
+                                      Icons.category_outlined,
+                                      size: 15,
+                                      color: AppColors.azulOscuro
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 8,
+                                    ),
+                                    filled: true,
+                                    fillColor: const Color(0xFFF8FAFC),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(8),
+                                      ),
+                                      borderSide: BorderSide(
+                                        color: AppColors.azulOscuro,
+                                        width: 1.5,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: limiteCreditoCtrl,
-                                  label: 'Límite Crédito',
-                                  prefixIcon: Icons.money_off_outlined,
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: diasCreditoCtrl,
-                                  label: 'Días Crédito',
-                                  prefixIcon: Icons.calendar_today_outlined,
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 1,
+                            child: CustomTextField(
+                              controller: diasCreditoCtrl,
+                              label: 'Días Crédito',
+                              hintText: 'Ej. 30',
+                              prefixIcon: Icons.calendar_today_outlined,
+                              keyboardType: TextInputType.number,
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: descuentoFijoCtrl,
-                                  label: '% Descuento Fijo',
-                                  prefixIcon: Icons.percent_outlined,
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Container(
-                                  margin: const EdgeInsets.only(top: 22),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey.shade300),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Text(
-                                        'Estado',
-                                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
-                                      ),
-                                      const Spacer(),
-                                      Switch(
-                                        value: activo,
-                                        onChanged: (val) => setState(() => activo = val),
-                                        activeColor: AppColors.primary,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          CustomTextField(
-                            controller: notasCtrl,
-                            label: 'Notas / Observaciones',
-                            prefixIcon: Icons.note_outlined,
-                            maxLines: 3,
-                            keyboardType: TextInputType.multiline,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: CustomTextField(
+                              controller: limiteCreditoCtrl,
+                              label: 'Límite Crédito (RD\$)',
+                              hintText: '0.00',
+                              prefixIcon: Icons.attach_money_rounded,
+                              keyboardType: TextInputType.number,
+                            ),
                           ),
                         ],
                       ),
-                    ],
-
-                    const SizedBox(height: 32),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 40,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : _guardar,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.azulOscuro,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: CustomTextField(
+                              controller: descuentoFijoCtrl,
+                              label: '% Descuento Fijo',
+                              hintText: 'Ej. 5',
+                              prefixIcon: Icons.percent_outlined,
+                              keyboardType: TextInputType.number,
+                            ),
                           ),
-                          elevation: 0,
-                        ),
-                        child: isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : Text(
-                                isEdit
-                                    ? 'Actualizar Cliente'
-                                    : 'Guardar Cliente',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 17),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
                                 ),
                               ),
+                              child: Row(
+                                children: [
+                                  const Text(
+                                    'Cliente Activo',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 10.5,
+                                      color: Color(0xFF334155),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Transform.scale(
+                                    scale: 0.75,
+                                    child: Switch(
+                                      value: activo,
+                                      onChanged: (val) =>
+                                          setState(() => activo = val),
+                                      activeThumbColor: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 18),
+                      _buildSectionHeader(
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: 'Contabilidad y Observaciones',
+                        badgeText: 'ADMIN',
+                      ),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: _seleccionarCuentaContable,
+                        child: AbsorbPointer(
+                          child: CustomTextField(
+                            controller: cuentaContableCtrl,
+                            label: 'Cuenta Contable (CxC Clientes)',
+                            prefixIcon: Icons.account_tree_outlined,
+                            hintText: 'Seleccionar cuenta...',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      CustomTextField(
+                        controller: notasCtrl,
+                        label: 'Notas / Observaciones',
+                        hintText:
+                            'Condiciones especiales, referencias o comentarios...',
+                        prefixIcon: Icons.notes_rounded,
+                        maxLines: 2,
+                        keyboardType: TextInputType.multiline,
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
+          ),
+
+          // Footer Enterprise
+          _buildFooter(context, isLoading),
+        ],
+      ),
+    );
+
+    if (isDesktop) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: content,
+      );
+    }
+
+    return content;
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 16, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.azulOscuro.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              isEdit ? Icons.edit_note_rounded : Icons.person_add_alt_1_rounded,
+              size: 17,
+              color: AppColors.azulOscuro,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isEdit ? 'Editar Cliente' : 'Nuevo Cliente',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  isEdit
+                      ? 'Actualice los datos generales y de facturación'
+                      : 'Complete la información para registrar el nuevo cliente',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close_rounded, size: 18),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            splashRadius: 16,
+            color: Colors.grey.shade500,
+            tooltip: 'Cerrar',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
+  Widget _buildSectionHeader({
     required IconData icon,
-    required List<Widget> children,
+    required String title,
+    String? badgeText,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.azulOscuro.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: AppColors.azulOscuro, size: 16),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.azulOscuro,
-                ),
-              ),
-            ],
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppColors.azulOscuro),
+        const SizedBox(width: 6),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF334155),
           ),
-          const SizedBox(height: 16),
-          ...children,
+        ),
+        if (badgeText != null) ...[
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+            decoration: BoxDecoration(
+              color: AppColors.azulOscuro.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: AppColors.azulOscuro.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Text(
+              badgeText,
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: AppColors.azulOscuro,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(width: 8),
+        Expanded(
+          child: Container(
+            height: 1,
+            color: const Color(0xFFE2E8F0),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter(BuildContext context, bool isLoading) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
+        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF475569),
+              side: const BorderSide(color: Color(0xFFCBD5E1)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton.icon(
+            onPressed: isLoading ? null : _guardar,
+            icon: isLoading
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Icon(Icons.check_rounded, size: 16),
+            label: Text(
+              isEdit ? 'Actualizar Cliente' : 'Guardar Cliente',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.azulOscuro,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -563,7 +750,7 @@ class _AccountSelectorDialogState extends State<_AccountSelectorDialog> {
     setState(() {
       _filtradas = widget.cuentas.where((c) {
         return c.codigo.toLowerCase().contains(q) ||
-               c.nombre.toLowerCase().contains(q);
+            c.nombre.toLowerCase().contains(q);
       }).toList();
     });
   }
@@ -577,11 +764,11 @@ class _AccountSelectorDialogState extends State<_AccountSelectorDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         height: MediaQuery.of(context).size.height * 0.7,
-        width: 400,
+        width: 420,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -591,18 +778,21 @@ class _AccountSelectorDialogState extends State<_AccountSelectorDialog> {
                 const Text(
                   'Buscar Cuenta Contable',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.azulOscuro,
                   ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 28, minHeight: 28),
                 )
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             CustomTextField(
               controller: _searchCtrl,
               label: '',
@@ -610,34 +800,57 @@ class _AccountSelectorDialogState extends State<_AccountSelectorDialog> {
               prefixIcon: Icons.search,
               onChanged: _filtrar,
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
             Expanded(
               child: _filtradas.isEmpty
                   ? Center(
                       child: Text(
                         'No se encontraron cuentas.',
-                        style: TextStyle(color: Colors.grey.shade500),
+                        style: TextStyle(
+                            color: Colors.grey.shade500, fontSize: 12),
                       ),
                     )
                   : ListView.separated(
                       itemCount: _filtradas.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(
+                        height: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
                       itemBuilder: (context, index) {
                         final c = _filtradas[index];
                         return ListTile(
+                          dense: true,
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 4),
                           leading: Container(
-                            padding: const EdgeInsets.all(8),
+                            width: 32,
+                            height: 32,
+                            alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: AppColors.azulOscuro.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color:
+                                  AppColors.azulOscuro.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Icon(Icons.account_tree_outlined, color: AppColors.azulOscuro, size: 20),
+                            child: const Icon(
+                              Icons.account_tree_outlined,
+                              color: AppColors.azulOscuro,
+                              size: 16,
+                            ),
                           ),
                           title: Text(
                             c.nombre,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
                           ),
-                          subtitle: Text(c.codigo),
+                          subtitle: Text(
+                            c.codigo,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 11,
+                            ),
+                          ),
                           onTap: () => Navigator.pop(context, c),
                         );
                       },

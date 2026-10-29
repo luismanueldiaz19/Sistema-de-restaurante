@@ -173,7 +173,7 @@ class _HistorialPagosCxpScreenState
                       (m) => DropdownMenuItem<int>(
                         value: m.id,
                         child: Text(
-                          m.nombre ?? '',
+                          m.nombre,
                           style: const TextStyle(fontSize: 12),
                         ),
                       ),
@@ -254,7 +254,7 @@ class _HistorialPagosCxpScreenState
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
+                            color: Colors.black.withValues(alpha: 0.03),
                             blurRadius: 10,
                           ),
                         ],
@@ -344,7 +344,7 @@ class _HistorialPagosCxpScreenState
     return ListView.separated(
       padding: const EdgeInsets.all(12),
       itemCount: state.pagos.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final pago = state.pagos[index];
         return _buildPagoCard(pago);
@@ -370,7 +370,7 @@ class _HistorialPagosCxpScreenState
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

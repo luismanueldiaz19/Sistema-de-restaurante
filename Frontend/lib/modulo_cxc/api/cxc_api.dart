@@ -12,8 +12,10 @@ class CxcApi {
     final response = await api.get(baseUrl, token: token);
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> body = jsonDecode(response.body);
-      final List data = body['data'] ?? [];
+      final dynamic body = jsonDecode(response.body);
+      final List data = body is List
+          ? body
+          : (body is Map ? (body['data'] is List ? body['data'] : []) : []);
       return data.map((json) => CuentaPorCobrar.fromJson(json)).toList();
     } else {
       throw Exception(
@@ -44,7 +46,10 @@ class CxcApi {
     final response = await api.get("$baseUrl/pagos/historial", token: token);
 
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
+      final dynamic body = jsonDecode(response.body);
+      final List data = body is List
+          ? body
+          : (body is Map ? (body['data'] is List ? body['data'] : []) : []);
       return data.map((json) => PagoCxc.fromJson(json)).toList();
     } else {
       throw Exception('Error al cargar historial de pagos: ${response.body}');

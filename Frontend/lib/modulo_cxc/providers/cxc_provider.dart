@@ -10,12 +10,16 @@ class CxcState {
   final List<CuentaPorCobrar> cxcs;
   final List<PagoCxc> historialPagos;
   final String? error;
+  final bool isLoadingHistorial;
+  final String? errorHistorial;
 
   CxcState({
     this.isLoading = false,
     this.cxcs = const [],
     this.historialPagos = const [],
     this.error,
+    this.isLoadingHistorial = false,
+    this.errorHistorial,
   });
 
   CxcState copyWith({
@@ -23,12 +27,16 @@ class CxcState {
     List<CuentaPorCobrar>? cxcs,
     List<PagoCxc>? historialPagos,
     String? error,
+    bool? isLoadingHistorial,
+    String? errorHistorial,
   }) {
     return CxcState(
       isLoading: isLoading ?? this.isLoading,
       cxcs: cxcs ?? this.cxcs,
       historialPagos: historialPagos ?? this.historialPagos,
       error: error,
+      isLoadingHistorial: isLoadingHistorial ?? this.isLoadingHistorial,
+      errorHistorial: errorHistorial,
     );
   }
 }
@@ -48,22 +56,29 @@ class CxcNotifier extends StateNotifier<CxcState> {
       if (token == null) throw Exception('No autenticado');
 
       final data = await api.getCxcs(token);
-      state = state.copyWith(isLoading: false, cxcs: data);
+      state = state.copyWith(isLoading: false, cxcs: data, error: null);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   Future<void> loadHistorialPagos() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoadingHistorial: true, errorHistorial: null);
     try {
       final token = ref.read(authProvider).token;
       if (token == null) throw Exception('No autenticado');
 
       final pagos = await api.getHistorialPagos(token);
-      state = state.copyWith(isLoading: false, historialPagos: pagos);
+      state = state.copyWith(
+        isLoadingHistorial: false,
+        historialPagos: pagos,
+        errorHistorial: null,
+      );
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoadingHistorial: false,
+        errorHistorial: e.toString(),
+      );
     }
   }
 
