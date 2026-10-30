@@ -27,31 +27,18 @@ use App\Http\Controllers\Api\Finanzas\BankTransactionController;
 use App\Http\Controllers\Api\AiAgentController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
 // públicas
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/documentos/ver/{token}', [\App\Http\Controllers\Api\DocumentoVisorController::class, 'ver'])->name('documentos.ver');
 Route::get('/notas-credito/{id}/pdf', [NotaCreditoController::class, 'pdf'])->name('notas-credito.pdf');
-// Route::get('/cotizaciones/{id}/pdf', [CotizacionController::class, 'pdf']); // Migrado a V2
 
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 // Webhook para Chatbot (Sin Auth de usuario)
 Route::post('/pedidos/bot', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'storeWebhook']);
 Route::get('/pedidos/bot/productos', [ProductoController::class, 'index']);
-
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/admin', function () {
@@ -66,31 +53,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Compras Module
     Route::apiResource('proveedores', ProveedorController::class);
-    
-    // Route::apiResource('compras', CompraController::class)->except(['update', 'destroy']);
-
-
-
-    // Route::get('/clientes', [ClienteController::class, 'index'])
-    //     ->middleware('permission:ver_clientes');
-
-    // Route::post('/clientes', [ClienteController::class, 'store'])
-    //     ->middleware('permission:crear_clientes');
-
-//   Route::post('/clientes', [ClienteController::class, 'store'])
-//         ->middleware('permission:crear_clientes');
-
-//     Route::get('/clientes/{id}', [ClienteController::class, 'show'])
-//         ->middleware('permission:ver_clientes');
-
-//     Route::put('/clientes/{id}', [ClienteController::class, 'update'])
-//         ->middleware('permission:editar_clientes');
-
-//     Route::delete('/clientes/{id}', [ClienteController::class, 'destroy'])
-//         ->middleware('permission:eliminar_clientes');
 
     // ================= FACTURAS =================
-
     Route::post('/facturas', [FacturaController::class, 'store'])
         ->middleware('permission:crear_facturas');
 
@@ -118,27 +82,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/documentos/{tipo}/{id}/url-temporal', [\App\Http\Controllers\Api\DocumentoVisorController::class, 'generarUrl'])
         ->middleware('permission:ver_facturas');
 
-
-
-
-  // ================= COMPROBANTES FISCALES =================
- 
-     Route::get('/ncf-secuencias', [NcfSecuenciaController::class, 'index'])
-        ->middleware('permission:crear_facturas');
-
-      Route::get('/ncf-secuencias/{id}', [NcfSecuenciaController::class, 'show'])
-        ->middleware('permission:crear_facturas');
-
-    // ================= PEDIDOS =================
-    // Route::post('/pedidos', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'store']); // Migrado a V2
-    // Route::get('/pedidos', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'index']); // Migrado a V2
-    // Route::get('/pedidos/codigo/{codigo}', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'getByCodigo']); // Migrado a V2
-    // Route::put('/pedidos/{id}/estado', [\App\Modules\Pedido\Http\Controllers\PedidoController::class, 'updateStatus']); // Migrado a V2
+    // ================= COMPROBANTES FISCALES =================
+    Route::get('/ncf-secuencias', [NcfSecuenciaController::class, 'index']);
+    Route::get('/ncf-secuencias/{id}', [NcfSecuenciaController::class, 'show']);
+    Route::post('/ncf-secuencias', [NcfSecuenciaController::class, 'store']);
+    Route::put('/ncf-secuencias/{id}', [NcfSecuenciaController::class, 'update']);
+    Route::patch('/ncf-secuencias/{id}/toggle', [NcfSecuenciaController::class, 'toggleActivo']);
 
     // ================= INVENTARIO (Módulo Inventario) =================
     Route::post('/inventario/ajuste', [InventarioController::class, 'ajuste'])
         ->middleware('permission:ver_inventario');
-    
+
     Route::get('/inventario/movimientos', [InventarioController::class, 'movimientos'])
         ->middleware('permission:ver_inventario');
 
@@ -156,10 +110,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/caja/cerrar', [CajaController::class, 'cerrar']);
     Route::get('/caja/historial', [CajaController::class, 'historial']);
 
-    // ================= PRODUCTOS (Migrado a V2) =================
-
-
-    // ================= INGREDIENTES (Eliminados, unificados en Productos) =================
+    // ================= RECETAS =================
     Route::get('/recetas', [RecetaController::class, 'index'])
         ->middleware('permission:gestionar_recetas');
     Route::get('/recetas/{id}', [RecetaController::class, 'show'])
@@ -170,26 +121,26 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // ================= NÓMINA =================
     Route::get('/empleados', [NominaController::class, 'getEmpleados'])
         ->middleware('permission:ver_nomina');
-    
+
     Route::get('/nominas', [NominaController::class, 'index'])
         ->middleware('permission:ver_nomina');
-    
+
     Route::post('/nominas', [NominaController::class, 'store'])
         ->middleware('permission:ver_nomina');
-    
+
     Route::patch('/nominas/{id}/status', [NominaController::class, 'updateStatus'])
         ->middleware('permission:ver_nomina');
 
     // ================= EMPLEADOS =================
     Route::get('/empleados/all', [EmpleadoController::class, 'index'])
         ->middleware('permission:ver_nomina');
-    
+
     Route::post('/empleados', [EmpleadoController::class, 'store'])
         ->middleware('permission:ver_nomina');
-    
+
     Route::put('/empleados/{id}', [EmpleadoController::class, 'update'])
         ->middleware('permission:ver_nomina');
-    
+
     Route::patch('/empleados/{id}/toggle', [EmpleadoController::class, 'toggleStatus'])
         ->middleware('permission:ver_nomina');
 
@@ -211,10 +162,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dgii/preview-607', [DgiiController::class, 'preview607']);
     Route::get('/dgii/exportar-606', [DgiiController::class, 'exportar606']);
     Route::get('/dgii/exportar-607', [DgiiController::class, 'exportar607']);
-
-    // ================= COTIZACIONES =================
-    // Route::apiResource('cotizaciones', CotizacionController::class); // Migrado a V2
-    // Route::patch('cotizaciones/{id}/estado', [CotizacionController::class, 'updateStatus']); // Migrado a V2
 
     // ================= ORDENES DE COMPRA =================
     Route::apiResource('ordenes-compras', OrdenCompraController::class);
@@ -244,4 +191,5 @@ Route::prefix('v2')->group(function () {
     require base_path('app/Modules/Mesa/Routes/api.php');
     require base_path('app/Modules/Contabilidad/Routes/api.php');
     require base_path('app/Modules/Inventario/Routes/api.php');
+    require base_path('app/Modules/Ecf/Routes/api.php');
 });

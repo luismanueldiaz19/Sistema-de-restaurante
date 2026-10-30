@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../model/company.dart';
 import '../../../model/factura.dart';
 import '../../../palletes/app_colors.dart';
 import '../../../utils/helpers.dart';
@@ -48,6 +50,13 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
     return AppColors.azulOscuro;
   }
 
+  Color _getEcfStatusColor(String estadoDgii) {
+    final e = estadoDgii.toUpperCase();
+    if (e.contains('ACEPTADO')) return Colors.teal.shade700;
+    if (e.contains('PROCESO') || e == 'PENDIENTE') return Colors.orange.shade700;
+    return Colors.red.shade700;
+  }
+
   Future<void> _imprimirTicket(Factura factura) async {
     setState(() => _isPrinting = true);
     try {
@@ -66,11 +75,12 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
       final itbis = double.tryParse(factura.itbis ?? '0') ?? 0;
       final desc = double.tryParse(factura.descuentoTotal ?? '0') ?? 0;
       final tot = double.tryParse(factura.total ?? '0') ?? 0;
+      final ecf = factura.ecfDocumento;
 
       final res = await ThermalPrinterService.instance.imprimirFactura(
-        nombreNegocio: 'RESTAURANTE & BAR',
-        direccion: 'SANTIAGO, REPÚBLICA DOMINICANA',
-        rncOCedula: '131-00000-0',
+        nombreNegocio: Company.current.nombre,
+        direccion: Company.current.direccionCompleta,
+        rncOCedula: Company.current.rnc,
         numeroFactura: factura.id.toString(),
         ncf: factura.ncf,
         fecha: factura.fechaEmision ?? DateTime.now(),
@@ -80,7 +90,11 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
         descuento: desc,
         total: tot,
         cliente: factura.cliente?.nombre ?? 'Consumidor Final',
+        rncCliente: factura.cliente?.rncCedula,
         tipoPago: factura.tipoFactura ?? 'CONTADO',
+        qrUrl: ecf?.qrUrl,
+        codigoSeguridad: ecf?.codigoSeguridad,
+        fechaFirma: ecf?.fechaHoraFirma,
       );
 
       if (mounted) {
@@ -94,7 +108,10 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al imprimir: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error al imprimir: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -216,7 +233,7 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
               ),
               const SizedBox(height: 4),
               Text(
-                'Aquí se mostrarán todos sus artículos, auditoría y acciones operativas.',
+                'Aquí se mostrarán todos sus artículos, firma electrónica e-CF y acciones.',
                 style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
               ),
             ],
@@ -226,6 +243,7 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
     }
 
     final f = widget.factura!;
+    final ecf = f.ecfDocumento;
     final statusColor = _getStatusColor(f.estado);
     final subtotal = double.tryParse(f.subtotal ?? '0') ?? 0;
     final itbis = double.tryParse(f.itbis ?? '0') ?? 0;
@@ -251,7 +269,7 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
           children: [
             // ── CABECERA DEL DETALLE ───────────────────────────────────────────
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
@@ -259,11 +277,11 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 20,
+                    radius: 18,
                     backgroundColor: statusColor.withValues(alpha: 0.1),
                     child: Icon(
                       Icons.receipt_long_rounded,
-                      size: 22,
+                      size: 20,
                       color: statusColor,
                     ),
                   ),
@@ -274,13 +292,13 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                       children: [
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 8,
+                          spacing: 6,
                           runSpacing: 4,
                           children: [
                             Text(
                               "Factura #${f.id} — ${f.ncf?.isNotEmpty == true ? f.ncf! : 'Sin NCF'}",
                               style: const TextStyle(
-                                fontSize: 15,
+                                fontSize: 14.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.azulOscuro,
                               ),
@@ -288,7 +306,7 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 7,
-                                vertical: 2.5,
+                                vertical: 2,
                               ),
                               decoration: BoxDecoration(
                                 color: statusColor.withValues(alpha: 0.1),
@@ -306,6 +324,64 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                                 ),
                               ),
                             ),
+                            if (ecf != null)
+                              Tooltip(
+                                message:
+                                    'Firmado: ${ecf.fechaHoraFirma} • TrackId: ${ecf.trackId ?? "N/A"} • Ambiente: ${ecf.ambiente}',
+                                child: InkWell(
+                                  onTap: ecf.qrUrl.isNotEmpty
+                                      ? () async {
+                                          final uri = Uri.tryParse(ecf.qrUrl);
+                                          if (uri != null) {
+                                            await launchUrl(
+                                              uri,
+                                              mode: LaunchMode.externalApplication,
+                                            );
+                                          }
+                                        }
+                                      : null,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getEcfStatusColor(ecf.estadoDgii)
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: _getEcfStatusColor(
+                                          ecf.estadoDgii,
+                                        ).withValues(alpha: 0.45),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.verified_outlined,
+                                          size: 11,
+                                          color: _getEcfStatusColor(
+                                            ecf.estadoDgii,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'e-CF ${ecf.estadoDgii} • Cód: ${ecf.codigoSeguridad}',
+                                          style: TextStyle(
+                                            color: _getEcfStatusColor(
+                                              ecf.estadoDgii,
+                                            ),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 9.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 3),
@@ -329,15 +405,21 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                             height: 14,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.print_outlined, size: 16),
-                    label: const Text("Imprimir Ticket"),
+                        : const Icon(Icons.print_outlined, size: 15),
+                    label: const Text(
+                      "Imprimir Ticket",
+                      style: TextStyle(fontSize: 11.5),
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.azulOscuro,
                       side: const BorderSide(color: AppColors.azulOscuro),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
                     ),
                   ),
                 ],
@@ -401,7 +483,10 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                       children: [
                         Icon(Icons.format_list_bulleted, size: 15),
                         SizedBox(width: 6),
-                        Text("Artículos Vendidos", style: TextStyle(fontSize: 11.5)),
+                        Text(
+                          "Artículos Vendidos",
+                          style: TextStyle(fontSize: 11.5),
+                        ),
                       ],
                     ),
                   ),
@@ -411,7 +496,10 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                       children: [
                         Icon(Icons.touch_app_outlined, size: 15),
                         SizedBox(width: 6),
-                        Text("Acciones del Documento", style: TextStyle(fontSize: 11.5)),
+                        Text(
+                          "Acciones del Documento",
+                          style: TextStyle(fontSize: 11.5),
+                        ),
                       ],
                     ),
                   ),
@@ -421,7 +509,10 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                       children: [
                         Icon(Icons.pie_chart_outline, size: 15),
                         SizedBox(width: 6),
-                        Text("Totales del Período", style: TextStyle(fontSize: 11.5)),
+                        Text(
+                          "Totales del Período",
+                          style: TextStyle(fontSize: 11.5),
+                        ),
                       ],
                     ),
                   ),
@@ -434,13 +525,8 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // PESTAÑA 1: ARTÍCULOS VENDIDOS & DETALLES
                   _buildTabArticulos(f),
-
-                  // PESTAÑA 2: ACCIONES OPERATIVAS DEL DOCUMENTO
                   _buildTabAcciones(context, f),
-
-                  // PESTAÑA 3: TOTALES ACUMULADOS DEL PERÍODO
                   _buildTabTotalesPeriodo(),
                 ],
               ),
@@ -469,11 +555,14 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
       separatorBuilder: (_, _) => const SizedBox(height: 6),
       itemBuilder: (context, idx) {
         final item = detalles[idx];
-        final desc = item.descripcion ?? item.producto?.nombre ?? 'Producto sin nombre';
+        final desc =
+            item.descripcion ?? item.producto?.nombre ?? 'Producto sin nombre';
         final cant = double.tryParse(item.cantidad?.toString() ?? '1') ?? 1.0;
         final precio = double.tryParse(item.precio?.toString() ?? '0') ?? 0.0;
         final itbis = double.tryParse(item.itbis?.toString() ?? '0') ?? 0.0;
-        final totalLinea = double.tryParse(item.total?.toString() ?? '0') ?? (cant * precio + itbis);
+        final totalLinea =
+            double.tryParse(item.total?.toString() ?? '0') ??
+            (cant * precio + itbis);
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -541,6 +630,7 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
   }
 
   Widget _buildTabAcciones(BuildContext context, Factura f) {
+    final ecf = f.ecfDocumento;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -565,6 +655,21 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                 color: Colors.teal.shade700,
                 onTap: () => _imprimirTicket(f),
               ),
+              if (ecf != null && ecf.qrUrl.isNotEmpty)
+                _buildActionButton(
+                  icon: Icons.qr_code_2_rounded,
+                  label: "Timbre DGII",
+                  color: Colors.green.shade700,
+                  onTap: () async {
+                    final uri = Uri.tryParse(ecf.qrUrl);
+                    if (uri != null) {
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
+                ),
               _buildActionButton(
                 icon: Icons.remove_circle_outline,
                 label: "Nota de Crédito",
@@ -582,7 +687,9 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                 color: Colors.indigo.shade700,
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Módulo de Nota de Débito en desarrollo')),
+                    const SnackBar(
+                      content: Text('Módulo de Nota de Débito en desarrollo'),
+                    ),
                   );
                 },
               ),
@@ -592,7 +699,9 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                 color: Colors.blue.shade700,
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Comprobante copiado al portapapeles')),
+                    const SnackBar(
+                      content: Text('Comprobante copiado al portapapeles'),
+                    ),
                   );
                 },
               ),
@@ -720,9 +829,12 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
     final porMetodo = resumen['por_metodo'] as List<dynamic>? ?? [];
 
     final cantFacturas = totales['cantidad_facturas'] ?? 0;
-    final totalVendido = double.tryParse((totales['total_venta'] ?? 0).toString()) ?? 0;
-    final totalItbis = double.tryParse((totales['total_itbis'] ?? 0).toString()) ?? 0;
-    final totalDesc = double.tryParse((totales['total_descuento'] ?? 0).toString()) ?? 0;
+    final totalVendido =
+        double.tryParse((totales['total_venta'] ?? 0).toString()) ?? 0;
+    final totalItbis =
+        double.tryParse((totales['total_itbis'] ?? 0).toString()) ?? 0;
+    final totalDesc =
+        double.tryParse((totales['total_descuento'] ?? 0).toString()) ?? 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
@@ -749,14 +861,23 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                 ),
                 const SizedBox(height: 10),
                 _resumenRow("Cantidad de Facturas:", "$cantFacturas emitidas"),
-                _resumenRow("Total Facturado:", FormatterNumber.formatCurrency(totalVendido), isHighlight: true),
-                _resumenRow("Total ITBIS Recaudado:", FormatterNumber.formatCurrency(totalItbis)),
-                _resumenRow("Descuentos Otorgados:", FormatterNumber.formatCurrency(totalDesc)),
+                _resumenRow(
+                  "Total Facturado:",
+                  FormatterNumber.formatCurrency(totalVendido),
+                  isHighlight: true,
+                ),
+                _resumenRow(
+                  "Total ITBIS Recaudado:",
+                  FormatterNumber.formatCurrency(totalItbis),
+                ),
+                _resumenRow(
+                  "Descuentos Otorgados:",
+                  FormatterNumber.formatCurrency(totalDesc),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 14),
-
           if (porMetodo.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(12),
@@ -778,8 +899,11 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                   ),
                   const SizedBox(height: 10),
                   ...porMetodo.map((m) {
-                    final metodo = (m['metodo_pago'] ?? '').toString().toUpperCase();
-                    final tot = double.tryParse((m['total'] ?? 0).toString()) ?? 0;
+                    final metodo = (m['metodo_pago'] ?? '')
+                        .toString()
+                        .toUpperCase();
+                    final tot =
+                        double.tryParse((m['total'] ?? 0).toString()) ?? 0;
                     final pct = totalVendido > 0 ? (tot / totalVendido) : 0.0;
 
                     Color color = Colors.green;
@@ -800,16 +924,29 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                             children: [
                               Icon(icon, size: 14, color: color),
                               const SizedBox(width: 6),
-                              Text(metodo, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                              Text(
+                                metodo,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const Spacer(),
                               Text(
                                 FormatterNumber.formatCurrency(tot),
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: color,
+                                ),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 "(${(pct * 100).toStringAsFixed(1)}%)",
-                                style: TextStyle(fontSize: 9.5, color: Colors.grey.shade500),
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  color: Colors.grey.shade500,
+                                ),
                               ),
                             ],
                           ),
@@ -839,7 +976,14 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           Text(
             value,
             style: TextStyle(

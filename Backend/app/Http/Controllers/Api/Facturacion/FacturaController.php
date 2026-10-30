@@ -4,55 +4,56 @@ namespace App\Http\Controllers\Api\Facturacion;
 
 use App\Http\Controllers\Controller;
 use App\Models\Factura;
-use App\Models\FacturaDetalle;
-use App\Models\CuentaPorCobrar;
-use App\Models\Pago;
-use App\Models\PagoCxc;
 use App\Http\Requests\Api\Facturacion\StoreFacturaRequest;
 use App\Services\FacturacionService;
 use App\Traits\HasIdempotency;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Exception;
-
 
 class FacturaController extends Controller {
- use HasIdempotency;
+    use HasIdempotency;
 
- public function store(StoreFacturaRequest $request, FacturacionService $facturacionService) {
-    try {
-        // ── IDEMPOTENCIA ────────────────────────────────────────────────────
-        $cached = $this->checkIdempotency($request, 'factura.store');
-        if ($cached) return $cached;
-        // ─────────────────────────────────────────────────────────────────────
+    public function store(StoreFacturaRequest $request, FacturacionService $facturacionService) {
+        try {
+            // ── IDEMPOTENCIA ────────────────────────────────────────────────────
+            $cached = $this->checkIdempotency($request, 'factura.store');
+            if ($cached) return $cached;
+            // ─────────────────────────────────────────────────────────────────────
 
-        $facturaData = $facturacionService -> procesarVenta($request->validated(), auth()->id() ?? 1);
+            $facturaData = $facturacionService->procesarVenta($request->validated(), auth()->id() ?? 1);
+            $ecfSummary = $facturaData['ecf'] ?? null;
 
-        $responseData = [
-            'message'      => 'Factura creada correctamente',
-            'status'       => 201,
-            'factura_id'   => $facturaData['factura_id'],
-            'ncf'          => $facturaData['ncf'],
-            'tipo_factura' => $facturaData['tipo_factura']
-        ];
+            $responseData = [
+                'message'          => 'Factura creada correctamente',
+                'status'           => 201,
+                'factura_id'       => $facturaData['factura_id'],
+                'ncf'              => $facturaData['ncf'],
+                'tipo_factura'     => $facturaData['tipo_factura'],
+                'ecf'              => $ecfSummary,
+                'codigo_seguridad' => $ecfSummary['codigo_seguridad'] ?? null,
+                'fecha_hora_firma' => $ecfSummary['fecha_hora_firma'] ?? null,
+                'qr_url'           => $ecfSummary['qr_url'] ?? null,
+                'track_id'         => $ecfSummary['track_id'] ?? null,
+                'estado_dgii'      => $ecfSummary['estado_dgii'] ?? null,
+            ];
 
-        return $this->saveIdempotency($request, 'factura.store', $responseData, 201);
+            return $this->saveIdempotency($request, 'factura.store', $responseData, 201);
 
-    } catch (\Exception $e) {
-        $this->failIdempotency($request, 'factura.store');
+        } catch (\Exception $e) {
+            $this->failIdempotency($request, 'factura.store');
 
-        return response()->json([
-            'message' => 'Error al crear factura',
-            'error'   => $e->getMessage(),
-            'status'  => 500
-        ], 500);
+            return response()->json([
+                'message' => 'Error al crear factura',
+                'error'   => $e->getMessage(),
+                'status'  => 500
+            ], 500);
+        }
     }
-}
 
     public function index(Request $request)
     {
-        $query = Factura::with('cliente', 'detalles', 'user')
-            ->orderBy('fecha_emision', 'desc');
+        $query = Factura::with(['cliente', 'detalles', 'user', 'ecfDocumento'])
+            ->orderBy('id', 'desc');
 
         // Si no es admin, solo puede ver sus propias facturas
         if (!$request->user()->hasRole('admin')) {
@@ -169,35 +170,36 @@ class FacturaController extends Controller {
         }
     }
 
-   public function show($id) {
-    try {
-        $factura = Factura::with([
-            'cliente',
-            'detalles',
-            'user'
-        ])->find($id);
+    public function show($id) {
+        try {
+            $factura = Factura::with([
+                'cliente',
+                'detalles',
+                'user',
+                'ecfDocumento',
+            ])->find($id);
 
-        if (!$factura) {
+            if (!$factura) {
+                return response()->json([
+                    'message' => 'Factura no encontrada',
+                    'status' => 404
+                ], 404);
+            }
+
             return response()->json([
-                'message' => 'Factura no encontrada',
-                'status' => 404
-            ], 404);
+                'message' => 'Factura encontrada',
+                'status' => 200,
+                'data' => $factura
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al obtener factura',
+                'error' => $e->getMessage(),
+                'status' => 500
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Factura encontrada',
-            'status' => 200,
-            'data' => $factura
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Error al obtener factura',
-            'error' => $e->getMessage(),
-            'status' => 500
-        ], 500);
     }
-}
 
     public function pagar($id) {
         $factura = Factura::findOrFail($id);
@@ -211,9 +213,4 @@ class FacturaController extends Controller {
             'message' => 'Factura pagada'
         ]);
     }
-
-
-
-
 }
-

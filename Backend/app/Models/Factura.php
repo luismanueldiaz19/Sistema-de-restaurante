@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Modules\Ecf\Models\EcfDocumento;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,6 +12,8 @@ class Factura extends Model
 
     protected $fillable = [
         'cliente_id',
+        'user_id',
+        'caja_sesion_id',
         'ncf',
         'tipo_factura',
         'fecha_emision',
@@ -25,19 +28,28 @@ class Factura extends Model
         'dias_credito',
     ];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function cliente() {
+    public function cliente()
+    {
         return $this->belongsTo(Cliente::class);
     }
 
-    public function detalles() {
+    public function detalles()
+    {
         return $this->hasMany(FacturaDetalle::class);
     }
 
-    public function asiento() {
+    public function asiento()
+    {
         return $this->belongsTo(AsientoContable::class, 'asiento_id');
+    }
+
+    public function ecfDocumento()
+    {
+        return $this->hasOne(EcfDocumento::class, 'factura_id');
     }
 }

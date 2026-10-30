@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="ECF">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Encabezado">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Version" type="xs:string"/>
+                            <xs:element name="IdDoc">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="TipoeCF">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="31"/>
+                                                    <xs:enumeration value="32"/>
+                                                    <xs:enumeration value="33"/>
+                                                    <xs:enumeration value="34"/>
+                                                    <xs:enumeration value="41"/>
+                                                    <xs:enumeration value="43"/>
+                                                    <xs:enumeration value="44"/>
+                                                    <xs:enumeration value="45"/>
+                                                    <xs:enumeration value="46"/>
+                                                    <xs:enumeration value="47"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="eNCF">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:pattern value="E[0-9]{12}"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="FechaVencimientoSecuencia" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="IndicadorNotaCredito" type="xs:integer" minOccurs="0"/>
+                                        <xs:element name="IndicadorMontoGravado" type="xs:integer" minOccurs="0"/>
+                                        <xs:element name="TipoIngresos" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="TipoPago" type="xs:integer"/>
+                                        <xs:element name="FechaLimitePago" type="xs:string" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Emisor">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="RNCEmisor">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:pattern value="[0-9]{9}|[0-9]{11}"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="RazonSocialEmisor" type="xs:string"/>
+                                        <xs:element name="NombreComercial" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="DireccionEmisor" type="xs:string"/>
+                                        <xs:element name="Municipio" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="Provincia" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="CorreoEmisor" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="WebSite" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="FechaEmision" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Comprador" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="RNCComprador" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="IdentificadorExtranjero" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="RazonSocialComprador" type="xs:string" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Totales">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="MontoGravadoTotal" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoGravadoI1" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoGravadoI2" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoGravadoI3" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoExento" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="ITBIS1" type="xs:integer" minOccurs="0"/>
+                                        <xs:element name="ITBIS2" type="xs:integer" minOccurs="0"/>
+                                        <xs:element name="ITBIS3" type="xs:integer" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS1" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS2" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS3" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoTotal" type="xs:decimal"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="DetallesItems">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Item" maxOccurs="1000">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="NumeroLinea" type="xs:positiveInteger"/>
+                                        <xs:element name="IndicadorFacturacion" type="xs:positiveInteger"/>
+                                        <xs:element name="NombreItem" type="xs:string"/>
+                                        <xs:element name="IndicadorBienoServicio" type="xs:positiveInteger"/>
+                                        <xs:element name="CantidadItem" type="xs:decimal"/>
+                                        <xs:element name="UnidadMedida" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="PrecioUnitarioItem" type="xs:decimal"/>
+                                        <xs:element name="DescuentoMonto" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoItem" type="xs:decimal"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="InformacionReferencia" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="NCFModificado" type="xs:string"/>
+                            <xs:element name="RNCOtroContribuyente" type="xs:string" minOccurs="0"/>
+                            <xs:element name="FechaNCFModificado" type="xs:string"/>
+                            <xs:element name="CodigoModificacion" type="xs:positiveInteger"/>
+                            <xs:element name="RazonModificacion" type="xs:string" minOccurs="0"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="FechaHoraFirma" type="xs:string"/>
+                <xs:any namespace="http://www.w3.org/2000/09/xmldsig#" processContents="lax" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+

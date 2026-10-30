@@ -10,7 +10,9 @@ use App\Models\NotaCreditoDetalle;
 use App\Models\Producto;
 use App\Models\MovimientoInventario;
 use App\Modules\Contabilidad\Services\ContabilidadService;
+use App\Modules\Ecf\Services\EcfEmisorService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Traits\HasIdempotency;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Pago;
@@ -22,7 +24,7 @@ class NotaCreditoController extends Controller
 
     public function index(Request $request)
     {
-        $query = NotaCredito::with(['factura.cliente', 'detalles.producto']);
+        $query = NotaCredito::with(['factura.cliente', 'detalles.producto', 'ecfDocumento']);
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
@@ -89,7 +91,6 @@ class NotaCreditoController extends Controller
                 ->first();
 
             if (!$secuencia) {
-                // Si no existe B04 tradicional, intentar con tipo 4
                 $secuencia = DB::table('ncf_secuencias')
                     ->where('tipo', (string)(int)$tipoSecuencia)
                     ->lockForUpdate()
@@ -121,13 +122,11 @@ class NotaCreditoController extends Controller
             ]);
 
             foreach ($request->detalles as $det) {
-                // Verificar que el producto exista en la factura original
                 $detalleFactura = $factura->detalles->where('producto_id', $det['producto_id'])->first();
                 if (!$detalleFactura) {
                     throw new \Exception("El producto ID {$det['producto_id']} no pertenece a esta factura.");
                 }
 
-                // Validar acumulado previamente devuelto para no devolver de más
                 $yaDevuelto = (float) NotaCreditoDetalle::whereHas('notaCredito', function ($q) use ($factura) {
                     $q->where('factura_id', $factura->id);
                 })->where('producto_id', $det['producto_id'])->sum('cantidad');
@@ -154,7 +153,6 @@ class NotaCreditoController extends Controller
                     'total'           => $total,
                 ]);
 
-                // Retornar al inventario si maneja stock y no es un servicio
                 $producto = Producto::find($det['producto_id']);
                 if ($producto && $producto->tipo_producto !== 'SERVICIO' && $producto->maneja_inventario) {
                     $producto->stock_actual += $det['cantidad'];
@@ -177,18 +175,15 @@ class NotaCreditoController extends Controller
                 $totalMonto += $total;
             }
 
-            // Actualizar montos definitivos de la nota de crédito
             $notaCredito->update([
                 'subtotal' => round($subtotalTotal, 2),
                 'itbis'    => round($itbisTotal, 2),
                 'total'    => round($totalMonto, 2),
             ]);
 
-            // Determinar si la factura tiene deuda pendiente en cuentas por cobrar
             $cxc = \App\Models\CuentaPorCobrar::where('factura_id', $factura->id)->first();
             $esFacturaCredito = $cxc && (float)$cxc->balance_pendiente > 0;
 
-            // 1. Motor Contable Automático (Partida Doble)
             $contabilidadService = app(ContabilidadService::class);
             $asiento = $contabilidadService->registrarAsientoAuto(
                 new \App\Modules\Contabilidad\DTOs\RegistrarAsientoDTO(
@@ -206,7 +201,6 @@ class NotaCreditoController extends Controller
                 )
             );
 
-            // 2. Si la venta tenía balance pendiente a crédito, rebajar la Cuenta por Cobrar (CxC)
             if ($esFacturaCredito && $cxc) {
                 $nuevoBalance = max(0, round((float)$cxc->balance_pendiente - $totalMonto, 2));
                 $cxc->balance_pendiente = $nuevoBalance;
@@ -215,7 +209,6 @@ class NotaCreditoController extends Controller
                 }
                 $cxc->save();
             } else {
-                // 3. Si la venta fue al contado y se pagó en efectivo, registrar devolución de caja
                 $pagoOriginalEfectivo = Pago::where('factura_id', $factura->id)
                     ->where('metodo_pago', 'efectivo')
                     ->first();
@@ -242,13 +235,27 @@ class NotaCreditoController extends Controller
 
             DB::commit();
 
+            // 🇩🇴 Emitir Nota de Crédito Electrónica E34 si aplica
+            $ecfSummary = null;
+            if ($esElectronica) {
+                try {
+                    /** @var EcfEmisorService $ecfEmisor */
+                    $ecfEmisor = app(EcfEmisorService::class);
+                    $ecfDoc = $ecfEmisor->emitirNotaCredito($notaCredito->fresh(['detalles.producto', 'factura.cliente']), true);
+                    $ecfSummary = $ecfDoc?->toSummaryArray();
+                } catch (\Throwable $e) {
+                    Log::error("Error generando e-CF E34 para Nota de Crédito #{$notaCredito->id}: " . $e->getMessage());
+                }
+            }
+
             $pdfUrl = \App\Services\DocumentoSeguroService::generarUrlTemporal('nota_credito', $notaCredito->id, 15);
 
             return response()->json([
                 'message'    => 'Nota de Crédito generada exitosamente.',
-                'data'       => $notaCredito->load(['detalles.producto', 'factura.cliente']),
+                'data'       => $notaCredito->load(['detalles.producto', 'factura.cliente', 'ecfDocumento']),
                 'asiento_id' => $asiento?->id,
                 'pdf_url'    => $pdfUrl,
+                'ecf'        => $ecfSummary,
             ], 201);
 
         } catch (\Exception $e) {
@@ -276,7 +283,6 @@ class NotaCreditoController extends Controller
     {
         $token = request()->query('token');
 
-        // 1. Probar si es un token temporal encriptado
         if ($token) {
             try {
                 $datos = \App\Services\DocumentoSeguroService::validarYObtenerDatos($token);
@@ -288,7 +294,6 @@ class NotaCreditoController extends Controller
             }
         }
 
-        // 2. Fallback a token Sanctum para retrocompatibilidad
         if ($token && \Laravel\Sanctum\PersonalAccessToken::findToken($token)) {
             return $this->generarPdfStream((int)$id);
         }
@@ -303,4 +308,3 @@ class NotaCreditoController extends Controller
         return $pdf->stream('nota_credito_' . $notaCredito->id . '.pdf');
     }
 }
-

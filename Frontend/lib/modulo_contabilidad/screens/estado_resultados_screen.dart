@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../palletes/app_colors.dart';
+import '../../utils/formatter_number.dart';
+import '../../widgets/custom_empty_state.dart';
 import '../providers/reportes_contables_provider.dart';
-import '../../utils/helpers.dart';
+import '../widgets/contabilidad_shared_widgets.dart';
+import '../widgets/contabilidad_tree_section_card.dart';
 import 'estado_resultados_tabla_screen.dart';
 
 class EstadoResultadosScreen extends ConsumerStatefulWidget {
   const EstadoResultadosScreen({super.key});
 
   @override
-  ConsumerState<EstadoResultadosScreen> createState() => _EstadoResultadosScreenState();
+  ConsumerState<EstadoResultadosScreen> createState() =>
+      _EstadoResultadosScreenState();
 }
 
-class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen> {
+class _EstadoResultadosScreenState
+    extends ConsumerState<EstadoResultadosScreen> {
   DateTime _fechaDesde = DateTime(DateTime.now().year, 1, 1);
   DateTime _fechaHasta = DateTime.now();
 
-  void _seleccionarFecha(BuildContext context, bool isDesde) async {
+  Future<void> _seleccionarFecha(bool isDesde) async {
     final date = await showDatePicker(
       context: context,
       initialDate: isDesde ? _fechaDesde : _fechaHasta,
@@ -34,228 +40,252 @@ class _EstadoResultadosScreenState extends ConsumerState<EstadoResultadosScreen>
     }
   }
 
-  Widget _buildNode(Map<String, dynamic> nodo, {int depth = 0}) {
-    final bool esDetalle = nodo['es_detalle'] ?? false;
-    final double balance = double.tryParse(nodo['balance'].toString()) ?? 0;
-    
-    if (balance == 0 && (nodo['hijos'] == null || (nodo['hijos'] as List).isEmpty)) {
-      return const SizedBox();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: depth * 24.0, top: 8, bottom: 8, right: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    if (!esDetalle) Icon(Icons.folder_open, size: 18, color: Colors.grey.shade600),
-                    if (esDetalle) Icon(Icons.arrow_right, size: 18, color: Colors.grey.shade400),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "${nodo['codigo']} - ${nodo['nombre']}",
-                        style: TextStyle(
-                          fontWeight: esDetalle ? FontWeight.normal : FontWeight.bold,
-                          color: esDetalle ? Colors.black87 : AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                FormatterNumber.formatCurrency(balance),
-                style: TextStyle(
-                  fontWeight: esDetalle ? FontWeight.normal : FontWeight.bold,
-                  color: balance < 0 ? Colors.red : (esDetalle ? Colors.black87 : AppColors.secondary),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!esDetalle && nodo['hijos'] != null)
-          ...((nodo['hijos'] as List).map((hijo) => _buildNode(hijo, depth: depth + 1))),
-        if (!esDetalle && depth == 0)
-          const Divider(height: 1),
-      ],
-    );
-  }
-
-  Widget _buildSection(String title, List<dynamic> nodos, double total) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                Text(FormatterNumber.formatCurrency(total), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              children: nodos.map((n) => _buildNode(n)).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
+  void _setPeriodo(String tipo) {
+    final now = DateTime.now();
+    setState(() {
+      if (tipo == 'mes') {
+        _fechaDesde = DateTime(now.year, now.month, 1);
+        _fechaHasta = now;
+      } else if (tipo == 'anio') {
+        _fechaDesde = DateTime(now.year, 1, 1);
+        _fechaHasta = now;
+      } else {
+        _fechaDesde = DateTime(2020, 1, 1);
+        _fechaHasta = now;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final paramStr = "${_fechaDesde.toIso8601String().split('T')[0]}|${_fechaHasta.toIso8601String().split('T')[0]}";
+    final fmt = DateFormat('yyyy-MM-dd');
+    final paramStr = '${fmt.format(_fechaDesde)}|${fmt.format(_fechaHasta)}';
     final asyncData = ref.watch(estadoResultadosProvider(paramStr));
 
+    final map = asyncData.asData?.value;
+    final totales = (map?['totales'] as Map<String, dynamic>?) ?? const {};
+    final totalIngresos = FormatterNumber.parseDouble(totales['ingresos']);
+    final totalCostos = FormatterNumber.parseDouble(totales['costos']);
+    final utilidadBruta = FormatterNumber.parseDouble(
+      totales['utilidad_bruta'],
+    );
+    final totalGastos = FormatterNumber.parseDouble(totales['gastos']);
+    final utilidadNeta = FormatterNumber.parseDouble(totales['utilidad_neta']);
+    final margenNeto = totalIngresos > 0
+        ? ((utilidadNeta / totalIngresos) * 100).toStringAsFixed(1)
+        : '0.0';
+
     return Scaffold(
-      backgroundColor: AppColors.light,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Estado de Resultados', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold)),
+        elevation: 0.5,
         backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: AppColors.secondary),
-        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.azulOscuro),
+        title: const Text(
+          'Estado de Resultados',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.azulOscuro,
+          ),
+        ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            child: ElevatedButton.icon(
-              onPressed: () => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const EstadoResultadosTablaScreen()),
-              ),
-              icon: const Icon(Icons.table_chart_rounded, color: Colors.white, size: 16),
-              label: const Text('Vista Tabla (Excel)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                elevation: 1,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const EstadoResultadosTablaScreen(),
               ),
             ),
+            icon: const Icon(Icons.table_chart_outlined, size: 15),
+            label: const Text(
+              'Vista Hoja (Excel)',
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Actualizar Estado de Resultados',
+            icon: const Icon(Icons.refresh_rounded, size: 19),
+            onPressed: () =>
+                ref.invalidate(estadoResultadosProvider(paramStr)),
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
-          // Header Filtros
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Row(
               children: [
-                ElevatedButton.icon(
-                  onPressed: () => _seleccionarFecha(context, true),
-                  icon: const Icon(Icons.date_range),
-                  label: Text("Desde: ${_fechaDesde.toIso8601String().split('T')[0]}"),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.light, foregroundColor: AppColors.secondary),
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: 'Ingresos Operativos',
+                    value: FormatterNumber.formatCurrency(totalIngresos),
+                    icon: Icons.trending_up_rounded,
+                    color: Colors.green.shade700,
+                  ),
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  onPressed: () => _seleccionarFecha(context, false),
-                  icon: const Icon(Icons.date_range),
-                  label: Text("Hasta: ${_fechaHasta.toIso8601String().split('T')[0]}"),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: 'Costo de Ventas',
+                    value: FormatterNumber.formatCurrency(totalCostos),
+                    icon: Icons.inventory_2_outlined,
+                    color: AppColors.primaryDark,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: 'Utilidad Bruta',
+                    value: FormatterNumber.formatCurrency(utilidadBruta),
+                    icon: Icons.analytics_outlined,
+                    color: AppColors.azulOscuro,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: utilidadNeta >= 0
+                        ? 'Utilidad Neta'
+                        : 'Pérdida Neta',
+                    value: FormatterNumber.formatCurrency(utilidadNeta),
+                    badge: '$margenNeto%',
+                    icon: utilidadNeta >= 0
+                        ? Icons.auto_graph_rounded
+                        : Icons.trending_down_rounded,
+                    color: utilidadNeta >= 0
+                        ? Colors.green.shade800
+                        : Colors.red.shade700,
+                  ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: asyncData.when(
-              data: (data) {
-                final ingresos = data['ingresos'] as List<dynamic>;
-                final costos = data['costos'] as List<dynamic>;
-                final gastos = data['gastos'] as List<dynamic>;
-                final totales = data['totales'];
-
-                final utilidadBruta = double.tryParse(totales['utilidad_bruta'].toString()) ?? 0;
-                final utilidadNeta = double.tryParse(totales['utilidad_neta'].toString()) ?? 0;
-
-                return ListView(
-                  padding: const EdgeInsets.all(24),
-                  children: [
-                    _buildSection('INGRESOS', ingresos, double.tryParse(totales['ingresos'].toString()) ?? 0),
-                    _buildSection('COSTOS', costos, double.tryParse(totales['costos'].toString()) ?? 0),
-                    
-                    // UTILIDAD BRUTA
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 24),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('UTILIDAD BRUTA (Ingresos - Costos)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.secondary)),
-                          Text(FormatterNumber.formatCurrency(utilidadBruta), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.secondary)),
-                        ],
-                      ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.date_range_rounded,
+                    size: 16,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Período consultado:',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
                     ),
-
-                    _buildSection('GASTOS', gastos, double.tryParse(totales['gastos'].toString()) ?? 0),
-
-                    // UTILIDAD NETA
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: utilidadNeta >= 0 
-                            ? [Colors.green.shade700, Colors.green.shade900]
-                            : [Colors.red.shade700, Colors.red.shade900]
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(color: (utilidadNeta >= 0 ? Colors.green : Colors.red).withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))
-                        ]
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            utilidadNeta >= 0 ? 'UTILIDAD NETA' : 'PÉRDIDA NETA', 
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)
-                          ),
-                          Text(
-                            FormatterNumber.formatCurrency(utilidadNeta), 
-                            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white)
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+                  ),
+                  const SizedBox(width: 10),
+                  ContabilidadDateButton(
+                    prefix: 'Desde',
+                    date: _fechaDesde,
+                    onTap: () => _seleccionarFecha(true),
+                  ),
+                  const SizedBox(width: 6),
+                  ContabilidadDateButton(
+                    prefix: 'Hasta',
+                    date: _fechaHasta,
+                    onTap: () => _seleccionarFecha(false),
+                  ),
+                  const Spacer(),
+                  ContabilidadQuickPresetChip(
+                    label: 'Este Mes',
+                    onTap: () => _setPeriodo('mes'),
+                  ),
+                  const SizedBox(width: 6),
+                  ContabilidadQuickPresetChip(
+                    label: 'Este Año',
+                    onTap: () => _setPeriodo('anio'),
+                  ),
+                  const SizedBox(width: 6),
+                  ContabilidadQuickPresetChip(
+                    label: 'Todo',
+                    onTap: () => _setPeriodo('todo'),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Expanded(
+              child: asyncData.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (err, _) => CustomEmptyState(
+                  title: 'Error al consultar el Estado de Resultados',
+                  subtitle: '$err',
+                  icon: Icons.error_outline_rounded,
+                ),
+                data: (data) {
+                  final ingresos =
+                      (data['ingresos'] as List<dynamic>?) ?? const [];
+                  final costos =
+                      (data['costos'] as List<dynamic>?) ?? const [];
+                  final gastos =
+                      (data['gastos'] as List<dynamic>?) ?? const [];
+
+                  return ListView(
+                    children: [
+                      ContabilidadTreeSectionCard(
+                        title: '1. INGRESOS OPERATIVOS',
+                        icon: Icons.payments_outlined,
+                        accentColor: Colors.green.shade800,
+                        nodos: ingresos,
+                        total: totalIngresos,
+                      ),
+                      ContabilidadTreeSectionCard(
+                        title: '2. COSTO DE VENTAS',
+                        icon: Icons.shopping_bag_outlined,
+                        accentColor: AppColors.primaryDark,
+                        nodos: costos,
+                        total: totalCostos,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: ContabilidadSummaryBar(
+                          title: 'UTILIDAD BRUTA (Ingresos - Costos)',
+                          amount: utilidadBruta,
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          foregroundColor: AppColors.azulOscuro,
+                        ),
+                      ),
+                      ContabilidadTreeSectionCard(
+                        title: '3. GASTOS OPERATIVOS Y ADMINISTRATIVOS',
+                        icon: Icons.account_balance_wallet_outlined,
+                        accentColor: Colors.indigo.shade800,
+                        nodos: gastos,
+                        total: totalGastos,
+                      ),
+                      ContabilidadSummaryBar(
+                        title: utilidadNeta >= 0
+                            ? 'UTILIDAD NETA DEL EJERCICIO'
+                            : 'PÉRDIDA NETA DEL EJERCICIO',
+                        subtitle:
+                            'Margen neto sobre ventas: $margenNeto%',
+                        amount: utilidadNeta,
+                        backgroundColor: utilidadNeta >= 0
+                            ? Colors.green.shade800
+                            : Colors.red.shade800,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

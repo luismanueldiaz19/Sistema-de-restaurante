@@ -42,7 +42,8 @@ import 'package:sistema_restaurante/modulo_nomina/screens/empleado_list_screen.d
 import 'package:sistema_restaurante/modulo_nomina/screens/add_nomina_screen.dart';
 import 'package:sistema_restaurante/modulo_nomina/providers/nomina_provider.dart';
 import 'package:sistema_restaurante/modulo_dgii/screens/dgii_dashboard_screen.dart';
-import 'package:sistema_restaurante/facturacion/screens/reporte_ventas_screen.dart';
+import 'package:sistema_restaurante/modulo_dgii/screens/ecf_dashboard_screen.dart';
+import 'package:sistema_restaurante/modulo_dgii/screens/ncf_secuencias_screen.dart';
 import 'package:sistema_restaurante/modulo_cotizaciones/screens/crear_cotizacion_screen.dart';
 import 'package:sistema_restaurante/modulo_cotizaciones/screens/historial_cotizaciones_screen.dart';
 import 'package:sistema_restaurante/facturacion/screens/gestion_documentos_screen.dart';
@@ -532,43 +533,51 @@ class MenuBuilder {
           title: 'DGII',
           icon: Icons.receipt_outlined,
           subItems: [
-            SidebarSubItem(title: 'NCF', onTap: () {}),
             SidebarSubItem(
-              title: 'e-CF',
+              title: 'e-CF (Electrónica)',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EcfDashboardScreen()),
+              ),
+            ),
+            SidebarSubItem(
+              title: 'Impuestos & 606/607',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const DgiiDashboardScreen()),
               ),
             ),
-            SidebarSubItem(title: 'Reporte 606', onTap: () {}),
-            SidebarSubItem(title: 'Reporte 607', onTap: () {}),
-            SidebarSubItem(title: 'Reporte 608', onTap: () {}),
-            SidebarSubItem(title: 'Reporte 609', onTap: () {}),
-            SidebarSubItem(title: 'Reportes DGII', onTap: () {}),
+            SidebarSubItem(
+              title: 'NCF',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NcfSecuenciasScreen()),
+              ),
+            ),
           ],
         ),
 
-      // 9. REPORTES
-      if (!isCajero &&
-          (auth.hasPermission('ver_reportes') || isAdmin || isContador))
-        SidebarItem(
-          title: 'Reportes',
-          icon: Icons.bar_chart_outlined,
-          subItems: [
-            SidebarSubItem(
-              title: 'Ventas',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ReporteVentasScreen()),
-              ),
-            ),
-            SidebarSubItem(title: 'Compras', onTap: () {}),
-            SidebarSubItem(title: 'Inventario', onTap: () {}),
-            SidebarSubItem(title: 'Finanzas', onTap: () {}),
-            SidebarSubItem(title: 'RRHH', onTap: () {}),
-            SidebarSubItem(title: 'Contabilidad', onTap: () {}),
-          ],
-        ),
+      // // 9. REPORTES
+      // if (!isCajero &&
+      //     (auth.hasPermission('ver_reportes') || isAdmin || isContador))
+      //   SidebarItem(
+      //     title: 'Reportes',
+      //     icon: Icons.bar_chart_outlined,
+      //     subItems: [
+      //       SidebarSubItem(
+      //         title: 'Ventas',
+      //         onTap: () => Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => const ReporteVentasScreen()),
+      //         ),
+      //       ),
+      //       SidebarSubItem(title: 'Compras', onTap: () {}),
+      //       SidebarSubItem(title: 'Inventario', onTap: () {}),
+      //       SidebarSubItem(title: 'Finanzas', onTap: () {}),
+      //       SidebarSubItem(title: 'RRHH', onTap: () {}),
+      //       SidebarSubItem(title: 'Contabilidad', onTap: () {}),
+      //     ],
+      //   ),
 
       // 10. ADMINISTRACION
       if (!isCajero && (auth.hasPermission('gestionar_usuarios') || isAdmin))

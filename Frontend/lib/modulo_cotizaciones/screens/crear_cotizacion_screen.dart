@@ -560,7 +560,9 @@ class _CrearCotizacionScreenState extends ConsumerState<CrearCotizacionScreen> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            FormatterNumber.formatCurrency(prod.precioVenta ?? 0),
+                            FormatterNumber.formatCurrency(
+                              prod.precioVenta ?? 0,
+                            ),
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w900,

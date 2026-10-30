@@ -63,7 +63,7 @@ class FacturacionService {
       } else {
         return {
           "success": false,
-          "message": data['message'] ?? "Error desconocido",
+          "message": data['error'] ?? data['message'] ?? "Error desconocido",
         };
       }
     } catch (e) {
@@ -79,7 +79,7 @@ class FacturacionService {
       String query = "";
       if (filters != null && filters.isNotEmpty) {
         query =
-            "?" + filters.entries.map((e) => "${e.key}=${e.value}").join("&");
+            "?${filters.entries.map((e) => "${e.key}=${e.value}").join("&")}";
       }
 
       final response = await _api.get("$_baseUrl/facturas$query", token: token);
@@ -168,7 +168,8 @@ class FacturacionService {
     }
 
     final data = jsonDecode(response.body);
-    return (data['data'] as Map<String, dynamic>?) ?? <String, dynamic>{'id': data['data']?['id']};
+    return (data['data'] as Map<String, dynamic>?) ??
+        <String, dynamic>{'id': data['data']?['id']};
   }
 
   Future<String?> getNotaCreditoPdfUrl(String token, int id) async {
@@ -193,7 +194,7 @@ class FacturacionService {
       String query = "";
       if (filters != null && filters.isNotEmpty) {
         query =
-            "?" + filters.entries.map((e) => "${e.key}=${e.value}").join("&");
+            "?${filters.entries.map((e) => "${e.key}=${e.value}").join("&")}";
       }
 
       final response = await _api.get(
@@ -209,9 +210,6 @@ class FacturacionService {
           "resumen": data['resumen'],
         };
       } else {
-        print(
-          "Error del servidor (${response.statusCode}): ${data['message']}",
-        );
         return {
           "success": false,
           "message": response.statusCode == 500
@@ -220,7 +218,6 @@ class FacturacionService {
         };
       }
     } catch (e) {
-      print("Excepción interna: $e");
       return {"success": false, "message": "Ocurrió un error de conexión."};
     }
   }

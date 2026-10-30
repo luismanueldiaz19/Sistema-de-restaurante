@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Modules\Ecf\Models\EcfDocumento;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,5 +35,10 @@ class NotaCredito extends Model
     public function detalles()
     {
         return $this->hasMany(NotaCreditoDetalle::class);
+    }
+
+    public function ecfDocumento()
+    {
+        return $this->hasOne(EcfDocumento::class, 'nota_credito_id');
     }
 }

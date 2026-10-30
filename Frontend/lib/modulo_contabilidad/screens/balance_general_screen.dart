@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../palletes/app_colors.dart';
+import '../../utils/formatter_number.dart';
+import '../../widgets/custom_empty_state.dart';
 import '../providers/reportes_contables_provider.dart';
-import '../../utils/helpers.dart';
+import '../widgets/contabilidad_shared_widgets.dart';
+import '../widgets/contabilidad_tree_section_card.dart';
 
 class BalanceGeneralScreen extends ConsumerStatefulWidget {
   const BalanceGeneralScreen({super.key});
 
   @override
-  ConsumerState<BalanceGeneralScreen> createState() => _BalanceGeneralScreenState();
+  ConsumerState<BalanceGeneralScreen> createState() =>
+      _BalanceGeneralScreenState();
 }
 
 class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
   DateTime _fechaHasta = DateTime.now();
 
-  void _seleccionarFecha(BuildContext context) async {
+  Future<void> _seleccionarFecha() async {
     final date = await showDatePicker(
       context: context,
       initialDate: _fechaHasta,
@@ -22,96 +27,47 @@ class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
       lastDate: DateTime(2100),
     );
     if (date != null) {
-      setState(() {
-        _fechaHasta = date;
-      });
+      setState(() => _fechaHasta = date);
     }
   }
 
-  Widget _buildNode(Map<String, dynamic> nodo, {int depth = 0}) {
-    final bool esDetalle = nodo['es_detalle'] ?? false;
-    final double balance = double.tryParse(nodo['balance'].toString()) ?? 0;
-    
-    // Si no es detalle y balance es 0, no lo mostramos a menos que tenga hijos con data
-    if (balance == 0 && (nodo['hijos'] == null || (nodo['hijos'] as List).isEmpty)) {
-      return const SizedBox();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: depth * 24.0, top: 8, bottom: 8, right: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    if (!esDetalle) Icon(Icons.folder_open, size: 18, color: Colors.grey.shade600),
-                    if (esDetalle) Icon(Icons.arrow_right, size: 18, color: Colors.grey.shade400),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "${nodo['codigo']} - ${nodo['nombre']}",
-                        style: TextStyle(
-                          fontWeight: esDetalle ? FontWeight.normal : FontWeight.bold,
-                          color: esDetalle ? Colors.black87 : AppColors.secondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                FormatterNumber.formatCurrency(balance),
-                style: TextStyle(
-                  fontWeight: esDetalle ? FontWeight.normal : FontWeight.bold,
-                  color: balance < 0 ? Colors.red : (esDetalle ? Colors.black87 : AppColors.secondary),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!esDetalle && nodo['hijos'] != null)
-          ...((nodo['hijos'] as List).map((hijo) => _buildNode(hijo, depth: depth + 1))),
-        if (!esDetalle && depth == 0)
-          const Divider(height: 1),
-      ],
-    );
-  }
-
-  Widget _buildSection(String title, List<dynamic> nodos, double total) {
+  Widget _buildUtilidadRow(double utilidad) {
+    final positive = utilidad >= 0;
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))
-        ],
+        color: (positive ? Colors.green : Colors.red).withValues(alpha: 0.05),
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                Text(FormatterNumber.formatCurrency(total), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
-              ],
+          Icon(
+            positive
+                ? Icons.trending_up_rounded
+                : Icons.trending_down_rounded,
+            size: 14,
+            color: positive ? Colors.green.shade700 : Colors.red.shade700,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              positive
+                  ? 'Utilidad Acumulada del Ejercicio'
+                  : 'Pérdida Acumulada del Ejercicio',
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.azulOscuro,
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              children: nodos.map((n) => _buildNode(n)).toList(),
+          Text(
+            FormatterNumber.formatCurrency(utilidad),
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: 'Consolas',
+              fontWeight: FontWeight.w800,
+              color: positive ? Colors.green.shade800 : Colors.red.shade700,
             ),
           ),
         ],
@@ -121,126 +77,201 @@ class _BalanceGeneralScreenState extends ConsumerState<BalanceGeneralScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncData = ref.watch(balanceGeneralProvider(_fechaHasta.toIso8601String().split('T')[0]));
+    final fHasta = DateFormat('yyyy-MM-dd').format(_fechaHasta);
+    final asyncData = ref.watch(balanceGeneralProvider(fHasta));
+
+    final map = asyncData.asData?.value;
+    final totales = (map?['totales'] as Map<String, dynamic>?) ?? const {};
+    final totalActivo = FormatterNumber.parseDouble(totales['activo']);
+    final totalPasivo = FormatterNumber.parseDouble(totales['pasivo']);
+    final totalCapital = FormatterNumber.parseDouble(totales['capital']);
+    final utilidad = FormatterNumber.parseDouble(map?['utilidad_ejercicio']);
+    final capitalConUtilidad = totalCapital + utilidad;
+    final pasivoYCapital = FormatterNumber.parseDouble(
+      totales['pasivo_y_capital'],
+    );
+    final diff = (totalActivo - pasivoYCapital).abs();
+    final isBalanced = diff <= 0.05;
 
     return Scaffold(
-      backgroundColor: AppColors.light,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Balance General', style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold)),
+        elevation: 0.5,
         backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: AppColors.secondary),
-        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.azulOscuro),
+        title: const Text(
+          'Balance General',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.azulOscuro,
+          ),
+        ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ElevatedButton.icon(
-              onPressed: () => _seleccionarFecha(context),
-              icon: const Icon(Icons.date_range),
-              label: Text("Al: ${_fechaHasta.toIso8601String().split('T')[0]}"),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+          Center(
+            child: ContabilidadDateButton(
+              prefix: 'Corte al',
+              date: _fechaHasta,
+              onTap: _seleccionarFecha,
             ),
-          )
+          ),
+          const SizedBox(width: 6),
+          Center(
+            child: ContabilidadQuickPresetChip(
+              label: 'Hoy',
+              onTap: () => setState(() => _fechaHasta = DateTime.now()),
+            ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Actualizar Balance General',
+            icon: const Icon(Icons.refresh_rounded, size: 19),
+            onPressed: () => ref.invalidate(balanceGeneralProvider(fHasta)),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: asyncData.when(
-        data: (data) {
-          final activos = data['activos'] as List<dynamic>;
-          final pasivos = data['pasivos'] as List<dynamic>;
-          final capital = data['capital'] as List<dynamic>;
-          final totales = data['totales'];
-          final utilidad = data['utilidad_ejercicio'];
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: 'Total Activos',
+                    value: FormatterNumber.formatCurrency(totalActivo),
+                    icon: Icons.account_balance_rounded,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: 'Total Pasivos',
+                    value: FormatterNumber.formatCurrency(totalPasivo),
+                    icon: Icons.receipt_long_outlined,
+                    color: Colors.orange.shade800,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: 'Capital + Resultado',
+                    value: FormatterNumber.formatCurrency(capitalConUtilidad),
+                    icon: Icons.pie_chart_outline_rounded,
+                    color: Colors.purple.shade700,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ContabilidadKpiChip(
+                    label: 'Ecuación (A = P + C)',
+                    value: isBalanced
+                        ? 'Cuadrado'
+                        : 'Dif: ${FormatterNumber.formatCurrency(diff)}',
+                    icon: isBalanced
+                        ? Icons.verified_outlined
+                        : Icons.warning_amber_rounded,
+                    color: isBalanced
+                        ? Colors.green.shade700
+                        : Colors.red.shade700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: asyncData.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (err, _) => CustomEmptyState(
+                  title: 'Error al consultar el Balance General',
+                  subtitle: '$err',
+                  icon: Icons.error_outline_rounded,
+                ),
+                data: (data) {
+                  final activos =
+                      (data['activos'] as List<dynamic>?) ?? const [];
+                  final pasivos =
+                      (data['pasivos'] as List<dynamic>?) ?? const [];
+                  final capital =
+                      (data['capital'] as List<dynamic>?) ?? const [];
 
-          return ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              _buildSection('ACTIVOS', activos, double.tryParse(totales['activo'].toString()) ?? 0),
-              _buildSection('PASIVOS', pasivos, double.tryParse(totales['pasivo'].toString()) ?? 0),
-              
-              // CAPITAL (incluye Utilidad del Ejercicio)
-              Container(
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  final leftColumn = Column(
+                    children: [
+                      ContabilidadTreeSectionCard(
+                        title: '1. ACTIVOS',
+                        icon: Icons.account_balance_wallet_outlined,
+                        accentColor: Colors.blue.shade800,
+                        nodos: activos,
+                        total: totalActivo,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('CAPITAL', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                          Text(
-                            FormatterNumber.formatCurrency((double.tryParse(totales['capital'].toString()) ?? 0) + (double.tryParse(utilidad.toString()) ?? 0)), 
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)
-                          ),
-                        ],
+                      ContabilidadSummaryBar(
+                        title: 'TOTAL ACTIVOS',
+                        subtitle:
+                            'Recursos y derechos al ${FormatterNumber.formatFechaLatina(_fechaHasta)}',
+                        amount: totalActivo,
+                        backgroundColor: Colors.blue.shade900,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        children: [
-                          ...capital.map((n) => _buildNode(n)),
-                          const Divider(),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.arrow_right, size: 18, color: Colors.grey.shade400),
-                                    const SizedBox(width: 8),
-                                    const Text("Utilidad del Ejercicio", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary)),
-                                  ],
-                                ),
-                                Text(
-                                  FormatterNumber.formatCurrency(double.tryParse(utilidad.toString()) ?? 0),
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.secondary),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  );
 
-              // TOTAL PASIVO Y CAPITAL
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [Colors.blueGrey.shade800, Colors.blueGrey.shade900]),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('TOTAL PASIVO Y CAPITAL', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
-                    Text(
-                      FormatterNumber.formatCurrency(double.tryParse(totales['pasivo_y_capital'].toString()) ?? 0), 
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)
-                    ),
-                  ],
-                ),
+                  final rightColumn = Column(
+                    children: [
+                      ContabilidadTreeSectionCard(
+                        title: '2. PASIVOS',
+                        icon: Icons.assignment_late_outlined,
+                        accentColor: Colors.orange.shade800,
+                        nodos: pasivos,
+                        total: totalPasivo,
+                      ),
+                      ContabilidadTreeSectionCard(
+                        title: '3. CAPITAL PATRIMONIAL',
+                        icon: Icons.shield_outlined,
+                        accentColor: Colors.purple.shade700,
+                        nodos: capital,
+                        total: capitalConUtilidad,
+                        extraBottomRows: [_buildUtilidadRow(utilidad)],
+                      ),
+                      ContabilidadSummaryBar(
+                        title: 'TOTAL PASIVO Y CAPITAL',
+                        subtitle: 'Obligaciones + Patrimonio neto + Resultado',
+                        amount: pasivoYCapital,
+                        backgroundColor: AppColors.azulOscuro,
+                      ),
+                    ],
+                  );
+
+                  return LayoutBuilder(
+                    builder: (_, constraints) {
+                      final wide = constraints.maxWidth >= 920;
+                      return SingleChildScrollView(
+                        child: wide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: leftColumn),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: rightColumn),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  leftColumn,
+                                  const SizedBox(height: 10),
+                                  rightColumn,
+                                ],
+                              ),
+                      );
+                    },
+                  );
+                },
               ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+            ),
+          ],
+        ),
       ),
     );
   }

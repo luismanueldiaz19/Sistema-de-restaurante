@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="RFCE">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Encabezado">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Version" type="xs:string"/>
+                            <xs:element name="IdDoc">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="TipoeCF" type="xs:string"/>
+                                        <xs:element name="eNCF">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:pattern value="E32[0-9]{10}"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="TipoIngresos" type="xs:string"/>
+                                        <xs:element name="TipoPago" type="xs:integer"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Emisor">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="RNCEmisor">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:pattern value="[0-9]{9}|[0-9]{11}"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="RazonSocialEmisor" type="xs:string"/>
+                                        <xs:element name="FechaEmision" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Comprador" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="RNCComprador" type="xs:string" minOccurs="0"/>
+                                        <xs:element name="RazonSocialComprador" type="xs:string" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Totales">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="MontoGravadoTotal" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoGravado1" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoGravado2" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoGravado3" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoExento" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS1" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS2" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="TotalITBIS3" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="MontoTotal" type="xs:decimal"/>
+                                        <xs:element name="MontoNoFacturable" type="xs:decimal" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="CodigoSeguridadECF">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:length value="6"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:any namespace="http://www.w3.org/2000/09/xmldsig#" processContents="lax" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+

@@ -1,0 +1,21 @@
+[ req ]
+default_bits        = 2048
+default_md          = sha256
+distinguished_name  = req_distinguished_name
+x509_extensions     = v3_ca
+prompt              = no
+
+[ req_distinguished_name ]
+C  = DO
+ST = Santiago
+L  = Santiago de los Caballeros
+O  = Menuxa LwaderSoft
+OU = Facturacion Electronica e-CF
+CN = PruebaFacturacionDGII
+
+[ v3_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:false
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment
+

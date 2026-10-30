@@ -362,6 +362,9 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
       metodoPago: pagoInfo?['metodo_pago']?.toString().toUpperCase(),
       montoRecibido: pagoInfo?['monto_recibido'],
       devuelta: pagoInfo?['devuelta'],
+      qrUrl: facturaData?['qr_url']?.toString(),
+      codigoSeguridad: facturaData?['codigo_seguridad']?.toString(),
+      fechaFirma: facturaData?['fecha_hora_firma']?.toString(),
     );
 
     if (!resultado.exito && mounted) {

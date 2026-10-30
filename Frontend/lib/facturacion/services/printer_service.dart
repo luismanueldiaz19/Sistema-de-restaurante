@@ -44,7 +44,6 @@ class ThermalPrinterService {
         connectionTypes: [ConnectionType.USB],
       );
 
-      // Escuchar el stream durante 3 s
       final sub = _plugin.devicesStream.listen((printers) {
         for (final p in printers) {
           if (p.connectionType == ConnectionType.USB &&
@@ -64,8 +63,7 @@ class ThermalPrinterService {
         );
       }
 
-      // ⚠️ En Windows, USB NO necesita connect() — causa 'Read buffer fail'.
-      // Solo guardamos la referencia; printData() accede directo al driver.
+      // En Windows, USB NO necesita connect() — causa 'Read buffer fail'.
       _printerConectado = encontradas.first;
 
       return ResultadoImpresora(
@@ -115,7 +113,6 @@ class ThermalPrinterService {
   // ─────────────────────────────────────────────
   Future<ResultadoImpresora> imprimirPrueba() async {
     try {
-      // Si no hay impresora guardada, buscar una primero
       if (_printerConectado == null) {
         final conexion = await conectarAutomaticamente();
         if (!conexion.exito) return conexion;
@@ -191,7 +188,7 @@ class ThermalPrinterService {
   }
 
   // ─────────────────────────────────────────────
-  // IMPRIMIR FACTURA
+  // IMPRIMIR FACTURA (CON QR Y CÓDIGO DE SEGURIDAD OFICIAL e-CF DGII)
   // ─────────────────────────────────────────────
   Future<ResultadoImpresora> imprimirFactura({
     required String nombreNegocio,
@@ -209,16 +206,18 @@ class ThermalPrinterService {
     String? rncCliente,
     String? nota,
     String? tipoPago,
-    String? metodoPago, // ej: 'EFECTIVO', 'TARJETA'
-    double? montoRecibido, // monto que entregó el cliente
-    double? devuelta, // cambio devuelto
+    String? metodoPago,
+    double? montoRecibido,
+    double? devuelta,
+    String? qrUrl,
+    String? codigoSeguridad,
+    String? fechaFirma,
     Printer? printer,
   }) async {
     try {
       Printer? target = printer ?? _printerConectado;
 
       if (target == null) {
-        // Intentar conectar automáticamente si no hay impresora
         final conexion = await conectarAutomaticamente();
         if (!conexion.exito) {
           return ResultadoImpresora(
@@ -237,7 +236,6 @@ class ThermalPrinterService {
       final generator = Generator(PaperSize.mm80, profile, spaceBetweenRows: 2);
       List<int> bytes = [];
 
-      // Reiniciar impresora
       bytes += generator.reset();
 
       // ── ENCABEZADO (Centrado) ──────
@@ -250,11 +248,7 @@ class ThermalPrinterService {
         styles: const PosStyles(align: PosAlign.center),
       );
       bytes += generator.text(
-        'Tel.: 809-000-0000',
-        styles: const PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.text(
-        'PRINCIPAL - SANTIAGO',
+        'Tel.: ${Company.current.telefono}',
         styles: const PosStyles(align: PosAlign.center),
       );
       bytes += generator.text(
@@ -269,18 +263,18 @@ class ThermalPrinterService {
         styles: const PosStyles(align: PosAlign.left),
       );
 
-      String tipoDoc = (rncCliente != null && rncCliente.length == 9)
-          ? 'Factura de Credito Fiscal'
-          : 'Factura de Consumo Electronica';
-
+      final String tipoDoc = _resolverTituloComprobante(ncf, rncCliente);
       bytes += generator.text(
         tipoDoc,
-        styles: const PosStyles(align: PosAlign.left),
+        styles: const PosStyles(align: PosAlign.left, bold: true),
       );
+
+      final bool esEcf =
+          ncf != null && ncf.toUpperCase().startsWith('E') && ncf != 'S/N';
 
       if (ncf != null && ncf.isNotEmpty && ncf != 'S/N') {
         bytes += generator.text(
-          'e-NCF $ncf',
+          esEcf ? 'e-NCF: $ncf' : 'NCF: $ncf',
           styles: const PosStyles(align: PosAlign.left, bold: true),
         );
       }
@@ -289,22 +283,26 @@ class ThermalPrinterService {
         'Factura No. : $numeroFactura',
         styles: const PosStyles(align: PosAlign.left),
       );
-      bytes += generator.text(
-        'RNC Cliente : ${rncCliente ?? ""}',
-        styles: const PosStyles(align: PosAlign.left),
-      );
+      if (rncCliente != null &&
+          rncCliente.isNotEmpty &&
+          !RegExp(r'^0+$').hasMatch(rncCliente.replaceAll('-', ''))) {
+        bytes += generator.text(
+          'RNC Cliente : $rncCliente',
+          styles: const PosStyles(align: PosAlign.left),
+        );
+      }
       bytes += generator.text(
         'Cliente     : $clienteLimpio',
         styles: const PosStyles(align: PosAlign.left),
       );
       bytes += generator.text(
-        'FACTURA DE $tipoPago',
+        'CONDICION   : ${tipoPago ?? "CONTADO"}',
         styles: const PosStyles(align: PosAlign.left),
       );
 
       if (nota != null && nota.isNotEmpty) {
         bytes += generator.text(
-          'Nota        : $nota',
+          'Nota        : ${_limpiarTexto(nota)}',
           styles: const PosStyles(align: PosAlign.left),
         );
       }
@@ -312,7 +310,6 @@ class ThermalPrinterService {
       // ── ENCABEZADO DE ITEMS ───────────────────────
       bytes += generator.hr(ch: '=');
 
-      // DESCRIPCION (21) | CANT (4) | P.UNIT (10) | P.TOTAL (13) = 48
       String buildRow(String c1, String c2, String c3, String c4) {
         return c1.padRight(21) +
             c2.padLeft(4) +
@@ -328,7 +325,6 @@ class ThermalPrinterService {
 
       // ── ITEMS ─────────────────────────────────────
       for (final item in items) {
-        // Truncamos la descripción para que todo quepa en una sola línea
         String desc = _truncate(_limpiarTexto(item.descripcion), 20);
         String cant = _fmtCant(item.cantidad);
         String pUnit = item.precioUnitario.toStringAsFixed(2);
@@ -343,7 +339,6 @@ class ThermalPrinterService {
 
       // ── TOTALES ───────────────────────────────────
       String buildTotalRow(String label, String value) {
-        // Total 48 chars (30 left padding para el label, 18 para el valor)
         return label.padLeft(30) + value.padLeft(18);
       }
 
@@ -363,7 +358,6 @@ class ThermalPrinterService {
         );
       }
 
-      // El total principal en texto grande (máximo 24 caracteres por el doble ancho)
       String buildTotalBig(String label, String value) {
         return label.padLeft(10) + value.padLeft(14);
       }
@@ -395,20 +389,28 @@ class ThermalPrinterService {
         bytes += generator.hr(ch: '=');
       }
 
-      // ── FIRMA ELECTRÓNICA / QR ─────────
-      bytes += generator.emptyLines(1);
-      String firmaSimulada =
-          'https://dgii.gov.do/ecf/consultar?ncf=${ncf ?? numeroFactura}&rnc=$rncOCedula';
-      bytes += generator.qrcode(firmaSimulada);
+      // ── TIMBRE ELECTRÓNICO DGII (QR + CÓDIGO DE SEGURIDAD + FECHA FIRMA) ──
+      if (esEcf || (qrUrl != null && qrUrl.isNotEmpty)) {
+        bytes += generator.emptyLines(1);
 
-      bytes += generator.text(
-        'Codigo de seguridad: UVHpz',
-        styles: const PosStyles(align: PosAlign.center),
-      );
-      bytes += generator.text(
-        'Fecha de Firma Digital: ${_formatFecha(fecha)}',
-        styles: const PosStyles(align: PosAlign.center),
-      );
+        final rncLimpio = rncOCedula.replaceAll(RegExp(r'[^0-9]'), '');
+        final effectiveQr = (qrUrl != null && qrUrl.isNotEmpty)
+            ? qrUrl
+            : 'https://fc.dgii.gov.do/TesteCF/ConsultaTimbreFC?RncEmisor=$rncLimpio&ENCF=${ncf ?? numeroFactura}&MontoTotal=${total.toStringAsFixed(2)}&CodigoSeguridad=${codigoSeguridad ?? "PENDTE"}';
+
+        bytes += generator.qrcode(effectiveQr);
+
+        if (codigoSeguridad != null && codigoSeguridad.isNotEmpty) {
+          bytes += generator.text(
+            'Codigo de Seguridad: $codigoSeguridad',
+            styles: const PosStyles(align: PosAlign.center, bold: true),
+          );
+        }
+        bytes += generator.text(
+          'Fecha de Firma Digital: ${fechaFirma ?? _formatFecha(fecha)}',
+          styles: const PosStyles(align: PosAlign.center),
+        );
+      }
 
       bytes += generator.emptyLines(1);
       bytes += generator.text(
@@ -426,12 +428,9 @@ class ThermalPrinterService {
         ),
       );
 
-      // Reducido a 2 líneas de espacio final para evitar tanto papel blanco
       bytes += generator.emptyLines(2);
       bytes += generator.cut();
 
-      // ── ENVIAR A IMPRESORA ────────────────────────
-      // longData:true es necesario en Windows USB (envía en chunks)
       await _plugin.printData(target, bytes, longData: true);
 
       return const ResultadoImpresora(
@@ -627,6 +626,9 @@ class ThermalPrinterService {
     required String motivo,
     String? cliente,
     String? rncCliente,
+    String? qrUrl,
+    String? codigoSeguridad,
+    String? fechaFirma,
     Printer? printer,
   }) async {
     try {
@@ -649,7 +651,6 @@ class ThermalPrinterService {
 
       bytes += generator.reset();
 
-      // ENCABEZADO
       bytes += generator.text(
         _limpiarTexto(nombreNegocio.toUpperCase()),
         styles: const PosStyles(align: PosAlign.center, bold: true),
@@ -664,14 +665,13 @@ class ThermalPrinterService {
       );
       bytes += generator.emptyLines(1);
 
-      // TITULO DOCUMENTO
       final esElectronica = ncfNota.toUpperCase().startsWith('E');
       bytes += generator.text(
         esElectronica ? 'NOTA DE CREDITO ELECTRONICA' : 'NOTA DE CREDITO',
         styles: const PosStyles(align: PosAlign.center, bold: true),
       );
       bytes += generator.text(
-        'NCF: $ncfNota',
+        esElectronica ? 'e-NCF: $ncfNota' : 'NCF: $ncfNota',
         styles: const PosStyles(align: PosAlign.center, bold: true),
       );
       bytes += generator.text(
@@ -693,7 +693,6 @@ class ThermalPrinterService {
       }
       bytes += generator.hr();
 
-      // CABECERA TABLA
       bytes += generator.row([
         PosColumn(
           text: 'CANT DESCRIPCION',
@@ -713,7 +712,6 @@ class ThermalPrinterService {
       ]);
       bytes += generator.hr();
 
-      // ÍTEMS DEVUELTOS
       for (final item in itemsDevueltos) {
         final cantStr = _fmtCant(item.cantidad);
         final descStr = _limpiarTexto(_truncate(item.descripcion, 16));
@@ -739,7 +737,6 @@ class ThermalPrinterService {
 
       bytes += generator.hr();
 
-      // TOTALES
       bytes += generator.row([
         PosColumn(text: 'SUBTOTAL:', width: 6),
         PosColumn(
@@ -775,6 +772,23 @@ class ThermalPrinterService {
       bytes += generator.text('MOTIVO:');
       bytes += generator.text(_limpiarTexto(motivo));
 
+      if (esElectronica && qrUrl != null && qrUrl.isNotEmpty) {
+        bytes += generator.emptyLines(1);
+        bytes += generator.qrcode(qrUrl);
+        if (codigoSeguridad != null && codigoSeguridad.isNotEmpty) {
+          bytes += generator.text(
+            'Codigo de Seguridad: $codigoSeguridad',
+            styles: const PosStyles(align: PosAlign.center, bold: true),
+          );
+        }
+        if (fechaFirma != null && fechaFirma.isNotEmpty) {
+          bytes += generator.text(
+            'Fecha de Firma Digital: $fechaFirma',
+            styles: const PosStyles(align: PosAlign.center),
+          );
+        }
+      }
+
       bytes += generator.emptyLines(2);
       bytes += generator.cut();
 
@@ -795,6 +809,23 @@ class ThermalPrinterService {
   // HELPERS PRIVADOS
   // ─────────────────────────────────────────────
 
+  String _resolverTituloComprobante(String? ncf, String? rncCliente) {
+    final upper = (ncf ?? '').toUpperCase();
+    if (upper.startsWith('E31')) return 'Factura de Credito Fiscal Electronica';
+    if (upper.startsWith('E32')) return 'Factura de Consumo Electronica';
+    if (upper.startsWith('E33')) return 'Nota de Debito Electronica';
+    if (upper.startsWith('E34')) return 'Nota de Credito Electronica';
+    if (upper.startsWith('E44')) return 'Regimenes Especiales Electronico';
+    if (upper.startsWith('E45')) return 'Comprobante Gubernamental Electronico';
+    if (upper.startsWith('E46')) return 'Comprobante Exportaciones Electronico';
+
+    return (rncCliente != null &&
+            rncCliente.replaceAll('-', '').length >= 9 &&
+            !RegExp(r'^0+$').hasMatch(rncCliente.replaceAll('-', '')))
+        ? 'Factura de Credito Fiscal'
+        : 'Factura de Consumo';
+  }
+
   String _formatFecha(DateTime fecha) {
     final h = fecha.hour.toString().padLeft(2, '0');
     final m = fecha.minute.toString().padLeft(2, '0');
@@ -811,8 +842,6 @@ class ThermalPrinterService {
   String _truncate(String s, int max) =>
       s.length > max ? '${s.substring(0, max - 2)}..' : s;
 
-  /// Remueve acentos y caracteres especiales para evitar errores de codificación
-  /// en impresoras térmicas (Ej: "Menú" -> "Menu", "Díaz" -> "Diaz")
   String _limpiarTexto(String text) {
     if (text.isEmpty) return text;
     const conAcento = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöøÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÑñ';

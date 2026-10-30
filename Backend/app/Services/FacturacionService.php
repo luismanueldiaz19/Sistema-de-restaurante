@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\Cliente;
 use App\Models\Factura;
-use App\Models\FacturaDetalle;
 use App\Models\CuentaPorCobrar;
 use App\Models\Pago;
 use App\Models\PagoCxc;
@@ -12,6 +13,7 @@ use App\Models\Producto;
 use App\Models\MetodoPago;
 use Exception;
 use App\Modules\Contabilidad\Services\ContabilidadService;
+use App\Modules\Ecf\Services\EcfEmisorService;
 
 class FacturacionService {
     protected $inventoryService;
@@ -29,11 +31,20 @@ class FacturacionService {
     }
 
     public function procesarVenta(array $data, int $usuarioId) {
-        return DB::transaction(function () use ($data, $usuarioId) {
+        $resultado = DB::transaction(function () use ($data, $usuarioId) {
             // 🔥 GENERAR NCF
             $secuencia = $this->generarNCF($data['ncf_secuencia_id']);
             $ncf = $secuencia['ncf'];
             $tipoFactura = $secuencia['nombre'];
+
+            // Validar requisito fiscal DGII para E31 (Crédito Fiscal) y E45 (Gubernamental)
+            if (in_array((string) $secuencia['tipo'], ['31', '45'], true)) {
+                $cliente = Cliente::find($data['cliente_id']);
+                $rncClean = preg_replace('/[^0-9]/', '', (string) ($cliente?->rnc_cedula ?? ''));
+                if (preg_match('/^0+$/', $rncClean) || !in_array(strlen($rncClean), [9, 11], true)) {
+                    throw new Exception("Para emitir un comprobante E{$secuencia['tipo']} ({$tipoFactura}), el cliente debe tener un RNC o Cédula válido (9 u 11 dígitos).");
+                }
+            }
 
             $detalles = $data['detalles'];
             $subtotal = 0;
@@ -301,6 +312,25 @@ class FacturacionService {
                 'tipo_factura' => $tipoFactura
             ];
         });
+
+        // 🇩🇴 EMISIÓN ELECTRÓNICA e-CF DGII (XML + Firma .p12 SHA-256 + QR + Envío)
+        if (str_starts_with(strtoupper((string) ($resultado['ncf'] ?? '')), 'E')) {
+            try {
+                $facturaCompleta = Factura::with(['cliente', 'detalles.producto'])->find($resultado['factura_id']);
+                if ($facturaCompleta) {
+                    /** @var EcfEmisorService $ecfEmisor */
+                    $ecfEmisor = app(EcfEmisorService::class);
+                    $ecfDoc = $ecfEmisor->emitirFactura($facturaCompleta, true);
+                    if ($ecfDoc) {
+                        $resultado['ecf'] = $ecfDoc->toSummaryArray();
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error("Error generando e-CF para factura #{$resultado['factura_id']}: " . $e->getMessage());
+            }
+        }
+
+        return $resultado;
     }
 
     private function generarNCF($id) {
@@ -310,20 +340,21 @@ class FacturacionService {
             ->first();
 
         if (!$sec || !$sec->activo) {
-            throw new Exception("Secuencia no válida");
+            throw new Exception("Secuencia no válida o inactiva");
         }
 
-        $nuevo = $sec->actual + 1;
+        $nuevo = max((int) $sec->actual + 1, (int) $sec->rango_inicio);
 
-        if ($nuevo > $sec->rango_fin) {
-            throw new Exception("Secuencia agotada");
+        if ($nuevo > (int) $sec->rango_fin) {
+            throw new Exception("Secuencia NCF agotada ({$sec->prefijo}{$sec->tipo}). Actualice el rango autorizado en DGII -> NCF.");
         }
 
         DB::table('ncf_secuencias')
             ->where('id', $id)
-            ->update(['actual' => $nuevo]);
+            ->update(['actual' => $nuevo, 'updated_at' => now()]);
 
-        $ncf = $sec->prefijo . $sec->tipo . str_pad($nuevo, 10, '0', STR_PAD_LEFT);
+        $padLength = strtoupper((string) $sec->prefijo) === 'E' ? 10 : 8;
+        $ncf = $sec->prefijo . $sec->tipo . str_pad((string) $nuevo, $padLength, '0', STR_PAD_LEFT);
 
         return [
             'ncf' => $ncf,

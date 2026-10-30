@@ -8,6 +8,7 @@ class CustomFilterDropdown<T> extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final BorderRadius? borderRadius;
   final double fontSize;
+  final bool isExpanded;
 
   const CustomFilterDropdown({
     super.key,
@@ -18,6 +19,7 @@ class CustomFilterDropdown<T> extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 12),
     this.borderRadius,
     this.fontSize = 12,
+    this.isExpanded = false,
   });
 
   @override
@@ -33,6 +35,7 @@ class CustomFilterDropdown<T> extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           value: value,
+          isExpanded: isExpanded,
           icon: const Icon(Icons.arrow_drop_down, size: 18),
           style: TextStyle(
             fontSize: fontSize,
