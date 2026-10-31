@@ -26,8 +26,8 @@ return [
         'municipio'        => env('DGII_EMISOR_MUNICIPIO', '250100'),
         'provincia'        => env('DGII_EMISOR_PROVINCIA', '250000'),
         'telefono'         => env('DGII_EMISOR_TELEFONO', '809-769-9580'),
-        'correo'           => env('DGII_EMISOR_CORREO', '--'),
-        'web'              => env('DGII_EMISOR_WEB', '--'),
+        'correo'           => env('DGII_EMISOR_CORREO', 'facturacion@menuxa.com'),
+        'web'              => env('DGII_EMISOR_WEB', 'www.menuxa.com'),
     ],
 
     /*

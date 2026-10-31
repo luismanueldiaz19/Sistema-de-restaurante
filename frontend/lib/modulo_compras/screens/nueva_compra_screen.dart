@@ -1,0 +1,246 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/compras_provider.dart';
+import '../providers/proveedores_provider.dart';
+import '../../modulo_producto/providers/producto_provider.dart';
+import '../../utils/helpers.dart';
+import '../providers/nueva_compra_form_provider.dart';
+import '../../facturacion/providers/metodo_pago_provider.dart';
+
+import 'widgets/compra_configuracion_form.dart';
+import 'widgets/compra_detalle_data_grid.dart';
+import 'widgets/compra_panel_totales.dart';
+
+class NuevaCompraScreen extends ConsumerStatefulWidget {
+  const NuevaCompraScreen({super.key});
+
+  @override
+  ConsumerState<NuevaCompraScreen> createState() => _NuevaCompraScreenState();
+}
+
+class _NuevaCompraScreenState extends ConsumerState<NuevaCompraScreen> {
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(proveedoresProvider.notifier).loadProveedores();
+      final token = ref.read(comprasProvider.notifier).token;
+      if (token != null) {
+        ref
+            .read(productosCompraProvider.notifier)
+            .loadProductosCompras(token, silent: true, search: '');
+      }
+      ref.read(metodoPagoProvider).fetchMetodosActivos();
+      // Resetear el formulario al entrar
+      ref.read(nuevaCompraFormProvider.notifier).clearForm();
+    });
+  }
+
+  void _guardarCompra() async {
+    if (_isSaving) return;
+
+    final formState = ref.read(nuevaCompraFormProvider);
+
+    if (formState.proveedorId == null) {
+      showToast(context, 'Seleccione un proveedor', bgColor: Colors.orange);
+      return;
+    }
+    if (formState.numFactura.isEmpty) {
+      showToast(context, 'Ingrese número de factura', bgColor: Colors.orange);
+      return;
+    }
+    if (formState.detalles.isEmpty) {
+      showToast(
+        context,
+        'Agregue al menos un producto al carrito',
+        bgColor: Colors.orange,
+      );
+      return;
+    }
+    if (formState.tipoCompra == 'CREDITO' &&
+        formState.fechaVencimiento == null) {
+      showToast(
+        context,
+        'Seleccione fecha de vencimiento',
+        bgColor: Colors.orange,
+      );
+      return;
+    }
+
+    if (formState.tipoCompra == 'CONTADO' && formState.metodoPagoId == null) {
+      showToast(
+        context,
+        'Seleccione un método de pago',
+        bgColor: Colors.orange,
+      );
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final data = {
+        'proveedor_id': int.tryParse(formState.proveedorId ?? ''),
+        'numero_factura_proveedor': formState.numFactura,
+        'ncf': formState.ncf,
+        'fecha_compra': formState.fechaCompra.toIso8601String().split('T')[0],
+        'fecha_vencimiento': formState.fechaVencimiento?.toIso8601String().split(
+          'T',
+        )[0],
+        'tipo_compra': formState.tipoCompra,
+        'metodo_pago_id': formState.metodoPagoId,
+        'referencia_pago': formState.referenciaPago,
+        'notas': formState.notas,
+        // ── IDEMPOTENCIA ─────────────────────────────────────────────────────
+        // El mismo UUID se envía en cada reintento del formulario.
+        // El backend detecta si ya existe una compra con este key y,
+        // de ser así, devuelve la existente sin duplicar ningún registro.
+        'idempotency_key': formState.idempotencyKey,
+        // ──────────────────────────────────────────────────────────────────────
+        'detalles': formState.detalles.map((d) => d.toJson()).toList(),
+      };
+
+      final success = await ref.read(comprasProvider.notifier).createCompra(data);
+      if (!mounted) return;
+
+      if (success) {
+        showToast(
+          context,
+          'Compra registrada con éxito. Listo para la siguiente.',
+          bgColor: Colors.green,
+        );
+        // Limpia el carrito, campos y genera un nuevo idempotency_key
+        ref.read(nuevaCompraFormProvider.notifier).clearForm();
+      } else {
+        showToast(
+          context,
+          ref.read(comprasProvider).error ?? 'Error al registrar',
+          bgColor: Colors.red,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showToast(context, 'Error al registrar: $e', bgColor: Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 900;
+
+    return Scaffold(
+      // backgroundColor: AppColors.light,
+      appBar: AppBar(
+        title: const Text(
+          'Registro de Compras',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (!isTablet) {
+            return _buildMobileLayout();
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // PANEL IZQUIERDO: FORMULARIO CONFIGURACION
+              SizedBox(
+                width: 300,
+                child: Container(
+                  margin: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const SingleChildScrollView(
+                    child: CompraConfiguracionForm(),
+                  ),
+                ),
+              ),
+
+              // PANEL CENTRAL/DERECHO: DATAGRID FACTURA
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                  child: Column(
+                    children: [
+                      const Expanded(child: CompraDetalleDataGrid()),
+                      const SizedBox(height: 8),
+                      CompraPanelTotales(
+                        onGuardar: _guardarCompra,
+                        isLoading: _isSaving,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: const CompraConfiguracionForm(),
+                ),
+                SizedBox(
+                  height: 500, // Alto fijo para el DataGrid en móvil
+                  child: const CompraDetalleDataGrid(),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: CompraPanelTotales(
+            onGuardar: _guardarCompra,
+            isLoading: _isSaving,
+          ),
+        ),
+      ],
+    );
+  }
+}

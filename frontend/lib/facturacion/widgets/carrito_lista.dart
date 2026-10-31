@@ -1,0 +1,392 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../palletes/app_colors.dart';
+import '../../utils/helpers.dart';
+import '../models/factura_item.dart';
+
+class CarritoLista extends StatelessWidget {
+  final List<FacturaItem> items;
+  final Function(String, double) onUpdateCantidad;
+  final Function(String) onRemove;
+  final Function(String, double)? onUpdatePrecio;
+
+  const CarritoLista({
+    super.key,
+    required this.items,
+    required this.onUpdateCantidad,
+    required this.onRemove,
+    this.onUpdatePrecio,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: AppColors.light,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.shopping_basket_outlined,
+                size: 40,
+                color: Colors.grey.shade300,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Carrito Vacío',
+              style: TextStyle(
+                color: AppColors.secondary.withValues(alpha: 0.5),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Agrega productos del catálogo',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+          child: Row(
+            children: [
+              const Text(
+                'Carrito',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.secondary,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${items.length} items',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _buildItem(context, item);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItem(BuildContext context, FacturaItem item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: AppColors.light,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.fastfood, color: Colors.grey, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.descripcion,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11.5,
+                        height: 1.18,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(
+                          FormatterNumber.formatCurrency(item.precio),
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (onUpdatePrecio != null) ...[
+                          const SizedBox(width: 4),
+                          InkWell(
+                            onTap: () =>
+                                _mostrarDialogoEdicionPrecio(context, item),
+                            child: const Icon(
+                              Icons.edit,
+                              size: 14,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              _buildCircleBtn(
+                icon: Icons.close,
+                color: Colors.redAccent,
+                onTap: () => onRemove(item.id),
+                size: 24,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.light,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    _buildQtyBtn(Icons.remove, () {
+                      if (item.cantidad > 1) {
+                        onUpdateCantidad(item.id, item.cantidad - 1);
+                      }
+                    }),
+                    InkWell(
+                      onTap: () =>
+                          _mostrarDialogoEdicionCantidad(context, item),
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 40),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          item.cantidad.toString().replaceAll(
+                            RegExp(r'\.0$'),
+                            '',
+                          ),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                            color: AppColors.secondary,
+                            decoration: TextDecoration.underline,
+                            decorationStyle: TextDecorationStyle.dashed,
+                          ),
+                        ),
+                      ),
+                    ),
+                    _buildQtyBtn(Icons.add, () {
+                      if (item.cantidad < 20000) {
+                        onUpdateCantidad(item.id, item.cantidad + 1);
+                      }
+                    }),
+                  ],
+                ),
+              ),
+              Text(
+                FormatterNumber.formatCurrency(item.total),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 14,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQtyBtn(IconData icon, VoidCallback onTap) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      elevation: 2,
+      shadowColor: Colors.black12,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          child: Icon(icon, size: 16, color: AppColors.secondary),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCircleBtn({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    double size = 32,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color, size: size * 0.6),
+      ),
+    );
+  }
+
+  void _mostrarDialogoEdicionPrecio(BuildContext context, FacturaItem item) {
+    final TextEditingController precioController = TextEditingController(
+      text: item.precio.toStringAsFixed(2),
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Editar Precio'),
+          content: TextField(
+            controller: precioController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Precio Unitario',
+              prefixText: '\$ ',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final double? newPrecio = double.tryParse(
+                  precioController.text,
+                );
+                if (newPrecio != null && newPrecio >= 0) {
+                  onUpdatePrecio!(item.id, newPrecio);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoEdicionCantidad(BuildContext context, FacturaItem item) {
+    final TextEditingController qtyController = TextEditingController(
+      text: item.cantidad.toString().replaceAll(RegExp(r'\.0$'), ''),
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Ingresar Cantidad'),
+          content: TextField(
+            controller: qtyController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: const InputDecoration(labelText: 'Cantidad'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                final double? newQty = double.tryParse(qtyController.text);
+                if (newQty != null && newQty > 0 && newQty <= 20000) {
+                  onUpdateCantidad(item.id, newQty);
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'La cantidad debe ser mayor a 0 y máximo 20,000.',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

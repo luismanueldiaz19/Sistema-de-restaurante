@@ -1,0 +1,251 @@
+import 'package:flutter/material.dart';
+import '../models/producto.dart';
+import '../../palletes/app_colors.dart';
+import '../screens/nuevo_ajuste_dialog.dart';
+
+class ProductoDetailPanel extends StatelessWidget {
+  final Producto producto;
+
+  const ProductoDetailPanel({super.key, required this.producto});
+
+  Widget _buildInfoRow(IconData icon, String title, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.azulOscuro.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: AppColors.azulOscuro),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade500,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value.isNotEmpty ? value : "N/A",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: valueColor ?? AppColors.azulOscuro,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: AppColors.azulOscuro.withValues(alpha: 0.1),
+                  child: const Icon(
+                    Icons.inventory_2_outlined,
+                    size: 24,
+                    color: AppColors.azulOscuro,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        producto.nombre ?? "Sin Nombre",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.azulOscuro,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (producto.activo ?? false)
+                              ? Colors.green.withValues(alpha: 0.1)
+                              : Colors.red.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          (producto.activo ?? false) ? "Activo" : "Inactivo",
+                          style: TextStyle(
+                            color: (producto.activo ?? false) ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Body
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(15),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Columna 1
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Información General",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.azulOscuro,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.qr_code,
+                          "Código",
+                          producto.codigo ?? "",
+                        ),
+                        _buildInfoRow(
+                          Icons.description_outlined,
+                          "Descripción",
+                          producto.descripcion ?? "",
+                        ),
+                        _buildInfoRow(
+                          Icons.category_outlined,
+                          "Categoría",
+                          producto.categoria?.nombre ?? "",
+                        ),
+                        _buildInfoRow(
+                          Icons.merge_type,
+                          "Tipo Producto",
+                          producto.tipoProducto ?? "",
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  // Columna 2
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Detalles de Precio e Inventario",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.azulOscuro,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.attach_money,
+                          "Precio de Venta",
+                          "RD\$ ${producto.precioVenta?.toStringAsFixed(2) ?? '0.00'}",
+                          valueColor: Colors.green.shade700,
+                        ),
+                        _buildInfoRow(
+                          Icons.money_off,
+                          "Costo",
+                          "RD\$ ${producto.costo?.toStringAsFixed(2) ?? '0.00'}",
+                        ),
+                        _buildInfoRow(
+                          Icons.inventory_2_outlined,
+                          "Maneja Inventario",
+                          (producto.manejaInventario ?? false) ? "SÍ" : "NO",
+                          valueColor: (producto.manejaInventario ?? false) ? Colors.teal : Colors.grey,
+                        ),
+                        if (producto.manejaInventario ?? false) ...[
+                          _buildInfoRow(
+                            Icons.all_inbox_outlined,
+                            "Stock Actual",
+                            (producto.stockActual ?? 0) < 0
+                                ? "${producto.stockActual?.toStringAsFixed(1) ?? '0'} (Déficit)"
+                                : "${producto.stockActual?.toStringAsFixed(1) ?? '0'} ${producto.unidadMedida?.nombre ?? ''}",
+                            valueColor: (producto.stockActual ?? 0) < 0
+                                ? Colors.red.shade700
+                                : ((producto.stockActual ?? 0) <= (producto.stockMinimo ?? 0)
+                                    ? Colors.amber.shade800
+                                    : Colors.green.shade700),
+                          ),
+                          _buildInfoRow(
+                            Icons.warning_amber_rounded,
+                            "Stock Mínimo",
+                            "${producto.stockMinimo?.toStringAsFixed(1) ?? '0'} ${producto.unidadMedida?.nombre ?? ''}",
+                          ),
+                          const SizedBox(height: 6),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => NuevoAjusteDialog(productoInicial: producto),
+                                );
+                              },
+                              icon: const Icon(Icons.tune, size: 15),
+                              label: const Text("Ajustar Stock", style: TextStyle(fontSize: 12)),
+                              style: OutlinedButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary),
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        ],
+                        _buildInfoRow(
+                          Icons.account_balance_outlined,
+                          "Tipo Contable",
+                          producto.tipoContable ?? "",
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

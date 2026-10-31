@@ -1,0 +1,42 @@
+# 1. Instalar dependencias optimizadas (si no lo has hecho)
+composer install --optimize-autoloader --no-dev
+
+# 2. Caché de configuración (muy importante)
+php artisan config:cache
+
+# 3. Caché de rutas (acelera la navegación)
+php artisan route:cache
+
+# 4. Caché de vistas Blade
+php artisan view:cache
+
+# 5. Asegurar permisos de las carpetas de caché y subidas
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+# 6. Crear el link simbólico para las imágenes (si subes logos o fotos de platillos)
+php artisan storage:link
+
+
+
+
+# 1. Instalar todas las dependencias (crea la carpeta vendor)
+composer install
+
+# 2. Crear el archivo .env a partir del ejemplo
+cp .env.example .env
+
+# 3. Generar la clave de la aplicación (APP_KEY)
+php artisan key:generate
+
+
+editar el .env
+en consola
+
+
+# Ctrl + O
+# Enter
+# Ctrl + X
+
+# 4. Ejecutar las migraciones de la base de datos
+php artisan migrate
