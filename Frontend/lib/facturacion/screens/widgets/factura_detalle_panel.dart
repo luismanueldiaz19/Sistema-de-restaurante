@@ -53,7 +53,8 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
   Color _getEcfStatusColor(String estadoDgii) {
     final e = estadoDgii.toUpperCase();
     if (e.contains('ACEPTADO')) return Colors.teal.shade700;
-    if (e.contains('PROCESO') || e == 'PENDIENTE') return Colors.orange.shade700;
+    if (e.contains('PROCESO') || e == 'PENDIENTE')
+      return Colors.orange.shade700;
     return Colors.red.shade700;
   }
 
@@ -90,8 +91,10 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
         descuento: desc,
         total: tot,
         cliente: factura.cliente?.nombre ?? 'Consumidor Final',
-        rncCliente: factura.cliente?.rncCedula,
-        tipoPago: factura.tipoFactura ?? 'CONTADO',
+        company: Company.current,
+        clienteModel: factura.cliente,
+        cajero: factura.user?.name,
+        tipoPago: factura.tipoFactura ?? '--',
         qrUrl: ecf?.qrUrl,
         codigoSeguridad: ecf?.codigoSeguridad,
         fechaFirma: ecf?.fechaHoraFirma,
@@ -204,9 +207,7 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
     if (widget.isLoading) {
       return Container(
         color: const Color(0xFFF8F9FA),
-        child: const Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
 
@@ -253,15 +254,13 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
     final fechaStr = f.fechaEmision != null
         ? FormatterNumber.formatFechaHora(f.fechaEmision!)
         : (f.createdAt != null
-            ? FormatterNumber.formatFechaHora(f.createdAt!)
-            : 'N/A');
+              ? FormatterNumber.formatFechaHora(f.createdAt!)
+              : 'N/A');
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: child,
-      ),
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
       child: Container(
         key: ValueKey(f.id),
         color: const Color(0xFFF8F9FA),
@@ -335,7 +334,8 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                                           if (uri != null) {
                                             await launchUrl(
                                               uri,
-                                              mode: LaunchMode.externalApplication,
+                                              mode: LaunchMode
+                                                  .externalApplication,
                                             );
                                           }
                                         }
@@ -347,8 +347,9 @@ class _FacturaDetallePanelState extends State<FacturaDetallePanel>
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _getEcfStatusColor(ecf.estadoDgii)
-                                          .withValues(alpha: 0.1),
+                                      color: _getEcfStatusColor(
+                                        ecf.estadoDgii,
+                                      ).withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         color: _getEcfStatusColor(

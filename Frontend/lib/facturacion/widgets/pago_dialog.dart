@@ -300,6 +300,8 @@ class _PagoDialogState extends ConsumerState<PagoDialog> {
                             'monto_recibido': _montoRecibido,
                             'devuelta': _devuelta,
                             'metodo_pago': _metodoPagoSeleccionado?.tipo,
+                            'metodo_pago_nombre':
+                                _metodoPagoSeleccionado?.nombre,
                             'metodo_pago_id': _metodoPagoSeleccionado?.id,
                             'imprimir_factura': _imprimirFactura,
                           });

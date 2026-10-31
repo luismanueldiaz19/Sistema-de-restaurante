@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../modulo_cliente/models/cliente.dart';
 import '../../modulo_cliente/providers/cliente_admin_provider.dart';
@@ -299,7 +299,16 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
     if (result['success'] && mounted) {
       // 🖨️ Imprimir ticket en impresora térmica USB si está activado
       if (imprimirTicket) {
-        _imprimirTicket(state, result['data'], pagoInfo);
+        _imprimirTicket(
+          state,
+          result['data'],
+          pagoInfo,
+          abrirCajon:
+              pagoInfo?['metodo_pago']?.toString().toLowerCase() == 'efectivo',
+        );
+      } else if (pagoInfo?['metodo_pago']?.toString().toLowerCase() ==
+          'efectivo') {
+        _printer.abrirCajon();
       }
 
       // Si la factura provino de una mesa, liberarla en el salón
@@ -329,53 +338,112 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
   }
 
   /// Imprime el ticket de la factura recién creada.
-  /// Se ejecuta de forma asíncrona sin bloquear la UI.
+  /// Imprime el ticket de la factura recién creada.
+  /// Si el pago es con tarjeta, imprime automáticamente 2 copias:
+  /// 1 para el Cliente (ORIGINAL - CLIENTE) y 1 para el Negocio (COPIA - ESTABLECIMIENTO).
   Future<void> _imprimirTicket(
     FacturacionState state,
     Map<String, dynamic>? facturaData,
-    Map<String, dynamic>? pagoInfo,
-  ) async {
-    final resultado = await _printer.imprimirFactura(
-      nombreNegocio: Company.current.nombre,
-      direccion: Company.current.direccionCompleta,
-      rncOCedula: Company.current.rnc,
-      numeroFactura: facturaData?['factura_id']?.toString() ?? 'S/N',
-      ncf: facturaData?['ncf']?.toString(),
-      fecha: DateTime.now(),
-      items: state.carrito
-          .map(
-            (item) => ItemFactura(
-              descripcion: item.descripcion,
-              cantidad: item.cantidad,
-              precioUnitario: item.precio,
-            ),
-          )
-          .toList(),
-      subtotal: state.totales.subtotal,
-      impuesto: state.totales.itbis,
-      descuento: state.totales.descuento,
-      total: state.totales.total,
-      cliente: state.clienteSeleccionado?.nombre,
-      rncCliente: state.clienteSeleccionado?.rncCedula,
-      nota: state.nota.isNotEmpty ? state.nota : null,
-      tipoPago: state.tipoFactura == 'contado' ? 'CONTADO' : 'CREDITO',
-      metodoPago: pagoInfo?['metodo_pago']?.toString().toUpperCase(),
-      montoRecibido: pagoInfo?['monto_recibido'],
-      devuelta: pagoInfo?['devuelta'],
-      qrUrl: facturaData?['qr_url']?.toString(),
-      codigoSeguridad: facturaData?['codigo_seguridad']?.toString(),
-      fechaFirma: facturaData?['fecha_hora_firma']?.toString(),
-    );
+    Map<String, dynamic>? pagoInfo, {
+    bool abrirCajon = false,
+  }) async {
+    final tipoMetodo =
+        pagoInfo?['metodo_pago']?.toString().toLowerCase() ?? '';
+    final nombreMetodo =
+        pagoInfo?['metodo_pago_nombre']?.toString().toLowerCase() ?? '';
+    final esTarjeta = tipoMetodo == 'tarjeta' ||
+        tipoMetodo.contains('tarjeta') ||
+        nombreMetodo.contains('tarjeta');
 
-    if (!resultado.exito && mounted) {
-      // Aviso no bloqueante — la factura ya se guardó en el servidor
-      showToast(
-        context,
-        '🖨️ ${resultado.mensaje}',
-        bgColor: Colors.orange.shade700,
+    Future<ResultadoImpresora> printDoc({
+      String? copiaTexto,
+      bool cajon = false,
+    }) {
+      return _printer.imprimirFactura(
+        company: Company.current,
+        clienteModel: state.clienteSeleccionado,
+        direccion: Company.current.direccionCompleta,
+        rncOCedula: Company.current.rnc,
+        numeroFactura: facturaData?['factura_id']?.toString() ?? 'S/N',
+        ncf: facturaData?['ncf']?.toString(),
+        fecha: DateTime.now(),
+        items: state.carrito
+            .map(
+              (item) => ItemFactura(
+                descripcion: item.descripcion,
+                cantidad: item.cantidad,
+                precioUnitario: item.precio,
+              ),
+            )
+            .toList(),
+        subtotal: state.totales.subtotal,
+        impuesto: state.totales.itbis,
+        descuento: state.totales.descuento,
+        total: state.totales.total,
+        cliente: state.clienteSeleccionado?.nombre,
+        rncCliente: state.clienteSeleccionado?.rncCedula,
+        cajero: ref.read(authProvider).user?.name,
+        diasCredito: state.diasCredito,
+        nota: state.nota.isNotEmpty ? state.nota : null,
+        tipoPago: state.tipoFactura == 'contado' ? 'CONTADO' : 'CREDITO',
+        metodoPago: (pagoInfo?['metodo_pago_nombre'] ?? pagoInfo?['metodo_pago'])
+            ?.toString()
+            .toUpperCase(),
+        montoRecibido: pagoInfo?['monto_recibido'],
+        devuelta: pagoInfo?['devuelta'],
+        qrUrl: facturaData?['qr_url']?.toString(),
+        codigoSeguridad: facturaData?['codigo_seguridad']?.toString(),
+        fechaFirma: facturaData?['fecha_hora_firma']?.toString(),
+        copiaTexto: copiaTexto,
+        abrirCajon: cajon,
       );
     }
+
+    if (esTarjeta) {
+      // 1. Imprimir Copia para el Cliente
+      final res1 =
+          await printDoc(copiaTexto: 'ORIGINAL - CLIENTE', cajon: false);
+      if (!res1.exito && mounted) {
+        showToast(
+          context,
+          '🖨️ ${res1.mensaje}',
+          bgColor: Colors.orange.shade700,
+        );
+        return;
+      }
+
+      // Pausa breve para corte de papel
+      await Future.delayed(const Duration(milliseconds: 700));
+
+      // 2. Imprimir Copia para el Establecimiento / Negocio
+      final res2 =
+          await printDoc(copiaTexto: 'COPIA - ESTABLECIMIENTO', cajon: false);
+      if (!res2.exito && mounted) {
+        showToast(
+          context,
+          '🖨️ Error copia negocio: ${res2.mensaje}',
+          bgColor: Colors.orange.shade700,
+        );
+      } else if (mounted) {
+        showToast(
+          context,
+          '✓ 2 Facturas impresas (Cliente y Negocio)',
+          bgColor: Colors.teal,
+        );
+      }
+    } else {
+      // Impresión de 1 sola copia (Efectivo, Transferencia, Crédito, etc.)
+      final resultado = await printDoc(cajon: abrirCajon);
+      if (!resultado.exito && mounted) {
+        showToast(
+          context,
+          '🖨️ ${resultado.mensaje}',
+          bgColor: Colors.orange.shade700,
+        );
+      }
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -473,6 +541,53 @@ class _CrearFacturaPageState extends ConsumerState<CrearFacturaPage> {
             ),
             const SizedBox(width: 6),
           ],
+          // 💵 Botón para abrir cajón de dinero manualmente
+          Tooltip(
+            message: 'Abrir cajón de dinero (conectado al printer)',
+            child: InkWell(
+              onTap: () async {
+                final resultado = await _printer.abrirCajon();
+                if (context.mounted) {
+                  showToast(
+                    context,
+                    resultado.mensaje,
+                    bgColor: resultado.exito
+                        ? Colors.teal
+                        : Colors.orange.shade700,
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.shade400),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.point_of_sale_rounded,
+                      size: 15,
+                      color: Colors.amber.shade900,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Abrir Caja',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           // 🖨️ Botón toggle de impresión automática
           _buildCircleButton(
             icon: _imprimirAutomaticamente ? Icons.print : Icons.print_disabled,
