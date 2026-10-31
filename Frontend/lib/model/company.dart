@@ -97,6 +97,7 @@ class Company {
     telefono: '809-769-9580',
     telefono2: null,
     correo: '--',
+    
     sitioWeb: null,
     logoPath: 'assets/icon/app_icon_1.png',
     ambienteDgii: 'TesteCF',
